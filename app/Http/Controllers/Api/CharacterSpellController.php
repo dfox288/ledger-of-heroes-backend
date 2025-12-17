@@ -14,6 +14,7 @@ use App\Models\CharacterSpell;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -293,16 +294,24 @@ class CharacterSpellController extends Controller
      * - Preparation limit = class level + spellcasting modifier
      * - Prepared spells can be changed after a long rest
      *
+     * **Request Body (optional):**
+     * | Field | Type | Required | Description |
+     * |-------|------|----------|-------------|
+     * | `class_slug` | string | No | For multiclass: which class to prepare from (e.g., "phb:cleric") |
+     *
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
-    public function prepare(Character $character, string $spellIdOrSlug): JsonResponse
+    public function prepare(Request $request, Character $character, string $spellIdOrSlug): JsonResponse
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
             : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
-        $characterSpell = $this->spellManager->prepareSpell($character, $spell);
+        // Issue #731: Support multiclass by passing class_slug
+        $classSlug = $request->input('class_slug');
+
+        $characterSpell = $this->spellManager->prepareSpell($character, $spell, $classSlug);
         $characterSpell->load('spell.spellSchool');
 
         // Explicitly return 200 OK since "prepare" is an action, not a create.

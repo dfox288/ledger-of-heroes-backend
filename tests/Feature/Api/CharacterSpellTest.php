@@ -650,4 +650,176 @@ class CharacterSpellTest extends TestCase
         $response->assertUnprocessable()
             ->assertJsonPath('message', 'Preparation limit reached. Unprepare a spell first.');
     }
+
+    // =====================
+    // Multiclass Spell Tests (Issue #731)
+    // =====================
+
+    #[Test]
+    public function multiclass_can_learn_spell_from_secondary_class_with_class_slug(): void
+    {
+        // Create Wizard (spellbook) and Cleric (prepared) classes
+        $wizardClass = CharacterClass::factory()->spellbookCaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->preparedCaster('WIS')->create(['name' => 'Cleric']);
+
+        // Create multiclass character: Wizard 5 (primary) / Cleric 5
+        $character = Character::factory()
+            ->withAbilityScores(['intelligence' => 16, 'wisdom' => 16])
+            ->withClass($wizardClass, 5)
+            ->withClass($clericClass, 5)
+            ->create();
+
+        // Create a cleric spell and attach to cleric class
+        $clericSpell = Spell::factory()->create(['name' => 'Aid', 'level' => 2]);
+        $clericClass->spells()->attach($clericSpell->id);
+
+        // Try to learn the cleric spell with class_slug specified
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_slug' => $clericSpell->slug,
+            'class_slug' => $clericClass->slug,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.spell.id', $clericSpell->id)
+            ->assertJsonPath('data.class_slug', $clericClass->slug);
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_slug' => $clericSpell->slug,
+            'class_slug' => $clericClass->slug,
+        ]);
+    }
+
+    #[Test]
+    public function multiclass_prepared_caster_can_prepare_spell_from_class_list(): void
+    {
+        // Create Wizard (spellbook) and Cleric (prepared) classes
+        $wizardClass = CharacterClass::factory()->spellbookCaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->preparedCaster('WIS')->create(['name' => 'Cleric']);
+
+        // Create multiclass character: Wizard 5 (primary) / Cleric 5
+        $character = Character::factory()
+            ->withAbilityScores(['intelligence' => 16, 'wisdom' => 16])
+            ->withClass($wizardClass, 5)
+            ->withClass($clericClass, 5)
+            ->create();
+
+        // Create a cleric spell and attach to cleric class
+        $clericSpell = Spell::factory()->create(['name' => 'Aid', 'level' => 2]);
+        $clericClass->spells()->attach($clericSpell->id);
+
+        // Cleric is a prepared caster - should be able to prepare directly from class list
+        // without first "learning" the spell (auto-add via prepared_from_list)
+        $response = $this->patchJson(
+            "/api/v1/characters/{$character->id}/spells/{$clericSpell->slug}/prepare",
+            ['class_slug' => $clericClass->slug]
+        );
+
+        $response->assertOk()
+            ->assertJsonPath('data.spell.id', $clericSpell->id)
+            ->assertJsonPath('data.preparation_status', 'prepared')
+            ->assertJsonPath('data.source', 'prepared_from_list');
+
+        $this->assertDatabaseHas('character_spells', [
+            'character_id' => $character->id,
+            'spell_slug' => $clericSpell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'prepared_from_list',
+            'class_slug' => $clericClass->slug,
+        ]);
+    }
+
+    #[Test]
+    public function multiclass_rejects_spell_from_class_character_does_not_have(): void
+    {
+        // Create Wizard and Cleric classes
+        $wizardClass = CharacterClass::factory()->spellbookCaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->preparedCaster('WIS')->create(['name' => 'Cleric']);
+
+        // Create single-class Wizard character (NO cleric levels)
+        $character = Character::factory()
+            ->withAbilityScores(['intelligence' => 16])
+            ->withClass($wizardClass, 5)
+            ->create();
+
+        // Create a cleric spell
+        $clericSpell = Spell::factory()->create(['name' => 'Aid', 'level' => 2]);
+        $clericClass->spells()->attach($clericSpell->id);
+
+        // Try to learn cleric spell with class_slug - should fail as character has no cleric levels
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_slug' => $clericSpell->slug,
+            'class_slug' => $clericClass->slug,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('message', "The spell 'Aid' is not available for this character's class.");
+    }
+
+    #[Test]
+    public function multiclass_available_spells_returns_class_specific_spells(): void
+    {
+        // Create Wizard and Cleric classes
+        $wizardClass = CharacterClass::factory()->spellbookCaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->preparedCaster('WIS')->create(['name' => 'Cleric']);
+
+        // Create multiclass character: Wizard 5 (primary) / Cleric 5
+        $character = Character::factory()
+            ->withAbilityScores(['intelligence' => 16, 'wisdom' => 16])
+            ->withClass($wizardClass, 5)
+            ->withClass($clericClass, 5)
+            ->create();
+
+        // Create wizard and cleric spells
+        $wizardSpells = Spell::factory()->count(3)->create(['level' => 1]);
+        $clericSpells = Spell::factory()->count(5)->create(['level' => 1]);
+
+        $wizardClass->spells()->attach($wizardSpells->pluck('id'));
+        $clericClass->spells()->attach($clericSpells->pluck('id'));
+
+        // Without class filter - should return primary class (wizard) spells
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells");
+        $response->assertOk()->assertJsonCount(3, 'data');
+
+        // With class filter - should return cleric spells
+        $response = $this->getJson("/api/v1/characters/{$character->id}/available-spells?class={$clericClass->slug}");
+        $response->assertOk()->assertJsonCount(5, 'data');
+    }
+
+    #[Test]
+    public function multiclass_respects_class_specific_max_spell_level(): void
+    {
+        // Create Wizard and Cleric classes
+        $wizardClass = CharacterClass::factory()->spellbookCaster('INT')->create(['name' => 'Wizard']);
+        $clericClass = CharacterClass::factory()->preparedCaster('WIS')->create(['name' => 'Cleric']);
+
+        // Create multiclass character: Wizard 7 (primary) / Cleric 3
+        // Wizard 7 can cast up to 4th level spells
+        // Cleric 3 can cast up to 2nd level spells
+        $character = Character::factory()
+            ->withAbilityScores(['intelligence' => 16, 'wisdom' => 16])
+            ->withClass($wizardClass, 7)
+            ->withClass($clericClass, 3)
+            ->create();
+
+        // Create cleric spells at different levels
+        $level2ClericSpell = Spell::factory()->create(['name' => 'Aid', 'level' => 2]);
+        $level3ClericSpell = Spell::factory()->create(['name' => 'Revivify', 'level' => 3]);
+
+        $clericClass->spells()->attach([$level2ClericSpell->id, $level3ClericSpell->id]);
+
+        // Should be able to learn level 2 cleric spell (Cleric 3 can cast 2nd level)
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_slug' => $level2ClericSpell->slug,
+            'class_slug' => $clericClass->slug,
+        ]);
+        $response->assertCreated();
+
+        // Should NOT be able to learn level 3 cleric spell (Cleric 3 cannot cast 3rd level)
+        $response = $this->postJson("/api/v1/characters/{$character->id}/spells", [
+            'spell_slug' => $level3ClericSpell->slug,
+            'class_slug' => $clericClass->slug,
+        ]);
+        $response->assertUnprocessable();
+    }
 }

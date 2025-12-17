@@ -214,13 +214,13 @@ class SpellManagerService
      */
     public function learnSpell(Character $character, Spell $spell, string $source = 'class', ?string $classSlug = null): CharacterSpell
     {
-        // Validate spell is on class list
-        if (! $this->isSpellOnClassList($character, $spell)) {
+        // Validate spell is on class list (use specified class for multiclass)
+        if (! $this->isSpellOnClassList($character, $spell, $classSlug)) {
             throw SpellManagementException::spellNotOnClassList($spell, $character);
         }
 
-        // Validate spell level is accessible
-        $maxSpellLevel = $this->getMaxSpellLevelForCharacter($character);
+        // Validate spell level is accessible (use class-specific max level for multiclass)
+        $maxSpellLevel = $this->getMaxSpellLevelForClass($character, $classSlug);
         if ($spell->level > $maxSpellLevel) {
             throw SpellManagementException::spellLevelTooHigh($spell, $character, $maxSpellLevel);
         }
@@ -270,9 +270,11 @@ class SpellManagerService
      * spells from their class list with source='prepared_from_list'. These spells
      * are deleted when unprepared (ephemeral divine access).
      *
+     * @param  string|null  $classSlug  Class to use for multiclass (if null, uses primary class)
+     *
      * @throws SpellManagementException
      */
-    public function prepareSpell(Character $character, Spell $spell): CharacterSpell
+    public function prepareSpell(Character $character, Spell $spell, ?string $classSlug = null): CharacterSpell
     {
         // Cantrips cannot be prepared (check first to avoid creating orphaned rows)
         if ($spell->level === 0) {
@@ -285,7 +287,7 @@ class SpellManagerService
 
         // If spell not in character_spells, try auto-add for prepared casters
         if (! $characterSpell) {
-            $characterSpell = $this->tryAutoAddForPreparedCaster($character, $spell);
+            $characterSpell = $this->tryAutoAddForPreparedCaster($character, $spell, $classSlug);
         }
 
         if (! $characterSpell) {
@@ -317,24 +319,25 @@ class SpellManagerService
      * "learning" it. This creates an ephemeral character_spell with source='prepared_from_list'
      * that is deleted when unprepared.
      *
+     * @param  string|null  $classSlug  Class to use for multiclass (if null, uses primary class)
      * @return CharacterSpell|null The created spell, or null if conditions not met
      *
      * @throws SpellManagementException If validation fails
      */
-    private function tryAutoAddForPreparedCaster(Character $character, Spell $spell): ?CharacterSpell
+    private function tryAutoAddForPreparedCaster(Character $character, Spell $spell, ?string $classSlug = null): ?CharacterSpell
     {
-        // Only for prepared casters
-        if (! $this->isPreparedCaster($character)) {
+        // Only for prepared casters (check the specified class for multiclass)
+        if (! $this->isPreparedCaster($character, $classSlug)) {
             return null;
         }
 
         // Validate spell is on class list
-        if (! $this->isSpellOnClassList($character, $spell)) {
+        if (! $this->isSpellOnClassList($character, $spell, $classSlug)) {
             throw SpellManagementException::spellNotOnClassList($spell, $character);
         }
 
-        // Validate spell level is accessible
-        $maxSpellLevel = $this->getMaxSpellLevelForCharacter($character);
+        // Validate spell level is accessible (use class-specific max level)
+        $maxSpellLevel = $this->getMaxSpellLevelForClass($character, $classSlug);
         if ($spell->level > $maxSpellLevel) {
             throw SpellManagementException::spellLevelTooHigh($spell, $character, $maxSpellLevel);
         }
@@ -347,28 +350,40 @@ class SpellManagerService
             throw SpellManagementException::preparationLimitReached($character, $preparationLimit);
         }
 
-        // Get class slug for the spell (from primary class)
-        $classSlug = $character->primary_class?->slug;
+        // Get class slug for the spell (use specified or fall back to primary class)
+        $effectiveClassSlug = $classSlug ?? $character->primary_class?->slug;
 
         return CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $spell->slug,
             'preparation_status' => 'prepared',
             'source' => 'prepared_from_list',
-            'class_slug' => $classSlug,
+            'class_slug' => $effectiveClassSlug,
             'level_acquired' => $character->total_level,
         ]);
     }
 
     /**
-     * Check if the character's primary class is a prepared caster.
+     * Check if a character's class is a prepared caster.
      *
      * Prepared casters (Cleric, Druid, Paladin, Artificer) have access to their
      * entire class spell list and prepare a subset daily.
+     *
+     * @param  string|null  $classSlug  If provided, check this specific class. If null, check primary class.
      */
-    private function isPreparedCaster(Character $character): bool
+    private function isPreparedCaster(Character $character, ?string $classSlug = null): bool
     {
-        $class = $character->primary_class;
+        if ($classSlug !== null) {
+            $classPivot = $this->findClassPivotBySlug($character, $classSlug);
+
+            if (! $classPivot) {
+                return false;
+            }
+
+            $class = $classPivot->characterClass;
+        } else {
+            $class = $character->primary_class;
+        }
 
         if (! $class) {
             return false;
@@ -522,11 +537,20 @@ class SpellManagerService
     }
 
     /**
-     * Check if a spell is on the character's class spell list or expanded spell list.
+     * Check if a spell is on a character's class spell list or expanded spell list.
+     *
+     * @param  string|null  $classSlug  If provided, check this specific class. If null, check primary class.
+     *                                  For multiclass characters, pass the class_slug to validate against
+     *                                  that specific class's spell list.
      */
-    private function isSpellOnClassList(Character $character, Spell $spell): bool
+    private function isSpellOnClassList(Character $character, Spell $spell, ?string $classSlug = null): bool
     {
-        $classPivot = $character->characterClasses()->where('is_primary', true)->first();
+        // If a specific class is provided, find that class pivot
+        if ($classSlug !== null) {
+            $classPivot = $this->findClassPivotBySlug($character, $classSlug);
+        } else {
+            $classPivot = $character->characterClasses()->where('is_primary', true)->first();
+        }
 
         if (! $classPivot) {
             return false;
@@ -579,6 +603,44 @@ class SpellManagerService
     }
 
     /**
+     * Find a character's class pivot by class slug.
+     *
+     * Handles both base class slugs and subclass slugs - checks if the character
+     * has levels in the specified class (or its parent base class).
+     */
+    private function findClassPivotBySlug(Character $character, string $classSlug): ?object
+    {
+        // First try direct class_slug match
+        $pivot = $character->characterClasses()
+            ->where('class_slug', $classSlug)
+            ->first();
+
+        if ($pivot) {
+            return $pivot;
+        }
+
+        // Check if classSlug is a base class and character has a subclass of it
+        $baseClass = CharacterClass::where('slug', $classSlug)
+            ->whereNull('parent_class_id')
+            ->first();
+
+        if ($baseClass) {
+            // Find if character has any subclass of this base class
+            $pivot = $character->characterClasses()
+                ->whereHas('characterClass', function ($query) use ($baseClass) {
+                    $query->where('parent_class_id', $baseClass->id);
+                })
+                ->first();
+
+            if ($pivot) {
+                return $pivot;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get the maximum spell level this character can cast.
      *
      * D&D 5e: Full casters learn up to (level + 1) / 2 rounded up
@@ -592,6 +654,36 @@ class SpellManagerService
     }
 
     /**
+     * Get the maximum spell level for a specific class (for multiclass support).
+     *
+     * D&D 5e Multiclass Rule: Each class prepares spells as if single-classed.
+     * A Wizard 7 / Cleric 3 can only prepare Cleric spells up to level 2 (from Cleric 3),
+     * even though they have 4th-level spell slots from combined caster levels.
+     *
+     * @param  string|null  $classSlug  If provided, use that class's level. If null, use total level.
+     */
+    private function getMaxSpellLevelForClass(Character $character, ?string $classSlug = null): int
+    {
+        if ($classSlug === null) {
+            // No specific class - use total level (existing behavior)
+            return $this->getMaxSpellLevelForCharacter($character);
+        }
+
+        $classPivot = $this->findClassPivotBySlug($character, $classSlug);
+
+        if (! $classPivot) {
+            // Character doesn't have this class - return 0 (can't cast any spells)
+            return 0;
+        }
+
+        $classLevel = $classPivot->level;
+
+        // For full casters: max spell level = ceil(level / 2) capped at 9
+        // Level 1-2: 1st, Level 3-4: 2nd, Level 5-6: 3rd, etc.
+        return min(9, (int) ceil($classLevel / 2));
+    }
+
+    /**
      * Check if character already knows this spell.
      */
     private function characterKnowsSpell(Character $character, Spell $spell): bool
@@ -600,37 +692,26 @@ class SpellManagerService
     }
 
     /**
-     * Get preparation limit for the character.
+     * Get total preparation limit for the character.
+     *
+     * For multiclass characters, this is the SUM of all per-class preparation limits.
+     * Per D&D 5e rules, each class prepares spells separately based on class level + ability modifier.
      */
     private function getPreparationLimit(Character $character): ?int
     {
-        $class = $character->primary_class;
+        $perClassLimits = $this->getPerClassPreparationLimits($character);
 
-        if (! $class) {
+        if (empty($perClassLimits)) {
             return null;
         }
 
-        $baseClassName = $class->parent_class_id
-            ? strtolower($class->parentClass->name ?? '')
-            : strtolower($class->name);
-
-        // Get the spellcasting ability
-        $spellcastingAbility = $class->effective_spellcasting_ability;
-
-        if (! $spellcastingAbility) {
-            return null;
+        // Sum all per-class limits
+        $total = 0;
+        foreach ($perClassLimits as $classData) {
+            $total += $classData['limit'];
         }
 
-        // Get the character's ability modifier for spellcasting
-        $abilityScore = $character->getAbilityScore($spellcastingAbility->code);
-
-        if ($abilityScore === null) {
-            return null;
-        }
-
-        $abilityModifier = $this->statCalculator->abilityModifier($abilityScore);
-
-        return $this->statCalculator->getPreparationLimit($baseClassName, $character->total_level, $abilityModifier);
+        return $total;
     }
 
     /**

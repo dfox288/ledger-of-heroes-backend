@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #725**: Add `slug` field to counter API response
+  - Format: `{source_slug}:{counter_name_kebab}` (e.g., `phb:barbarian:rage`, `phb:cleric:channel-divinity`)
+  - Useful for debugging, logging, and easier identification of counters
+
 - **Issue #727**: Prepared caster spell preparation from class list
   - Prepared casters (Cleric, Druid, Paladin, Artificer) can now prepare spells directly from their class list without first "learning" them
   - New `source = 'prepared_from_list'` for ephemeral divine spell preparations

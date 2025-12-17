@@ -9,6 +9,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterCounter;
 use App\Models\EntityCounter;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Manages character resource counters (Rage uses, Ki Points, etc.).
@@ -97,6 +98,7 @@ class CounterService
             ->get()
             ->map(fn (CharacterCounter $counter) => [
                 'id' => $counter->id,
+                'slug' => $counter->source_slug.':'.Str::kebab($counter->counter_name),
                 'name' => $counter->counter_name,
                 'current' => $counter->remaining,
                 'max' => $counter->max_uses,

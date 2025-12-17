@@ -33,10 +33,10 @@ class CharacterExperienceController extends Controller
      *
      * @response 200 {
      *   "data": {
-     *     "experience_points": 6500,
+     *     "experience_points": 10000,
      *     "level": 5,
      *     "next_level_xp": 14000,
-     *     "xp_to_next_level": 7500,
+     *     "xp_to_next_level": 4000,
      *     "xp_progress_percent": 46.67,
      *     "is_max_level": false
      *   }

@@ -342,6 +342,10 @@ Route::prefix('v1')->group(function () {
         Route::delete('features/{source}', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'clear'])
             ->name('features.clear');
 
+        // Character Optional Features (Invocations, Infusions, Metamagic with full details)
+        Route::get('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'index'])
+            ->name('optional-features.index');
+
         // ASI Choice (Feat or Ability Score Increase)
         Route::post('asi-choice', \App\Http\Controllers\Api\AsiChoiceController::class)
             ->name('asi-choice');

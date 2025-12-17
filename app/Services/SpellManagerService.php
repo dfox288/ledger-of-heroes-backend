@@ -281,11 +281,25 @@ class SpellManagerService
             throw SpellManagementException::cannotPrepareCantrip($spell);
         }
 
-        $characterSpell = $character->spells()
-            ->where('spell_slug', $spell->slug)
-            ->first();
+        // Issue #735: When class_slug is provided, look for spell matching that class
+        // This handles multiclass characters preparing from a specific class
+        $query = $character->spells()->where('spell_slug', $spell->slug);
 
-        // If spell not in character_spells, try auto-add for prepared casters
+        if ($classSlug !== null) {
+            // First try to find spell for the requested class
+            $characterSpell = (clone $query)->where('class_slug', $classSlug)->first();
+
+            // If not found for requested class but character is a prepared caster for that class,
+            // create a new ephemeral record (don't use spell from different class)
+            if (! $characterSpell && $this->isPreparedCaster($character, $classSlug)) {
+                $characterSpell = $this->tryAutoAddForPreparedCaster($character, $spell, $classSlug);
+            }
+        } else {
+            // No class specified - use existing behavior (find any matching spell)
+            $characterSpell = $query->first();
+        }
+
+        // If spell not in character_spells at all, try auto-add for prepared casters
         if (! $characterSpell) {
             $characterSpell = $this->tryAutoAddForPreparedCaster($character, $spell, $classSlug);
         }

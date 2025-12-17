@@ -1,8 +1,8 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-16T02:55:01+00:00",
+    "format_version": "1.3",
+    "exported_at": "2025-12-16T23:12:43+00:00",
     "character": {
-        "public_id": "golden-arrow-JIEG",
+        "public_id": "valiant-oracle-XFOr",
         "name": "Artillerist L1",
         "race": "vgm:tabaxi-legacy",
         "background": "phb:pirate",
@@ -44,12 +44,14 @@
                 "spell": "phb:thorn-whip",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             },
             {
                 "spell": "xge:create-bonfire",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             }
         ],
@@ -178,9 +180,7 @@
                     "trait_name": "Darkvision"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -191,9 +191,7 @@
                     "trait_name": "Feline Agility"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -204,9 +202,7 @@
                     "trait_name": "Cat's Claws"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -217,9 +213,7 @@
                     "trait_name": "Cat's Talents"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -230,9 +224,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -243,9 +235,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -256,11 +246,10 @@
                     "trait_name": "Feature: Bad Reputation"
                 },
                 "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             }
         ],
+        "counters": [],
         "portrait": null
     }
 }

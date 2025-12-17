@@ -1,0 +1,306 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T00:22:20+00:00",
+    "character": {
+        "public_id": "brave-hawk-7xX1",
+        "name": "College of Spirits L1",
+        "race": "twbtw:fairy-legacy",
+        "background": "scag:knight-of-the-order",
+        "alignment": "Chaotic Neutral",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 10,
+            "constitution": 14,
+            "intelligence": 12,
+            "wisdom": 15,
+            "charisma": 13
+        },
+        "max_hit_points": 8,
+        "current_hit_points": 8,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "hp_levels_resolved": [
+            1
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:bard",
+                "subclass": null,
+                "level": 1,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:bane",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:feather-fall",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:friends",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:unseen-servant",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:earth-tremor",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:thunderclap",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "banner",
+                "custom_description": "{\"source\":\"background\",\"description\":\"banner\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "or seal representing your place or rank in the order",
+                "custom_description": "{\"source\":\"background\",\"description\":\"or seal representing your place or rank in the order\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:dwarvish",
+                "source": "background"
+            },
+            {
+                "language": "core:sahuagin",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:sleight-of-hand",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:medicine",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:pan-flute",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:lute",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:drum",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:dragonchess-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "twbtw:fairy",
+                    "trait_name": "Fey Characteristics"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "twbtw:fairy",
+                    "trait_name": "Creature Type"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "twbtw:fairy",
+                    "trait_name": "Fairy Magic"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "twbtw:fairy",
+                    "trait_name": "Flight"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:knight-of-the-order",
+                    "trait_name": "Feature: Knightly Regard"
+                },
+                "source": "background",
+                "level_acquired": 1
+            }
+        ],
+        "counters": [],
+        "portrait": null
+    }
+}

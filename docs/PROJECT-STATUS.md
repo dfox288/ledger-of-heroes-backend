@@ -653,15 +653,17 @@ All controllers now have consistent error response documentation with HTTP statu
 ## 🎯 Current Priorities
 
 ### Active Work
-- **#701** - Class/Subclass Fixture Generation Campaign
+- **#701** - Class/Subclass Fixture Generation Campaign (4/13 classes complete)
+  - ✅ Artificer (24), Barbarian (48), Bard (48), Cleric (84) = 204 fixtures
+  - Fixed #730: College of Swords Fighting Style associations
 - **#693** - Class/Subclass Audit & Validation System
 
 ### Open Backend Issues
+- **#726** - API: Include preparation_method per class in spellcasting stats
 - **#717** - Limited-use tracking for racial traits (Breath Weapon, Drow Magic)
 - **#671** - Character API: Add experience_points field
 - **#658** - DM Screen: Legendary/lair actions for boss monsters
 - **#657** - DM Screen: Monster saving throws
-- **#607** - Party stats: Add class resources
 - **#519** - Test anti-pattern cleanup (tautological tests)
 - **#499** - Phase 4: D&D 5e compliance polish
 - **#95** - XP-Based Leveling

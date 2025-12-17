@@ -1,8 +1,8 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-16T02:55:05+00:00",
+    "format_version": "1.3",
+    "exported_at": "2025-12-16T23:12:48+00:00",
     "character": {
-        "public_id": "wild-wanderer-6khr",
+        "public_id": "valiant-knight-OYEm",
         "name": "Artillerist L3",
         "race": "dmg:gnoll-dmg-npc",
         "background": "phb:spy",
@@ -46,24 +46,28 @@
                 "spell": "phb:shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 3
             },
             {
                 "spell": "phb:thunderwave",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 3
             },
             {
                 "spell": "tce:sword-burst",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             },
             {
                 "spell": "xge:magic-stone",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             }
         ],
@@ -199,32 +203,40 @@
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             }
         ],
         "notes": [],
@@ -247,9 +259,7 @@
                     "trait_name": "Bite"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -260,9 +270,7 @@
                     "trait_name": "Darkvision"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -273,9 +281,7 @@
                     "trait_name": "Rampage"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -286,9 +292,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -299,9 +303,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -312,9 +314,7 @@
                     "trait_name": "Feature: Spy Contact"
                 },
                 "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -325,9 +325,7 @@
                     "level": 2
                 },
                 "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 2
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -338,9 +336,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -351,9 +347,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -364,9 +358,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -377,9 +369,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -390,9 +380,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -403,9 +391,25 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Defensive Field",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Infusions Known",
+                "current_uses": null,
+                "max_uses": 4,
+                "reset_timing": null
             }
         ],
         "portrait": null

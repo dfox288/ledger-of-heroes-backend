@@ -1,22 +1,22 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-15T23:47:10+00:00",
+    "format_version": "1.3",
+    "exported_at": "2025-12-16T23:14:25+00:00",
     "character": {
-        "public_id": "golden-dragon-Mj88",
-        "name": "Zarok",
-        "race": "vrgtr:dhampir",
-        "background": "scag:investigator",
-        "alignment": "Lawful Neutral",
+        "public_id": "fierce-wanderer-FbcG",
+        "name": "Battle Smith L3",
+        "race": "dmg:bullywug-dmg-npc",
+        "background": "phb:guild-merchant",
+        "alignment": "Lawful Good",
         "ability_scores": {
-            "strength": 14,
-            "dexterity": 13,
-            "constitution": 15,
-            "intelligence": 8,
-            "wisdom": 10,
-            "charisma": 12
+            "strength": 8,
+            "dexterity": 12,
+            "constitution": 13,
+            "intelligence": 10,
+            "wisdom": 14,
+            "charisma": 15
         },
-        "max_hit_points": 36,
-        "current_hit_points": 36,
+        "max_hit_points": 20,
+        "current_hit_points": 20,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -24,58 +24,72 @@
         "has_inspiration": false,
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
-        "size_id": 3,
-        "asi_choices_remaining": 1,
+        "size_id": null,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
-            3,
-            4,
-            5
+            3
         ],
         "hp_calculation_method": "calculated",
         "classes": [
             {
                 "class": "erlw:artificer",
                 "subclass": "erlw:artificer-battle-smith",
-                "level": 5,
+                "level": 3,
                 "is_primary": true,
                 "hit_dice_spent": 0
             }
         ],
         "spells": [
             {
-                "spell": "phb:mage-hand",
-                "source": "class",
-                "preparation_status": "known",
-                "level_acquired": 1
+                "spell": "phb:heroism",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:shield",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
             },
             {
                 "spell": "phb:thorn-whip",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:create-bonfire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             }
         ],
         "equipment": [
             {
                 "item": null,
-                "custom_name": "uniform in the style of your unit and indicative of your rank",
-                "custom_description": "{\"source\":\"background\",\"description\":\"uniform in the style of your unit and indicative of your rank\"}",
+                "custom_name": "mule and a cart",
+                "custom_description": "{\"source\":\"background\",\"description\":\"mule and a cart\"}",
                 "quantity": 1,
                 "equipped": false,
                 "location": "backpack"
             },
             {
                 "item": null,
-                "custom_name": "horn with which to summon help",
-                "custom_description": "{\"source\":\"background\",\"description\":\"horn with which to summon help\"}",
+                "custom_name": "letter of introduction from your guild",
+                "custom_description": "{\"source\":\"background\",\"description\":\"letter of introduction from your guild\"}",
                 "quantity": 1,
                 "equipped": false,
                 "location": "backpack"
             },
             {
-                "item": "phb:manacles",
+                "item": "phb:travelers-clothes",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -94,12 +108,12 @@
                 "item": "phb:gold-gp",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
-                "quantity": 10,
+                "quantity": 15,
                 "equipped": false,
                 "location": "backpack"
             },
             {
-                "item": "phb:dagger",
+                "item": "phb:light-hammer",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"a\"}",
                 "quantity": 1,
@@ -107,9 +121,9 @@
                 "location": "backpack"
             },
             {
-                "item": "phb:scale-mail",
+                "item": "phb:studded-leather-armor",
                 "custom_name": null,
-                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"a\"}",
                 "quantity": 1,
                 "equipped": false,
                 "location": "backpack"
@@ -149,19 +163,7 @@
         ],
         "languages": [
             {
-                "language": "core:common",
-                "source": "race"
-            },
-            {
-                "language": "core:elvish",
-                "source": "race"
-            },
-            {
-                "language": "core:halfling",
-                "source": "background"
-            },
-            {
-                "language": "core:quori",
+                "language": "core:gnoll",
                 "source": "background"
             }
         ],
@@ -174,25 +176,31 @@
                     "choice_group": null
                 },
                 {
-                    "skill": "core:investigation",
+                    "skill": "core:persuasion",
                     "source": "background",
                     "expertise": false,
                     "choice_group": null
                 },
                 {
-                    "skill": "core:arcana",
+                    "skill": "core:sleight-of-hand",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_2"
                 },
                 {
-                    "skill": "core:nature",
+                    "skill": "core:medicine",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_2"
                 }
             ],
             "types": [
+                {
+                    "type": "core:navigators-tools",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
                 {
                     "type": "core:woodcarvers-tools",
                     "source": "class",
@@ -204,106 +212,111 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:enhanced-weapon",
+                "feature": "erlw:enhanced-arcane-focus",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:enhanced-defense",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
                 "feature": "erlw:homunculus-servant",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             },
             {
-                "feature": "erlw:replicate-magic-item",
+                "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
-            },
-            {
-                "feature": "erlw:returning-weapon",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
             }
         ],
         "notes": [],
         "ability_score_choices": [],
-        "spell_slots": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
         "features": [
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "vrgtr:dhampir",
-                    "trait_name": "Ancestral Legacy"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Amphibious"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "vrgtr:dhampir",
-                    "trait_name": "Darkvision"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Speak with Frogs and Toads"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "vrgtr:dhampir",
-                    "trait_name": "Deathless Nature"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Swamp Camouflage"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "vrgtr:dhampir",
-                    "trait_name": "Spider Climb"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Standing Leap"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "vrgtr:dhampir",
-                    "trait_name": "Vampiric Bite"
+                    "entity_slug": "dmg:bullywug",
+                    "trait_name": "Swim speed"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -314,9 +327,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -327,22 +338,18 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "background",
-                    "entity_slug": "scag:investigator",
-                    "trait_name": "Feature: Watcher's Eye"
+                    "entity_slug": "phb:guild-merchant",
+                    "trait_name": "Feature: Guild Membership"
                 },
                 "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -353,9 +360,7 @@
                     "level": 2
                 },
                 "source": "class",
-                "level_acquired": 2,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 2
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -366,9 +371,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -379,9 +382,7 @@
                     "level": 3
                 },
                 "source": "class",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -392,9 +393,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -405,9 +404,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -418,9 +415,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -431,9 +426,7 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -444,9 +437,25 @@
                     "level": 3
                 },
                 "source": "subclass",
-                "level_acquired": 3,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 3
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Defensive Field",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "erlw:artificer",
+                "counter_name": "Infusions Known",
+                "current_uses": null,
+                "max_uses": 4,
+                "reset_timing": null
             }
         ],
         "portrait": null

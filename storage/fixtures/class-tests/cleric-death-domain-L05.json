@@ -1,0 +1,428 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T01:06:41+00:00",
+    "character": {
+        "public_id": "silver-knight-11o0",
+        "name": "Death Domain L5",
+        "race": "vgm:goliath-legacy",
+        "background": "phb:pirate",
+        "alignment": "Neutral Evil",
+        "ability_scores": {
+            "strength": 13,
+            "dexterity": 14,
+            "constitution": 8,
+            "intelligence": 15,
+            "wisdom": 12,
+            "charisma": 10
+        },
+        "max_hit_points": 24,
+        "current_hit_points": 24,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 1,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:cleric",
+                "subclass": "dmg:cleric-death-domain",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:animate-dead",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:blindnessdeafness",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:false-life",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:light",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:ray-of-enfeeblement",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:ray-of-sickness",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:sacred-flame",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:vampiric-touch",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:word-of-radiance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": null,
+                "custom_name": "belaying pin (club)",
+                "custom_description": "{\"source\":\"background\",\"description\":\"belaying pin (club)\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:silk-rope-50-feet",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 50,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:giant",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:athletics",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:athletics",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:history",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:navigators-tools",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:goliath",
+                    "trait_name": "Natural Athlete"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:goliath",
+                    "trait_name": "Stone's Endurance"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:goliath",
+                    "trait_name": "Powerful Build"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:goliath",
+                    "trait_name": "Mountain Born"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Domain",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "dmg:cleric-death-domain",
+                    "feature_name": "Divine Domain: Death Domain",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "dmg:cleric-death-domain",
+                    "feature_name": "Bonus Proficiency (Death Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "dmg:cleric-death-domain",
+                    "feature_name": "Reaper (Death Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:pirate",
+                    "trait_name": "Feature: Bad Reputation"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (1\/rest)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Turn Undead",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Harness Divine Power",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1\/2)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Channel Divinity",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Harness Divine Power",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

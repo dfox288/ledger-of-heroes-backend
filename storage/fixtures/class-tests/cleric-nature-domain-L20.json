@@ -1,0 +1,563 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T01:00:38+00:00",
+    "character": {
+        "public_id": "shadow-raven-XfNI",
+        "name": "Nature Domain L20",
+        "race": "dmg:aarakocra-dmg",
+        "background": "vrgtr:haunted-one-van-richtens",
+        "alignment": "Chaotic Good",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 14,
+            "constitution": 13,
+            "intelligence": 12,
+            "wisdom": 15,
+            "charisma": 10
+        },
+        "max_hit_points": 122,
+        "current_hit_points": 122,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 5,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:cleric",
+                "subclass": "phb:cleric-nature-domain",
+                "level": 20,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:animal-friendship",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:barkskin",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:dominate-beast",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:grasping-vine",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:guidance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:insect-plague",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:plant-growth",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:resistance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:spare-the-dying",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:speak-with-animals",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:spike-growth",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:tree-stride",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:wind-wall",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:mold-earth",
+                "source": "subclass_feature",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric-nature-domain",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:toll-the-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:chest",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "sp.",
+                "custom_description": "{\"source\":\"background\",\"description\":\"sp.\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:auran",
+                "source": "race"
+            },
+            {
+                "language": "core:common",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:animal-handling",
+                    "source": "subclass_feature",
+                    "expertise": false,
+                    "choice_group": "feature_skill_choice"
+                }
+            ],
+            "types": []
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 6,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 7,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 8,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 9,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aarakocra",
+                    "trait_name": "Flight"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aarakocra",
+                    "trait_name": "Dive Attack"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aarakocra",
+                    "trait_name": "Talons"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Domain",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric-nature-domain",
+                    "feature_name": "Divine Domain: Nature Domain",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric-nature-domain",
+                    "feature_name": "Acolyte of Nature (Nature Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric-nature-domain",
+                    "feature_name": "Bonus Proficiency (Nature Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "vrgtr:haunted-one-van-richtens",
+                    "trait_name": "Feature: Heart of Darkness"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (1\/rest)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Turn Undead",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Harness Divine Power",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1\/2)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (2\/rest)",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1)",
+                    "level": 8
+                },
+                "source": "class",
+                "level_acquired": 8
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Intervention",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 2)",
+                    "level": 11
+                },
+                "source": "class",
+                "level_acquired": 11
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 3)",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 4)",
+                    "level": 17
+                },
+                "source": "class",
+                "level_acquired": 17
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (3\/rest)",
+                    "level": 18
+                },
+                "source": "class",
+                "level_acquired": 18
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Intervention Improvement",
+                    "level": 20
+                },
+                "source": "class",
+                "level_acquired": 20
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Channel Divinity",
+                "current_uses": null,
+                "max_uses": 3,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Harness Divine Power",
+                "current_uses": null,
+                "max_uses": 3,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

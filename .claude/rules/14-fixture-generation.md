@@ -37,27 +37,39 @@ For each subclass with bonus spells:
 - [ ] L15: 8 total subclass spells (L13 tier)
 - [ ] L20: 10 total subclass spells (L17 tier)
 
+## Audit Patterns by Class Type
+
+Different classes have different subclass spell expectations:
+
+| Type | Classes | Subclass Spells |
+|------|---------|-----------------|
+| **Domain/Oath spells** | Cleric, Paladin | 2→4→6→10→10→10 |
+| **Expanded spells** | Ranger, Warlock | 2→4→6→8→10 |
+| **Artificer specialties** | Artificer | 2→4→6→8→10 |
+| **Non-casters** | Barbarian, Fighter, Monk, Rogue | 0 (verify none) |
+| **No subclass spells** | Bard, Druid, Sorcerer, Wizard | 0 (class spells only) |
+
 ## Class Order
 
 Track progress through all 13 base classes:
 
-| Class | Subclasses | Status |
-|-------|------------|--------|
-| Artificer | 4 | Pending |
-| Barbarian | 8 | Pending |
-| Bard | 8 | Pending |
-| Cleric | 14 | Pending |
-| Druid | 7 | Pending |
-| Fighter | 10 | Pending |
-| Monk | 9 | Pending |
-| Paladin | 9 | Pending |
-| Ranger | 7 | Pending |
-| Rogue | 9 | Pending |
-| Sorcerer | 6 | Pending |
-| Warlock | 9 | Pending |
-| Wizard | 13 | Pending |
+| Class | Subclasses | Fixtures | Status |
+|-------|------------|----------|--------|
+| Artificer | 4 | 24 | ✅ Complete |
+| Barbarian | 8 | 48 | ✅ Complete |
+| Bard | 8 | 48 | ✅ Complete |
+| Cleric | 14 | 84 | ✅ Complete |
+| Druid | 7 | 0 | ⏳ Pending |
+| Fighter | 10 | 0 | ⏳ Pending |
+| Monk | 9 | 0 | ⏳ Pending |
+| Paladin | 9 | 0 | ⏳ Pending |
+| Ranger | 7 | 0 | ⏳ Pending |
+| Rogue | 9 | 0 | ⏳ Pending |
+| Sorcerer | 6 | 0 | ⏳ Pending |
+| Warlock | 9 | 0 | ⏳ Pending |
+| Wizard | 13 | 0 | ⏳ Pending |
 
-**Progress:** 0/13 classes - Schema changes require regeneration
+**Progress:** 4/13 classes complete (204/684 fixtures)
 
 ## Output Location
 

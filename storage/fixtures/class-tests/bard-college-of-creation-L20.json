@@ -1,0 +1,743 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T00:21:04+00:00",
+    "character": {
+        "public_id": "dark-wanderer-3EDM",
+        "name": "College of Creation L20",
+        "race": "dmg:aasimar-legacy",
+        "background": "scag:faction-agent",
+        "alignment": "Chaotic Good",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 13,
+            "constitution": 14,
+            "intelligence": 10,
+            "wisdom": 15,
+            "charisma": 12
+        },
+        "max_hit_points": 141,
+        "current_hit_points": 141,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 5,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:bard",
+                "subclass": "tce:bard-college-of-creation",
+                "level": 20,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:color-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 6
+            },
+            {
+                "spell": "phb:comprehend-languages",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:detect-magic",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:dimension-door",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 18
+            },
+            {
+                "spell": "phb:dissonant-whispers",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:faerie-fire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 11
+            },
+            {
+                "spell": "phb:freedom-of-movement",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:geas",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:greater-restoration",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 18
+            },
+            {
+                "spell": "phb:healing-word",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:heroism",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:hold-person",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:knock",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:legend-lore",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 14
+            },
+            {
+                "spell": "phb:mordenkainens-sword",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:prestidigitation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:resurrection",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 14
+            },
+            {
+                "spell": "phb:silence",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:silent-image",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:sleep",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:speak-with-plants",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:tongues",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:true-strike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:unseen-servant",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:vicious-mockery",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:thunderclap",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:emblem",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "copy of a seminal faction text (or code-book for a covert faction)",
+                "custom_description": "{\"source\":\"background\",\"description\":\"copy of a seminal faction text (or code-book for a covert faction)\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 15,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:celestial",
+                "source": "race"
+            },
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:draconic",
+                "source": "background"
+            },
+            {
+                "language": "core:halfling",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:insight",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:history",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:sleight-of-hand",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:animal-handling",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:drum",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:viol",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:flute",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 6,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 7,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 8,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 9,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Celestial Resistance"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar",
+                    "trait_name": "Celestial Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:aasimar-legacy",
+                    "trait_name": "Radiant Consumption"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:faction-agent",
+                    "trait_name": "Feature: Safe Haven"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Jack of All Trades",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d6)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Inspiration",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Expertise",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bard College",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:bard-college-of-creation",
+                    "feature_name": "Bard College: College of Creation",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:bard-college-of-creation",
+                    "feature_name": "Mote of Potential (College of Creation)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:bard-college-of-creation",
+                    "feature_name": "Performance of Creation (College of Creation)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration (d8)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Font of Inspiration",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Countercharm",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d8)",
+                    "level": 9
+                },
+                "source": "class",
+                "level_acquired": 9
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration (d10)",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Expertise",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Secrets",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d10)",
+                    "level": 13
+                },
+                "source": "class",
+                "level_acquired": 13
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Secrets",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration (d12)",
+                    "level": 15
+                },
+                "source": "class",
+                "level_acquired": 15
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d12)",
+                    "level": 17
+                },
+                "source": "class",
+                "level_acquired": 17
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Secrets",
+                    "level": 18
+                },
+                "source": "class",
+                "level_acquired": 18
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Superior Inspiration",
+                    "level": 20
+                },
+                "source": "class",
+                "level_acquired": 20
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:bard",
+                "counter_name": "Bardic Inspiration",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

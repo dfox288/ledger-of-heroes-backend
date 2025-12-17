@@ -325,6 +325,8 @@ class OptionalFeatureXmlParser
                 ['class' => 'Fighter', 'subclass' => null],
                 ['class' => 'Paladin', 'subclass' => null],
                 ['class' => 'Ranger', 'subclass' => null],
+                // College of Swords gets Fighting Style at level 3 (Dueling or Two-Weapon Fighting only per RAW)
+                ['class' => 'College of Swords', 'subclass' => null],
             ],
             OptionalFeatureType::ARCANE_SHOT => [['class' => 'Fighter', 'subclass' => 'Arcane Archer']],
             OptionalFeatureType::RUNE => [['class' => 'Fighter', 'subclass' => 'Rune Knight']],

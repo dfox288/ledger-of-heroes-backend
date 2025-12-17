@@ -1,0 +1,632 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T00:50:06+00:00",
+    "character": {
+        "public_id": "wild-mage-D9jC",
+        "name": "College of Swords L10",
+        "race": "dmg:kobold-legacy",
+        "background": "phb:pirate",
+        "alignment": "Lawful Evil",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 10,
+            "constitution": 15,
+            "intelligence": 12,
+            "wisdom": 13,
+            "charisma": 14
+        },
+        "max_hit_points": 71,
+        "current_hit_points": 71,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:bard",
+                "subclass": "xge:bard-college-of-swords",
+                "level": 10,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:animal-friendship",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:bane",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:calm-emotions",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:disguise-self",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:feather-fall",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:friends",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:heat-metal",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:leomunds-tiny-hut",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:locate-animals-or-plants",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:message",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:scrying",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:sending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:silent-image",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:slow",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 6
+            },
+            {
+                "spell": "xge:pyrotechnics",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:thunderclap",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "xge:warding-wind",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:bard",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": null,
+                "custom_name": "belaying pin (club)",
+                "custom_description": "{\"source\":\"background\",\"description\":\"belaying pin (club)\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:silk-rope-50-feet",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 50,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:draconic",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:athletics",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:intimidation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:arcana",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:nature",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:navigators-tools",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "type": "core:dulcimer",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:flute",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:horn",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "tce:druidic-warrior",
+                "class": "phb:bard",
+                "subclass_name": "College of Swords",
+                "level_acquired": 3,
+                "feature_type": "fighting_style",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:kobold",
+                    "trait_name": "Pack Tactics"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:kobold",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:kobold",
+                    "trait_name": "Sunlight Sensitivity"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:pirate",
+                    "trait_name": "Feature: Bad Reputation"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Jack of All Trades",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d6)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Inspiration",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Expertise",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bard College",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Bard College: College of Swords",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Bonus Proficiencies (College of Swords)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Fighting Style (College of Swords)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Fighting Style: Dueling (College of Swords)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Fighting Style: Two-Weapon Fighting (College of Swords)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:bard-college-of-swords",
+                    "feature_name": "Blade Flourish (College of Swords)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration (d8)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Font of Inspiration",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Countercharm",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Song of Rest (d8)",
+                    "level": 9
+                },
+                "source": "class",
+                "level_acquired": 9
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Bardic Inspiration (d10)",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Expertise",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:bard",
+                    "feature_name": "Magical Secrets",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:bard",
+                "counter_name": "Bardic Inspiration",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

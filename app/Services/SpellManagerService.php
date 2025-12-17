@@ -281,6 +281,18 @@ class SpellManagerService
             throw SpellManagementException::cannotPrepareCantrip($spell);
         }
 
+        // D&D 5e rule: A spell can only be prepared once, even if it's on multiple class lists.
+        // Check if this spell is already prepared from ANY class.
+        $alreadyPrepared = $character->spells()
+            ->where('spell_slug', $spell->slug)
+            ->where('preparation_status', 'prepared')
+            ->first();
+
+        if ($alreadyPrepared) {
+            // Idempotent success - return the existing prepared spell
+            return $alreadyPrepared;
+        }
+
         // Issue #735: When class_slug is provided, look for spell matching that class
         // This handles multiclass characters preparing from a specific class
         $query = $character->spells()->where('spell_slug', $spell->slug);
@@ -308,7 +320,7 @@ class SpellManagerService
             throw SpellManagementException::spellNotKnown($spell, $character);
         }
 
-        // Already prepared - idempotent success
+        // Already prepared - idempotent success (shouldn't reach here due to check above, but safe)
         if ($characterSpell->preparation_status === 'prepared') {
             return $characterSpell;
         }

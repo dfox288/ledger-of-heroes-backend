@@ -924,4 +924,81 @@ class SpellManagerServiceTest extends TestCase
         $this->assertNotNull($wizardSpell);
         $this->assertEquals('known', $wizardSpell->preparation_status);
     }
+
+    #[Test]
+    public function prepare_spell_returns_existing_prepared_spell_from_different_class(): void
+    {
+        // D&D 5e rule: A spell can only be prepared once, even if it's on multiple class lists
+
+        $wizard = CharacterClass::factory()->create([
+            'name' => 'Wizard',
+            'slug' => 'test:wizard',
+            'parent_class_id' => null,
+            'spell_preparation_method' => 'spellbook',
+            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+        ]);
+
+        $cleric = CharacterClass::factory()->create([
+            'name' => 'Cleric',
+            'slug' => 'test:cleric',
+            'parent_class_id' => null,
+            'spell_preparation_method' => 'prepared',
+            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'WIS')->first()?->id,
+        ]);
+
+        $spell = Spell::factory()->create([
+            'name' => 'Protection from Evil and Good',
+            'slug' => 'test:protection-from-evil-and-good',
+            'level' => 1,
+        ]);
+
+        DB::table('class_spells')->insert([
+            ['class_id' => $wizard->id, 'spell_id' => $spell->id],
+            ['class_id' => $cleric->id, 'spell_id' => $spell->id],
+        ]);
+
+        $character = Character::factory()->create([
+            'intelligence' => 16,
+            'wisdom' => 16,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $wizard->slug,
+            'level' => 5,
+            'is_primary' => true,
+        ]);
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $cleric->slug,
+            'level' => 5,
+            'is_primary' => false,
+        ]);
+
+        // Character has spell PREPARED for Wizard
+        $wizardSpell = $character->spells()->create([
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'prepared',
+            'source' => 'class',
+            'class_slug' => $wizard->slug,
+            'level_acquired' => 2,
+        ]);
+
+        // Try to prepare the same spell for Cleric - should return the existing Wizard spell
+        $result = $this->service->prepareSpell($character, $spell, $cleric->slug);
+
+        // Should return the already-prepared Wizard spell, NOT create a new Cleric one
+        $this->assertEquals($wizardSpell->id, $result->id);
+        $this->assertEquals($wizard->slug, $result->class_slug);
+        $this->assertEquals('prepared', $result->preparation_status);
+
+        // Should NOT have created a new Cleric spell record
+        $clericSpell = $character->spells()
+            ->where('spell_slug', $spell->slug)
+            ->where('class_slug', $cleric->slug)
+            ->first();
+
+        $this->assertNull($clericSpell);
+    }
 }

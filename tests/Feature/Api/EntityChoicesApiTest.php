@@ -192,6 +192,50 @@ class EntityChoicesApiTest extends TestCase
         expect($choices)->toBe([]);
     }
 
+    #[Test]
+    public function subrace_show_includes_parent_choices_in_inherited_data()
+    {
+        // Create parent race with choices
+        $parentRace = Race::factory()->create(['name' => 'Parent Race']);
+        EntityChoice::factory()
+            ->languageChoice()
+            ->create([
+                'reference_type' => Race::class,
+                'reference_id' => $parentRace->id,
+                'quantity' => 1,
+                'description' => 'Choose one language from parent',
+            ]);
+
+        // Create subrace
+        $subrace = Race::factory()->create([
+            'name' => 'Child Subrace',
+            'parent_race_id' => $parentRace->id,
+        ]);
+
+        // Add subrace-specific choice
+        EntityChoice::factory()
+            ->abilityScoreChoice(quantity: 1)
+            ->create([
+                'reference_type' => Race::class,
+                'reference_id' => $subrace->id,
+                'description' => 'Choose one ability score from subrace',
+            ]);
+
+        $response = $this->getJson("/api/v1/races/{$subrace->id}");
+
+        $response->assertOk();
+
+        // Subrace should have its own choices
+        $choices = $response->json('data.choices');
+        expect($choices)->toHaveCount(1);
+        expect($choices[0]['choice_type'])->toBe('ability_score');
+
+        // Parent choices should be in inherited_data (matching existing pattern)
+        $inheritedChoices = $response->json('data.inherited_data.choices');
+        expect($inheritedChoices)->toHaveCount(1);
+        expect($inheritedChoices[0]['choice_type'])->toBe('language');
+    }
+
     // =====================================================================
     // BACKGROUND CHOICES
     // =====================================================================

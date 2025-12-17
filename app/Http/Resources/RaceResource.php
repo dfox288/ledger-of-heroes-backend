@@ -79,6 +79,9 @@ class RaceResource extends JsonResource
                         'senses' => $parent->relationLoaded('senses')
                             ? EntitySenseResource::collection($parent->senses)
                             : null,
+                        'choices' => $parent->relationLoaded('nonEquipmentChoices')
+                            ? EntityChoiceResource::collection($parent->nonEquipmentChoices)
+                            : null,
                     ];
                 }
             ),

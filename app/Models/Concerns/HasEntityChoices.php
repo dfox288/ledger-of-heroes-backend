@@ -68,6 +68,11 @@ trait HasEntityChoices
      */
     public function nonEquipmentChoices(): MorphMany
     {
-        return $this->choices()->where('choice_type', '!=', 'equipment');
+        return $this->choices()->whereIn('choice_type', [
+            'ability_score',
+            'language',
+            'proficiency',
+            'spell',
+        ]);
     }
 }

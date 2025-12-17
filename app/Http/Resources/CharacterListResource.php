@@ -34,11 +34,11 @@ class CharacterListResource extends JsonResource
             'id' => $this->id,
             'public_id' => $this->public_id,
             'name' => $this->name,
-            'level' => $this->total_level,
+            'level' => (int) $this->total_level,
             'race' => $this->formatEntity($this->race),
             'class_name' => $this->primary_class?->name,
             'portrait' => $this->getPortraitThumb(),
-            'is_complete' => $this->is_complete,
+            'is_complete' => (bool) $this->is_complete,
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }

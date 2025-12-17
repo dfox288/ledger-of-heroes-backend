@@ -23,20 +23,20 @@ class EntityChoiceResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'choice_type' => $this->choice_type,
             'choice_group' => $this->choice_group,
-            'choice_option' => $this->choice_option,
-            'quantity' => $this->quantity,
+            'choice_option' => $this->choice_option !== null ? (int) $this->choice_option : null,
+            'quantity' => (int) $this->quantity,
             'constraint' => $this->constraint,
             'target_type' => $this->target_type,
             'target_slug' => $this->target_slug,
             'description' => $this->description,
-            'level_granted' => $this->level_granted,
-            'is_required' => $this->is_required,
+            'level_granted' => $this->level_granted !== null ? (int) $this->level_granted : null,
+            'is_required' => (bool) $this->is_required,
 
             // Spell-specific fields
-            'spell_max_level' => $this->when($this->choice_type === 'spell', $this->spell_max_level),
+            'spell_max_level' => $this->when($this->choice_type === 'spell', $this->spell_max_level !== null ? (int) $this->spell_max_level : null),
             'spell_list_slug' => $this->when($this->choice_type === 'spell', $this->spell_list_slug),
             'spell_school_slug' => $this->when($this->choice_type === 'spell', $this->spell_school_slug),
 

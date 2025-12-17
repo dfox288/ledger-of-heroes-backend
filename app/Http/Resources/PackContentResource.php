@@ -19,7 +19,7 @@ class PackContentResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'quantity' => $this->quantity,
+            'quantity' => (int) $this->quantity,
             'item' => $this->when(
                 $this->relationLoaded('item') && $this->item,
                 fn () => $this->formatEntity($this->item, ['id', 'name', 'slug', 'weight', 'cost_cp'])

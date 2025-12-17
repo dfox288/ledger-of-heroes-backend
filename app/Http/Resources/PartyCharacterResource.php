@@ -19,7 +19,7 @@ class PartyCharacterResource extends JsonResource
             'id' => $this->id,
             'public_id' => $this->public_id,
             'name' => $this->name,
-            'level' => $this->total_level,
+            'level' => (int) $this->total_level,
             'class_name' => $this->getPrimaryClassName(),
             'portrait' => $this->getPortraitData(),
         ];

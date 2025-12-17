@@ -33,7 +33,7 @@ class PartyCharacterStatsResource extends JsonResource
             'id' => $this->id,
             'public_id' => $this->public_id,
             'name' => $this->name,
-            'level' => $this->total_level,
+            'level' => (int) $this->total_level,
             'class_name' => $this->getPrimaryClassName(),
             'hit_points' => [
                 'current' => $this->current_hit_points,

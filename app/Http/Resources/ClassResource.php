@@ -38,11 +38,10 @@ class ClassResource extends JsonResource
             // === BASE FIELDS ===
             // Note: hit_die and spellcasting_ability use effective values that
             // inherit from parent class for subclasses (see class docblock)
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            /** @var int Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses */
-            'hit_die' => $this->effective_hit_die,
+            'hit_die' => (int) $this->effective_hit_die,
             'description' => $this->description,
             'archetype' => $this->archetype,
             'primary_ability' => $this->primary_ability,
@@ -50,13 +49,10 @@ class ClassResource extends JsonResource
                 return new AbilityScoreResource($this->effective_spellcasting_ability);
             }),
             'parent_class_id' => $this->parent_class_id,
-            /** @var bool Whether this is a base class (not a subclass) */
-            'is_base_class' => $this->is_base_class,
-            /** @var int|null Level at which subclass is chosen */
-            'subclass_level' => $this->subclass_level,
+            'is_base_class' => (bool) $this->is_base_class,
+            'subclass_level' => $this->subclass_level !== null ? (int) $this->subclass_level : null,
             'spellcasting_type' => $this->spellcasting_type,
-            /** @var int|null Number of spells available to this class */
-            'spell_count' => $this->spells_count ?? null,
+            'spell_count' => $this->spells_count !== null ? (int) $this->spells_count : null,
 
             // === STARTING WEALTH (Gold Alternative) ===
             /**

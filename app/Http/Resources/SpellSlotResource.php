@@ -27,10 +27,10 @@ class SpellSlotResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'level' => $this->resource['level'],
-            'total' => $this->resource['total'],
-            'spent' => $this->resource['spent'],
-            'available' => $this->resource['available'],
+            'level' => (int) $this->resource['level'],
+            'total' => (int) $this->resource['total'],
+            'spent' => (int) $this->resource['spent'],
+            'available' => (int) $this->resource['available'],
             'slot_type' => $this->resource['slot_type'],
         ];
     }

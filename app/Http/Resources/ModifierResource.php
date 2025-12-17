@@ -20,7 +20,7 @@ class ModifierResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'modifier_category' => $this->modifier_category,
             'ability_score' => $this->when($this->ability_score_id, function () {
                 return new AbilityScoreResource($this->whenLoaded('abilityScore'));
@@ -40,7 +40,7 @@ class ModifierResource extends JsonResource
             ),
             'value' => $this->value,
             'condition' => $this->condition,
-            'level' => $this->level,
+            'level' => $this->level !== null ? (int) $this->level : null,
         ];
     }
 }

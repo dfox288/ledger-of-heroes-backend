@@ -130,44 +130,39 @@ public function index(SpellIndexRequest $request): AnonymousResourceCollection
 
 Scramble generates OpenAPI schemas by analyzing Resource classes. Follow these patterns to ensure proper schema generation.
 
-### Resources Must Have Explicit `@return` Docblocks
+### Use Explicit Inline Casts for Non-String Types
 
-For Scramble to generate proper field definitions (not generic `additionalProperties: {}`), add explicit `@return` docblocks:
+Scramble infers types from inline casts in the resource array. For `int` and `bool` fields, use explicit PHP casts:
 
 ```php
-// ✅ CORRECT - Explicit field types
-class CounterResource extends JsonResource
+// ✅ CORRECT - Explicit inline casts
+class CharacterListResource extends JsonResource
 {
-    /**
-     * @return array{
-     *     id: int,
-     *     slug: string,
-     *     name: string,
-     *     current: int,
-     *     max: int,
-     *     reset_on: string|null,
-     *     source: string
-     * }
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            // ...
+            'name' => $this->name,
+            'level' => (int) $this->total_level,      // Cast to int
+            'is_complete' => (bool) $this->is_complete, // Cast to bool
         ];
     }
 }
 
-// ❌ WRONG - Generic return type causes dictionary schema
-class CounterResource extends JsonResource
+// ❌ WRONG - No cast, Scramble infers string
+class CharacterListResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
-    // Results in: { "type": "object", "additionalProperties": {} }
+    {
+        return [
+            'level' => $this->total_level,    // Scramble sees as string
+            'is_complete' => $this->is_complete, // Scramble sees as string
+        ];
+    }
 }
 ```
+
+**Note:** Model `$casts` and accessor return types do NOT affect Scramble inference. Only inline casts in the Resource matter.
 
 ### Controller Return Types
 

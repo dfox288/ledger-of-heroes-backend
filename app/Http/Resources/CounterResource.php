@@ -14,7 +14,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property int $current
  * @property int $max
  * @property string|null $reset_on
- * @property string $source
+ * @property string $source_slug
  * @property string $source_type
  * @property bool $unlimited
  */
@@ -30,7 +30,7 @@ class CounterResource extends JsonResource
      *     current: int,
      *     max: int,
      *     reset_on: string|null,
-     *     source: string,
+     *     source_slug: string,
      *     source_type: string,
      *     unlimited: bool
      * }
@@ -43,15 +43,15 @@ class CounterResource extends JsonResource
         }
 
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'current' => $this->current,
-            'max' => $this->max,
+            'current' => (int) $this->current,
+            'max' => (int) $this->max,
             'reset_on' => $this->reset_on,
-            'source' => $this->source,
+            'source_slug' => $this->source_slug,
             'source_type' => $this->source_type,
-            'unlimited' => $this->unlimited,
+            'unlimited' => (bool) $this->unlimited,
         ];
     }
 }

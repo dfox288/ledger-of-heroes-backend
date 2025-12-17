@@ -21,10 +21,10 @@ class ProficiencyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'proficiency_type' => $this->proficiency_type,
             'proficiency_subcategory' => $this->proficiency_subcategory,
-            'proficiency_type_id' => $this->proficiency_type_id,
+            'proficiency_type_id' => $this->proficiency_type_id !== null ? (int) $this->proficiency_type_id : null,
             'proficiency_type_detail' => $this->when($this->proficiency_type_id, function () {
                 return new ProficiencyTypeResource($this->whenLoaded('proficiencyType'));
             }),
@@ -44,8 +44,8 @@ class ProficiencyResource extends JsonResource
                 return new AbilityScoreResource($this->whenLoaded('abilityScore'));
             }),
             'proficiency_name' => $this->proficiency_name,
-            'grants' => $this->grants,
-            'level' => $this->level,
+            'grants' => (bool) $this->grants,
+            'level' => $this->level !== null ? (int) $this->level : null,
         ];
     }
 }

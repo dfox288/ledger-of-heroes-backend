@@ -8,6 +8,20 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class CharacterNoteResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array{
+     *     id: int,
+     *     category: string,
+     *     category_label: string,
+     *     title: string|null,
+     *     content: string,
+     *     sort_order: int,
+     *     created_at: string|null,
+     *     updated_at: string|null
+     * }
+     */
     public function toArray(Request $request): array
     {
         return [

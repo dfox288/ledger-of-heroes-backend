@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #736**: New endpoint `GET /api/v1/characters/{id}/optional-features`
+  - Returns character's selected optional features (invocations, infusions, metamagic, etc.) with full details
+  - Includes complete `OptionalFeatureResource` data: description, spell mechanics, resource costs
+  - Adds character-specific fields: `class_slug`, `subclass_name`, `level_acquired`
+  - Handles dangling references gracefully
+
 - **Issue #725**: Add `slug` field to counter API response
   - Format: `{source_slug}:{counter_name_kebab}` (e.g., `phb:barbarian:rage`, `phb:cleric:channel-divinity`)
   - Useful for debugging, logging, and easier identification of counters

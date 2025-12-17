@@ -150,11 +150,20 @@ class CharacterOptionalFeatureApiTest extends TestCase
     }
 
     #[Test]
-    public function it_handles_dangling_feature_selections_gracefully(): void
+    public function it_filters_out_dangling_feature_selections(): void
     {
         $character = Character::factory()->create();
+        $class = CharacterClass::factory()->create();
 
-        // Create feature selection with non-existent optional feature slug
+        // Create valid feature selection
+        $validFeature = OptionalFeature::factory()->invocation()->create(['name' => 'Valid Feature']);
+        FeatureSelection::factory()
+            ->for($character)
+            ->withFeature($validFeature)
+            ->forClass($class)
+            ->create();
+
+        // Create dangling feature selection (non-existent optional feature)
         FeatureSelection::create([
             'character_id' => $character->id,
             'optional_feature_slug' => 'non-existent-feature',
@@ -164,7 +173,9 @@ class CharacterOptionalFeatureApiTest extends TestCase
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/optional-features");
 
-        // Should not crash, but may exclude dangling records
-        $response->assertOk();
+        // Should only return the valid feature, filtering out dangling references
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Valid Feature');
     }
 }

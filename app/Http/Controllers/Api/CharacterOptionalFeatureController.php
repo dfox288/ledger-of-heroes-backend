@@ -51,7 +51,8 @@ class CharacterOptionalFeatureController extends Controller
                 'optionalFeature.tags',
                 'optionalFeature.prerequisites',
             ])
-            ->get();
+            ->get()
+            ->filter(fn ($selection) => $selection->optionalFeature !== null);
 
         return CharacterOptionalFeatureResource::collection($featureSelections);
     }

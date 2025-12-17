@@ -24,17 +24,6 @@ class CharacterOptionalFeatureResource extends JsonResource
     {
         $optionalFeature = $this->optionalFeature;
 
-        // If the optional feature doesn't exist (dangling reference), return minimal data
-        if (! $optionalFeature) {
-            return [
-                'slug' => $this->optional_feature_slug,
-                'name' => null,
-                'is_dangling' => true,
-                'class_slug' => $this->class_slug,
-                'level_acquired' => $this->level_acquired,
-            ];
-        }
-
         return [
             // Core optional feature data
             'id' => $optionalFeature->id,

@@ -56,6 +56,8 @@ class LanguageController extends Controller
      * - **Character Creation:** Choose languages based on race and background
      * - **Campaign Planning:** Identify languages needed for specific settings (Underdark, Planes, etc.)
      * - **Roleplay:** Determine if characters can communicate with NPCs or creatures
+     *
+     * @response AnonymousResourceCollection<LanguageResource>
      */
     #[QueryParameter('q', description: 'Search by name', example: 'elvish')]
     public function index(LanguageIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection

@@ -11,6 +11,7 @@ use App\Models\OptionalFeature;
 use App\Services\Cache\EntityCacheService;
 use App\Services\OptionalFeatureSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class OptionalFeatureController extends Controller
@@ -86,10 +87,11 @@ class OptionalFeatureController extends Controller
      * @param  OptionalFeatureIndexRequest  $request  Validated request with filtering parameters
      * @param  OptionalFeatureSearchService  $service  Service layer for optional feature queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<OptionalFeatureResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'feature_type = eldritch_invocation AND level_requirement <= 5')]
-    public function index(OptionalFeatureIndexRequest $request, OptionalFeatureSearchService $service, Client $meilisearch)
+    public function index(OptionalFeatureIndexRequest $request, OptionalFeatureSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = OptionalFeatureSearchDTO::fromRequest($request);
 
@@ -114,7 +116,7 @@ class OptionalFeatureController extends Controller
      * Returns detailed information about a specific optional feature including relationships
      * like classes, sources, and tags. Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(OptionalFeatureShowRequest $request, OptionalFeature $optionalFeature, EntityCacheService $cache, OptionalFeatureSearchService $service)
+    public function show(OptionalFeatureShowRequest $request, OptionalFeature $optionalFeature, EntityCacheService $cache, OptionalFeatureSearchService $service): OptionalFeatureResource
     {
         return $this->showWithCache(
             request: $request,

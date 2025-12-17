@@ -17,6 +17,7 @@ use App\Models\Spell;
 use App\Services\Cache\EntityCacheService;
 use App\Services\SpellSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class SpellController extends Controller
@@ -115,10 +116,11 @@ class SpellController extends Controller
      * @param  SpellIndexRequest  $request  Validated request with filtering parameters
      * @param  SpellSearchService  $service  Service layer for spell queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<SpellResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields include: id, level, school_code, school_name, concentration, ritual, requires_verbal, requires_somatic, requires_material, class_slugs, tag_slugs, source_codes, damage_types, saving_throws, effect_types, material_cost_gp, material_consumed, aoe_type, aoe_size. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'aoe_type = sphere AND aoe_size >= 20')]
-    public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
+    public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = SpellSearchDTO::fromRequest($request);
 
@@ -144,7 +146,7 @@ class SpellController extends Controller
      * like spell school, sources, damage effects, and associated classes.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service)
+    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service): SpellResource
     {
         return $this->showWithCache(
             request: $request,

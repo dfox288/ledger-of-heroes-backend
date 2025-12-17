@@ -33,21 +33,6 @@ class CharacterValidationController extends Controller
      * ```
      * GET /api/v1/characters/brave-wizard-x7k2/validate
      * ```
-     *
-     * @response 200 {
-     *   "data": {
-     *     "valid": false,
-     *     "dangling_references": {
-     *       "race": "phb:high-elf",
-     *       "spells": ["phb:wish", "phb:meteor-swarm"]
-     *     },
-     *     "summary": {
-     *       "total_references": 15,
-     *       "valid_references": 12,
-     *       "dangling_count": 3
-     *     }
-     *   }
-     * }
      */
     public function show(Character $character): CharacterValidationResource
     {
@@ -66,21 +51,6 @@ class CharacterValidationController extends Controller
      * ```
      * GET /api/v1/characters/validate-all
      * ```
-     *
-     * @response 200 {
-     *   "data": {
-     *     "total": 42,
-     *     "valid": 38,
-     *     "invalid": 4,
-     *     "characters": [
-     *       {
-     *         "public_id": "brave-wizard-x7k2",
-     *         "name": "Gandalf",
-     *         "dangling_references": {"race": "phb:high-elf"}
-     *       }
-     *     ]
-     *   }
-     * }
      */
     public function index(): ValidationSummaryResource
     {

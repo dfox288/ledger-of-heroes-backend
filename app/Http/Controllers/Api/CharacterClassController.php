@@ -99,7 +99,7 @@ class CharacterClassController extends Controller
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
      *
-     * @response 201 array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @response CharacterClassPivotResource
      */
     public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
@@ -158,8 +158,6 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response 204 scenario="success"
      */
     public function destroy(Character $character, string $classSlugOrFullSlug): HttpResponse
     {

@@ -14,6 +14,7 @@ use App\Models\Race;
 use App\Services\Cache\EntityCacheService;
 use App\Services\RaceSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client as MeilisearchClient;
 
 class RaceController extends Controller
@@ -105,10 +106,11 @@ class RaceController extends Controller
      * @param  RaceIndexRequest  $request  Validated request with filtering parameters
      * @param  RaceSearchService  $service  Service layer for race queries
      * @param  MeilisearchClient  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<RaceResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'ability_int_bonus >= 2 AND speed >= 30')]
-    public function index(RaceIndexRequest $request, RaceSearchService $service, MeilisearchClient $meilisearch)
+    public function index(RaceIndexRequest $request, RaceSearchService $service, MeilisearchClient $meilisearch): AnonymousResourceCollection
     {
         $dto = RaceSearchDTO::fromRequest($request);
 
@@ -133,7 +135,7 @@ class RaceController extends Controller
      * subraces, ability modifiers, proficiencies, traits, languages, and spells.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache, RaceSearchService $service)
+    public function show(RaceShowRequest $request, Race $race, EntityCacheService $cache, RaceSearchService $service): RaceResource
     {
         return $this->showWithCache(
             request: $request,

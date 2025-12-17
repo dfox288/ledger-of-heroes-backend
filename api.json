@@ -51,7 +51,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated set",
+                        "description": "Array of `AbilityScoreResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -60,130 +60,12 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/AbilityScoreResource"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -720,7 +602,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `BackgroundResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -729,7 +611,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/BackgroundResource"
                                             }
                                         }
                                     },
@@ -827,10 +709,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`BackgroundResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/BackgroundResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -1378,13 +1270,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`CharacterImportResultResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        201
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CharacterImportResultResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -1418,14 +1315,339 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "`CharacterExportResource`",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/components/schemas/CharacterExportResource"
+                                            "type": "object",
+                                            "properties": {
+                                                "format_version": {
+                                                    "type": "string"
+                                                },
+                                                "exported_at": {
+                                                    "type": "string"
+                                                },
+                                                "character": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "public_id": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "race": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "background": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "alignment": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "ability_scores": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "strength": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "dexterity": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "constitution": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "intelligence": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "wisdom": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "charisma": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "null"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "strength",
+                                                                "dexterity",
+                                                                "constitution",
+                                                                "intelligence",
+                                                                "wisdom",
+                                                                "charisma"
+                                                            ]
+                                                        },
+                                                        "classes": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "class": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "subclass": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "level": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "is_primary": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "class",
+                                                                    "subclass",
+                                                                    "level",
+                                                                    "is_primary"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "spells": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "spell": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "source": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "preparation_status": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "spell",
+                                                                    "source",
+                                                                    "preparation_status"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "equipment": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "item": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "custom_name": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "quantity": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "equipped": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "item",
+                                                                    "custom_name",
+                                                                    "quantity",
+                                                                    "equipped"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "languages": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "language": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "source": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "language",
+                                                                    "source"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "proficiencies": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "skills": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "skill": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "source": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "expertise": {
+                                                                                "type": "boolean"
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "skill",
+                                                                            "source",
+                                                                            "expertise"
+                                                                        ]
+                                                                    }
+                                                                },
+                                                                "types": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "type": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "source": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "expertise": {
+                                                                                "type": "boolean"
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "type",
+                                                                            "source",
+                                                                            "expertise"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "skills",
+                                                                "types"
+                                                            ]
+                                                        },
+                                                        "conditions": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "condition": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "level": {
+                                                                        "type": [
+                                                                            "integer",
+                                                                            "null"
+                                                                        ]
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "condition",
+                                                                    "level"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "feature_selections": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "feature": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "class": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "feature",
+                                                                    "class"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "notes": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "category": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "title": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    },
+                                                                    "content": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "category",
+                                                                    "title",
+                                                                    "content"
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "public_id",
+                                                        "name",
+                                                        "race",
+                                                        "background",
+                                                        "alignment",
+                                                        "ability_scores",
+                                                        "classes",
+                                                        "spells",
+                                                        "equipment",
+                                                        "languages",
+                                                        "proficiencies",
+                                                        "conditions",
+                                                        "feature_selections",
+                                                        "notes"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "format_version",
+                                                "exported_at",
+                                                "character"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -1815,13 +2037,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`CharacterClassPivotResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        201
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CharacterClassPivotResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -1869,10 +2096,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        204
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -2924,13 +3148,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`XpProgressResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        200
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/XpProgressResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -2971,13 +3200,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`XpProgressResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        200
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/XpProgressResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -3780,13 +4014,18 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`CharacterSpellResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        201
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CharacterSpellResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -4176,13 +4415,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`ValidationSummaryResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        200
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ValidationSummaryResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -4213,13 +4457,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`CharacterValidationResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "integer",
-                                    "enum": [
-                                        200
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CharacterValidationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
                                     ]
                                 }
                             }
@@ -4305,7 +4554,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `ClassResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4314,7 +4563,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/ClassResource"
                                             }
                                         }
                                     },
@@ -4423,10 +4672,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`ClassResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ClassResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -4772,7 +5031,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated set",
+                        "description": "Array of `ConditionResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4781,130 +5040,12 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/ConditionResource"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -5804,7 +5945,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated set",
+                        "description": "Array of `DamageTypeResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5813,130 +5954,12 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/DamageTypeResource"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -6065,7 +6088,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `FeatResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6074,7 +6097,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/FeatResource"
                                             }
                                         }
                                     },
@@ -6178,10 +6201,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`FeatResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FeatResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -6620,7 +6653,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `ItemResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6629,7 +6662,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/ItemResource"
                                             }
                                         }
                                     },
@@ -6765,10 +6798,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`ItemResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ItemResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -7277,7 +7320,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated set",
+                        "description": "Array of `LanguageResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7286,130 +7329,12 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/LanguageResource"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -8170,7 +8095,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `MonsterResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8179,7 +8104,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/MonsterResource"
                                             }
                                         }
                                     },
@@ -8319,10 +8244,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`MonsterResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MonsterResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -8542,7 +8477,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `OptionalFeatureResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8551,7 +8486,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/OptionalFeatureResource"
                                             }
                                         }
                                     },
@@ -8599,10 +8534,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`OptionalFeatureResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OptionalFeatureResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -9998,7 +9943,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `RaceResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10007,7 +9952,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/RaceResource"
                                             }
                                         }
                                     },
@@ -10105,10 +10050,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`RaceResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RaceResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -11425,7 +11380,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of items",
+                        "description": "Array of `SpellResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11434,7 +11389,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/SpellResource"
                                             }
                                         }
                                     },
@@ -11550,10 +11505,20 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`SpellResource`",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SpellResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -11905,7 +11870,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Paginated set",
+                        "description": "Array of `SpellSchoolResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11914,130 +11879,12 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/components/schemas/SpellSchoolResource"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object",
-                                            "properties": {
-                                                "first": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "last": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "prev": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "next": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "first",
-                                                "last",
-                                                "prev",
-                                                "next"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "object",
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "from": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "minimum": 1
-                                                },
-                                                "last_page": {
-                                                    "type": "integer",
-                                                    "minimum": 1
-                                                },
-                                                "links": {
-                                                    "type": "array",
-                                                    "description": "Generated paginator links.",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "url": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "label": {
-                                                                "type": "string"
-                                                            },
-                                                            "active": {
-                                                                "type": "boolean"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "url",
-                                                            "label",
-                                                            "active"
-                                                        ]
-                                                    }
-                                                },
-                                                "path": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ],
-                                                    "description": "Base path for paginator generated URLs."
-                                                },
-                                                "per_page": {
-                                                    "type": "integer",
-                                                    "description": "Number of items shown per page.",
-                                                    "minimum": 0
-                                                },
-                                                "to": {
-                                                    "type": [
-                                                        "integer",
-                                                        "null"
-                                                    ],
-                                                    "description": "Number of the last item in the slice.",
-                                                    "minimum": 1
-                                                },
-                                                "total": {
-                                                    "type": "integer",
-                                                    "description": "Total number of items being paginated.",
-                                                    "minimum": 0
-                                                }
-                                            },
-                                            "required": [
-                                                "current_page",
-                                                "from",
-                                                "last_page",
-                                                "links",
-                                                "path",
-                                                "per_page",
-                                                "to",
-                                                "total"
-                                            ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "links",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -12712,37 +12559,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/TagResource"
-                        }
-                    },
-                    "choices": {
-                        "type": "array",
-                        "description": "Non-equipment choices (language, proficiency)",
-                        "items": {
-                            "$ref": "#/components/schemas/EntityChoiceResource"
-                        }
-                    },
-                    "equipment_choices": {
-                        "type": "array",
-                        "description": "Equipment choices (grouped by option)",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "choice_group": {
-                                    "type": "string"
-                                },
-                                "quantity": {
-                                    "type": "integer"
-                                },
-                                "options": {
-                                    "type": "array",
-                                    "items": {}
-                                }
-                            },
-                            "required": [
-                                "choice_group",
-                                "quantity",
-                                "options"
-                            ]
                         }
                     },
                     "data_tables": {
@@ -13462,335 +13278,6 @@
                     }
                 },
                 "title": "CharacterEquipmentUpdateRequest"
-            },
-            "CharacterExportResource": {
-                "type": "object",
-                "properties": {
-                    "format_version": {
-                        "type": "string"
-                    },
-                    "exported_at": {
-                        "type": "string"
-                    },
-                    "character": {
-                        "type": "object",
-                        "properties": {
-                            "public_id": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "race": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            },
-                            "background": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            },
-                            "alignment": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            },
-                            "ability_scores": {
-                                "type": "object",
-                                "properties": {
-                                    "strength": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    },
-                                    "dexterity": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    },
-                                    "constitution": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    },
-                                    "intelligence": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    },
-                                    "wisdom": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    },
-                                    "charisma": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ]
-                                    }
-                                },
-                                "required": [
-                                    "strength",
-                                    "dexterity",
-                                    "constitution",
-                                    "intelligence",
-                                    "wisdom",
-                                    "charisma"
-                                ]
-                            },
-                            "classes": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "class": {
-                                            "type": "string"
-                                        },
-                                        "subclass": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ]
-                                        },
-                                        "level": {
-                                            "type": "integer"
-                                        },
-                                        "is_primary": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "class",
-                                        "subclass",
-                                        "level",
-                                        "is_primary"
-                                    ]
-                                }
-                            },
-                            "spells": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "spell": {
-                                            "type": "string"
-                                        },
-                                        "source": {
-                                            "type": "string"
-                                        },
-                                        "preparation_status": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "spell",
-                                        "source",
-                                        "preparation_status"
-                                    ]
-                                }
-                            },
-                            "equipment": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "item": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ]
-                                        },
-                                        "custom_name": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ]
-                                        },
-                                        "quantity": {
-                                            "type": "integer"
-                                        },
-                                        "equipped": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "item",
-                                        "custom_name",
-                                        "quantity",
-                                        "equipped"
-                                    ]
-                                }
-                            },
-                            "languages": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        },
-                                        "source": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "language",
-                                        "source"
-                                    ]
-                                }
-                            },
-                            "proficiencies": {
-                                "type": "object",
-                                "properties": {
-                                    "skills": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "skill": {
-                                                    "type": "string"
-                                                },
-                                                "source": {
-                                                    "type": "string"
-                                                },
-                                                "expertise": {
-                                                    "type": "boolean"
-                                                }
-                                            },
-                                            "required": [
-                                                "skill",
-                                                "source",
-                                                "expertise"
-                                            ]
-                                        }
-                                    },
-                                    "types": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "type": {
-                                                    "type": "string"
-                                                },
-                                                "source": {
-                                                    "type": "string"
-                                                },
-                                                "expertise": {
-                                                    "type": "boolean"
-                                                }
-                                            },
-                                            "required": [
-                                                "type",
-                                                "source",
-                                                "expertise"
-                                            ]
-                                        }
-                                    }
-                                },
-                                "required": [
-                                    "skills",
-                                    "types"
-                                ]
-                            },
-                            "conditions": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "condition": {
-                                            "type": "string"
-                                        },
-                                        "level": {
-                                            "type": [
-                                                "integer",
-                                                "null"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "condition",
-                                        "level"
-                                    ]
-                                }
-                            },
-                            "feature_selections": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "feature": {
-                                            "type": "string"
-                                        },
-                                        "class": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "feature",
-                                        "class"
-                                    ]
-                                }
-                            },
-                            "notes": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "category": {
-                                            "type": "string"
-                                        },
-                                        "title": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ]
-                                        },
-                                        "content": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "category",
-                                        "title",
-                                        "content"
-                                    ]
-                                }
-                            }
-                        },
-                        "required": [
-                            "public_id",
-                            "name",
-                            "race",
-                            "background",
-                            "alignment",
-                            "ability_scores",
-                            "classes",
-                            "spells",
-                            "equipment",
-                            "languages",
-                            "proficiencies",
-                            "conditions",
-                            "feature_selections",
-                            "notes"
-                        ]
-                    }
-                },
-                "required": [
-                    "format_version",
-                    "exported_at",
-                    "character"
-                ],
-                "title": "CharacterExportResource"
             },
             "CharacterFeatureResource": {
                 "type": "object",
@@ -14660,6 +14147,53 @@
                 ],
                 "title": "CharacterImportRequest"
             },
+            "CharacterImportResultResource": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "character": {
+                        "type": "object",
+                        "properties": {
+                            "public_id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "race": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "background": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "public_id",
+                            "name",
+                            "race",
+                            "background"
+                        ]
+                    },
+                    "warnings": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "success",
+                    "character",
+                    "warnings"
+                ],
+                "title": "CharacterImportResultResource"
+            },
             "CharacterLanguageResource": {
                 "type": "object",
                 "properties": {
@@ -14727,7 +14261,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "race": {
                         "type": [
@@ -14746,7 +14280,7 @@
                         ]
                     },
                     "is_complete": {
-                        "type": "boolean"
+                        "type": "string"
                     },
                     "updated_at": {
                         "type": "string"
@@ -17337,6 +16871,43 @@
                 },
                 "title": "CharacterUpdateRequest"
             },
+            "CharacterValidationResource": {
+                "type": "object",
+                "properties": {
+                    "valid": {
+                        "type": "boolean"
+                    },
+                    "dangling_references": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "summary": {
+                        "type": "object",
+                        "properties": {
+                            "total_references": {
+                                "type": "integer"
+                            },
+                            "valid_references": {
+                                "type": "integer"
+                            },
+                            "dangling_count": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "total_references",
+                            "valid_references",
+                            "dangling_count"
+                        ]
+                    }
+                },
+                "required": [
+                    "valid",
+                    "dangling_references",
+                    "summary"
+                ],
+                "title": "CharacterValidationResource"
+            },
             "ChoiceResultResource": {
                 "type": "object",
                 "properties": {
@@ -17588,7 +17159,8 @@
                         "type": "string"
                     },
                     "hit_die": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Hit die value (e.g., 8, 10, 12) - inherits from parent for subclasses"
                     },
                     "description": {
                         "type": "string"
@@ -17615,13 +17187,15 @@
                         ]
                     },
                     "is_base_class": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether this is a base class (not a subclass)"
                     },
                     "subclass_level": {
                         "type": [
                             "integer",
                             "null"
-                        ]
+                        ],
+                        "description": "Level at which subclass is chosen"
                     },
                     "spellcasting_type": {
                         "type": "string"
@@ -17630,7 +17204,8 @@
                         "type": [
                             "integer",
                             "null"
-                        ]
+                        ],
+                        "description": "Number of spells available to this class"
                     },
                     "starting_wealth": {
                         "type": [
@@ -18056,49 +17631,7 @@
             },
             "CounterResource": {
                 "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "current": {
-                        "type": "integer"
-                    },
-                    "max": {
-                        "type": "integer"
-                    },
-                    "reset_on": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "source_slug": {
-                        "type": "string"
-                    },
-                    "source_type": {
-                        "type": "string"
-                    },
-                    "unlimited": {
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "id",
-                    "slug",
-                    "name",
-                    "current",
-                    "max",
-                    "reset_on",
-                    "source_slug",
-                    "source_type",
-                    "unlimited"
-                ],
+                "additionalProperties": {},
                 "title": "CounterResource"
             },
             "CreatureTypeResource": {
@@ -18507,111 +18040,6 @@
                 },
                 "title": "EncounterPresetUpdateRequest"
             },
-            "EntityChoiceResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "choice_type": {
-                        "type": "string"
-                    },
-                    "choice_group": {
-                        "type": "string"
-                    },
-                    "choice_option": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "quantity": {
-                        "type": "integer"
-                    },
-                    "constraint": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "target_type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "target_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "level_granted": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "is_required": {
-                        "type": "boolean"
-                    },
-                    "spell_max_level": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ],
-                        "description": "Spell-specific fields"
-                    },
-                    "spell_list_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "spell_school_slug": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "proficiency_type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "description": "Proficiency-specific fields"
-                    },
-                    "constraints": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "description": "Additional constraints",
-                        "items": {}
-                    }
-                },
-                "required": [
-                    "id",
-                    "choice_type",
-                    "choice_group",
-                    "choice_option",
-                    "quantity",
-                    "constraint",
-                    "target_type",
-                    "target_slug",
-                    "description",
-                    "level_granted",
-                    "is_required",
-                    "constraints"
-                ],
-                "title": "EntityChoiceResource"
-            },
             "EntityConditionResource": {
                 "type": "object",
                 "properties": {
@@ -18898,7 +18326,10 @@
                         "type": "integer"
                     },
                     "spell_id": {
-                        "type": "integer"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "spell": {
                         "$ref": "#/components/schemas/SpellResource"
@@ -19036,13 +18467,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/EntityLanguageResource"
-                        }
-                    },
-                    "choices": {
-                        "type": "array",
-                        "description": "Non-equipment choices (spell, proficiency, ability_score)",
-                        "items": {
-                            "$ref": "#/components/schemas/EntityChoiceResource"
                         }
                     }
                 },
@@ -19196,53 +18620,7 @@
             },
             "HitDiceResource": {
                 "type": "object",
-                "properties": {
-                    "hit_dice": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                                "available": {
-                                    "type": "integer"
-                                },
-                                "max": {
-                                    "type": "integer"
-                                },
-                                "spent": {
-                                    "type": "integer"
-                                }
-                            },
-                            "required": [
-                                "available",
-                                "max",
-                                "spent"
-                            ]
-                        }
-                    },
-                    "total": {
-                        "type": "object",
-                        "properties": {
-                            "available": {
-                                "type": "integer"
-                            },
-                            "max": {
-                                "type": "integer"
-                            },
-                            "spent": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "available",
-                            "max",
-                            "spent"
-                        ]
-                    }
-                },
-                "required": [
-                    "hit_dice",
-                    "total"
-                ],
+                "additionalProperties": {},
                 "title": "HitDiceResource"
             },
             "HitPointsResource": {
@@ -20558,7 +19936,7 @@
                 "type": "object",
                 "properties": {
                     "quantity": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "item": {
                         "type": [
@@ -20615,7 +19993,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "class_name": {
                         "type": [
@@ -20661,7 +20039,7 @@
                         "type": "string"
                     },
                     "level": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "class_name": {
                         "type": [
@@ -21784,10 +21162,12 @@
                         ]
                     },
                     "is_subrace": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether this race is a subrace (has a parent race)"
                     },
                     "subrace_required": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether subrace selection is required to play this race (false = base race is complete on its own)"
                     },
                     "traits": {
                         "type": "array",
@@ -21851,13 +21231,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/TagResource"
-                        }
-                    },
-                    "choices": {
-                        "type": "array",
-                        "description": "Non-equipment choices (ability_score, language, proficiency, spell)",
-                        "items": {
-                            "$ref": "#/components/schemas/EntityChoiceResource"
                         }
                     },
                     "inherited_data": {
@@ -22571,16 +21944,16 @@
                 "type": "object",
                 "properties": {
                     "level": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "total": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "spent": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "available": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "slot_type": {
                         "type": "string"
@@ -22632,59 +22005,7 @@
             },
             "SpellSlotsResource": {
                 "type": "object",
-                "properties": {
-                    "slots": {
-                        "type": "object"
-                    },
-                    "pact_magic": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
-                        "properties": {
-                            "level": {
-                                "type": "integer"
-                            },
-                            "total": {
-                                "type": "integer"
-                            },
-                            "spent": {
-                                "type": "integer"
-                            },
-                            "available": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "level",
-                            "total",
-                            "spent",
-                            "available"
-                        ]
-                    },
-                    "preparation_limit": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "prepared_count": {
-                        "type": "integer"
-                    },
-                    "preparation_limits": {
-                        "type": [
-                            "object",
-                            "null"
-                        ]
-                    }
-                },
-                "required": [
-                    "slots",
-                    "pact_magic",
-                    "preparation_limit",
-                    "prepared_count",
-                    "preparation_limits"
-                ],
+                "additionalProperties": {},
                 "title": "SpellSlotsResource"
             },
             "SpendHitDiceRequest": {
@@ -22887,6 +22208,71 @@
                     "slot_type"
                 ],
                 "title": "UseSpellSlotRequest"
+            },
+            "ValidationSummaryResource": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer"
+                    },
+                    "valid": {
+                        "type": "integer"
+                    },
+                    "invalid": {
+                        "type": "integer"
+                    },
+                    "characters": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "total",
+                    "valid",
+                    "invalid",
+                    "characters"
+                ],
+                "title": "ValidationSummaryResource"
+            },
+            "XpProgressResource": {
+                "type": "object",
+                "properties": {
+                    "experience_points": {
+                        "type": "integer"
+                    },
+                    "level": {
+                        "type": "integer"
+                    },
+                    "next_level_xp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "xp_to_next_level": {
+                        "type": "integer"
+                    },
+                    "xp_progress_percent": {
+                        "type": "number"
+                    },
+                    "is_max_level": {
+                        "type": "boolean"
+                    },
+                    "leveled_up": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "experience_points",
+                    "level",
+                    "next_level_xp",
+                    "xp_to_next_level",
+                    "xp_progress_percent",
+                    "is_max_level"
+                ],
+                "title": "XpProgressResource"
             }
         },
         "responses": {

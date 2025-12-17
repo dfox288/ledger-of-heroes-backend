@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #737**: New endpoint `GET /api/v1/characters/{id}/xp` for XP progress
+  - Returns calculated XP progress: `experience_points`, `level`, `next_level_xp`, `xp_to_next_level`, `xp_progress_percent`, `is_max_level`
+  - Handles level 20 edge case with `next_level_xp: null`, `xp_progress_percent: 100`, `is_max_level: true`
+  - Updated POST response to use `level` instead of `xp_level` and include `is_max_level` field
+
 - **Issue #736**: New endpoint `GET /api/v1/characters/{id}/optional-features`
   - Returns character's selected optional features (invocations, infusions, metamagic, etc.) with full details
   - Includes complete `OptionalFeatureResource` data: description, spell mechanics, resource costs

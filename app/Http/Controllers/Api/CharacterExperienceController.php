@@ -23,6 +23,58 @@ class CharacterExperienceController extends Controller
     ) {}
 
     /**
+     * Get character XP progress.
+     *
+     * Returns the character's current XP and calculated progress toward next level.
+     *
+     * @operationId characters.showXp
+     *
+     * @tags Characters
+     *
+     * @response 200 {
+     *   "data": {
+     *     "experience_points": 6500,
+     *     "level": 5,
+     *     "next_level_xp": 14000,
+     *     "xp_to_next_level": 7500,
+     *     "xp_progress_percent": 46.67,
+     *     "is_max_level": false
+     *   }
+     * }
+     * @response 200 scenario="Max level" {
+     *   "data": {
+     *     "experience_points": 400000,
+     *     "level": 20,
+     *     "next_level_xp": null,
+     *     "xp_to_next_level": 0,
+     *     "xp_progress_percent": 100,
+     *     "is_max_level": true
+     *   }
+     * }
+     */
+    public function show(Character $character): JsonResponse
+    {
+        $currentXp = $character->experience_points ?? 0;
+        $level = $this->xpService->getLevelForXp($currentXp);
+        $isMaxLevel = $level >= self::MAX_LEVEL;
+
+        $nextLevelXp = $isMaxLevel
+            ? null
+            : $this->xpService->getXpForLevel($level + 1);
+
+        return response()->json([
+            'data' => [
+                'experience_points' => $currentXp,
+                'level' => $level,
+                'next_level_xp' => $nextLevelXp,
+                'xp_to_next_level' => $this->xpService->getXpToNextLevel($currentXp),
+                'xp_progress_percent' => $this->xpService->getXpProgressPercent($currentXp),
+                'is_max_level' => $isMaxLevel,
+            ],
+        ]);
+    }
+
+    /**
      * Add experience points to a character.
      *
      * Adds the specified amount of XP to the character. If the character belongs
@@ -42,10 +94,11 @@ class CharacterExperienceController extends Controller
      * @response 200 {
      *   "data": {
      *     "experience_points": 500,
-     *     "xp_level": 2,
+     *     "level": 2,
      *     "next_level_xp": 900,
      *     "xp_to_next_level": 400,
      *     "xp_progress_percent": 33.3,
+     *     "is_max_level": false,
      *     "leveled_up": false
      *   }
      * }
@@ -62,26 +115,28 @@ class CharacterExperienceController extends Controller
         }
 
         $currentXp = $character->experience_points ?? 0;
-        $xpLevel = $this->xpService->getLevelForXp($currentXp);
+        $level = $this->xpService->getLevelForXp($currentXp);
         $leveledUp = false;
 
         // Auto-level if enabled and character is in XP-mode party
         if ($autoLevel && $this->shouldAutoLevel($character)) {
-            $leveledUp = $this->tryAutoLevel($character, $xpLevel);
+            $leveledUp = $this->tryAutoLevel($character, $level);
         }
 
         // Handle level 20 case - no next level
-        $nextLevelXp = $xpLevel < self::MAX_LEVEL
-            ? $this->xpService->getXpForLevel($xpLevel + 1)
-            : null;
+        $isMaxLevel = $level >= self::MAX_LEVEL;
+        $nextLevelXp = $isMaxLevel
+            ? null
+            : $this->xpService->getXpForLevel($level + 1);
 
         return response()->json([
             'data' => [
                 'experience_points' => $currentXp,
-                'xp_level' => $xpLevel,
+                'level' => $level,
                 'next_level_xp' => $nextLevelXp,
                 'xp_to_next_level' => $this->xpService->getXpToNextLevel($currentXp),
                 'xp_progress_percent' => $this->xpService->getXpProgressPercent($currentXp),
+                'is_max_level' => $isMaxLevel,
                 'leveled_up' => $leveledUp,
             ],
         ]);

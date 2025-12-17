@@ -272,6 +272,8 @@ Route::prefix('v1')->group(function () {
         ->name('characters.validate');
     Route::get('characters/{character}/export', [CharacterExportController::class, 'export'])
         ->name('characters.export');
+    Route::get('characters/{character}/xp', [CharacterExperienceController::class, 'show'])
+        ->name('characters.show-xp');
     Route::post('characters/{character}/xp', [CharacterExperienceController::class, 'addXp'])
         ->name('characters.add-xp');
 

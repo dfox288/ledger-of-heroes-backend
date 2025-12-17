@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\XpProgressResult;
 use App\Enums\LevelingMode;
 use App\Exceptions\IncompleteCharacterException;
 use App\Exceptions\MaxLevelReachedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AddExperienceRequest;
+use App\Http\Resources\XpProgressResource;
 use App\Models\Character;
 use App\Services\ExperiencePointService;
 use App\Services\LevelUpService;
-use Illuminate\Http\JsonResponse;
 use InvalidArgumentException;
 
 class CharacterExperienceController extends Controller
@@ -52,7 +53,7 @@ class CharacterExperienceController extends Controller
      *   }
      * }
      */
-    public function show(Character $character): JsonResponse
+    public function show(Character $character): XpProgressResource
     {
         $currentXp = $character->experience_points ?? 0;
         $level = $this->xpService->getLevelForXp($currentXp);
@@ -62,16 +63,14 @@ class CharacterExperienceController extends Controller
             ? null
             : $this->xpService->getXpForLevel($level + 1);
 
-        return response()->json([
-            'data' => [
-                'experience_points' => $currentXp,
-                'level' => $level,
-                'next_level_xp' => $nextLevelXp,
-                'xp_to_next_level' => $this->xpService->getXpToNextLevel($currentXp),
-                'xp_progress_percent' => $this->xpService->getXpProgressPercent($currentXp),
-                'is_max_level' => $isMaxLevel,
-            ],
-        ]);
+        return new XpProgressResource(new XpProgressResult(
+            experiencePoints: $currentXp,
+            level: $level,
+            nextLevelXp: $nextLevelXp,
+            xpToNextLevel: $this->xpService->getXpToNextLevel($currentXp),
+            xpProgressPercent: $this->xpService->getXpProgressPercent($currentXp),
+            isMaxLevel: $isMaxLevel,
+        ));
     }
 
     /**
@@ -103,7 +102,7 @@ class CharacterExperienceController extends Controller
      *   }
      * }
      */
-    public function addXp(AddExperienceRequest $request, Character $character): JsonResponse
+    public function addXp(AddExperienceRequest $request, Character $character): XpProgressResource
     {
         $amount = $request->validated('amount');
         $autoLevel = $request->validated('auto_level', false);
@@ -129,17 +128,15 @@ class CharacterExperienceController extends Controller
             ? null
             : $this->xpService->getXpForLevel($level + 1);
 
-        return response()->json([
-            'data' => [
-                'experience_points' => $currentXp,
-                'level' => $level,
-                'next_level_xp' => $nextLevelXp,
-                'xp_to_next_level' => $this->xpService->getXpToNextLevel($currentXp),
-                'xp_progress_percent' => $this->xpService->getXpProgressPercent($currentXp),
-                'is_max_level' => $isMaxLevel,
-                'leveled_up' => $leveledUp,
-            ],
-        ]);
+        return new XpProgressResource(new XpProgressResult(
+            experiencePoints: $currentXp,
+            level: $level,
+            nextLevelXp: $nextLevelXp,
+            xpToNextLevel: $this->xpService->getXpToNextLevel($currentXp),
+            xpProgressPercent: $this->xpService->getXpProgressPercent($currentXp),
+            isMaxLevel: $isMaxLevel,
+            leveledUp: $leveledUp,
+        ));
     }
 
     /**

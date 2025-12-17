@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\ValidationSummaryResult;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CharacterValidationResource;
+use App\Http\Resources\ValidationSummaryResource;
 use App\Models\Character;
 use App\Services\CharacterValidationService;
-use Illuminate\Http\JsonResponse;
 
 /**
  * @tags Characters
@@ -81,12 +82,10 @@ class CharacterValidationController extends Controller
      *   }
      * }
      */
-    public function index(): JsonResponse
+    public function index(): ValidationSummaryResource
     {
         $result = $this->validationService->validateAll();
 
-        return response()->json([
-            'data' => $result,
-        ]);
+        return new ValidationSummaryResource(ValidationSummaryResult::fromArray($result));
     }
 }

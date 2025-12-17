@@ -63,6 +63,8 @@ final class RaceSearchService extends AbstractSearchService
         'spellChoices',
         'senses.sense',
         'tags',
+        'nonEquipmentChoices',
+        'parent.nonEquipmentChoices',
     ];
 
     /**

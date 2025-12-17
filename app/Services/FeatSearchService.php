@@ -40,6 +40,7 @@ final class FeatSearchService extends AbstractSearchService
         'entitySpellRecords.abilityScore',
         'spellChoices',
         'languages.language',
+        'nonEquipmentChoices',
     ];
 
     /**

@@ -26,6 +26,15 @@ class BackgroundResource extends JsonResource
             'equipment' => EntityItemResource::collection($this->whenLoaded('equipment')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
 
+            // === CHOICES ===
+            /** @var array<EntityChoiceResource> Non-equipment choices (language, proficiency) */
+            'choices' => EntityChoiceResource::collection($this->whenLoaded('nonEquipmentChoices')),
+            /** @var array<array{choice_group: string, quantity: int, options: array}> Equipment choices (grouped by option) */
+            'equipment_choices' => $this->when(
+                $this->relationLoaded('equipmentChoices'),
+                fn () => EntityChoiceResource::groupedByChoiceGroup($this->equipmentChoices)
+            ),
+
             // Convenience field: flattened data tables from all traits
             // Includes Personality Traits, Ideals, Bonds, Flaws roll tables
             'data_tables' => $this->when(

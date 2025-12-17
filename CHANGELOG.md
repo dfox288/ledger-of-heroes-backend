@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #747**: Expose `choices` field on entity view endpoints (Race, Background, Feat)
+  - Added `choices` field to RaceResource, BackgroundResource, and FeatResource
+  - Uses `EntityChoiceResource` for flat collection of non-equipment choices (ability_score, language, proficiency, spell)
+  - Added `equipment_choices` field to BackgroundResource using grouped format (matching ClassResource pattern)
+  - Added `nonEquipmentChoices()` relationship method to HasEntityChoices trait
+  - Enables frontend to display "You get +2 CHA" vs "Choose +1 to two abilities" on detail pages
+
 - **Issue #737**: New endpoint `GET /api/v1/characters/{id}/xp` for XP progress
   - Returns calculated XP progress: `experience_points`, `level`, `next_level_xp`, `xp_to_next_level`, `xp_progress_percent`, `is_max_level`
   - Handles level 20 edge case with `next_level_xp: null`, `xp_progress_percent: 100`, `is_max_level: true`

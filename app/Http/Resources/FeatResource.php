@@ -36,9 +36,9 @@ class FeatResource extends JsonResource
             'spells' => EntitySpellResource::collection($this->whenLoaded('entitySpellRecords')),
             'languages' => EntityLanguageResource::collection($this->whenLoaded('languages')),
 
-            // TODO: Add EntityChoiceResource when ready for Task #525
-            // 'spell_choices' => EntityChoiceResource::collection($this->whenLoaded('spellChoices')),
-            // 'choices' => EntityChoiceResource::collection($this->whenLoaded('choices')),
+            // === CHOICES ===
+            /** @var array<EntityChoiceResource> Non-equipment choices (spell, proficiency, ability_score) */
+            'choices' => EntityChoiceResource::collection($this->whenLoaded('nonEquipmentChoices')),
         ];
     }
 }

@@ -59,4 +59,20 @@ trait HasEntityChoices
     {
         return $this->choices()->ofType('equipment');
     }
+
+    /**
+     * Get all non-equipment choices (for the `choices` API field).
+     *
+     * Returns language, spell, proficiency, and ability_score choices.
+     * Equipment choices are handled separately via equipmentChoices().
+     */
+    public function nonEquipmentChoices(): MorphMany
+    {
+        return $this->choices()->whereIn('choice_type', [
+            'ability_score',
+            'language',
+            'proficiency',
+            'spell',
+        ]);
+    }
 }

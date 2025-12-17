@@ -114,11 +114,11 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function removeCharacter(Request $request, Party $party, Character $character): JsonResponse|Response
+    public function removeCharacter(Request $request, Party $party, Character $character): Response
     {
         // Check if character is in party
         if (! $party->characters()->where('character_id', $character->id)->exists()) {
-            return response()->json(['message' => 'Character not in party'], Response::HTTP_NOT_FOUND);
+            abort(404, 'Character not in party');
         }
 
         $party->characters()->detach($character->id);

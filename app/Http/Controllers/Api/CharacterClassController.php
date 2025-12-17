@@ -161,16 +161,14 @@ class CharacterClassController extends Controller
      *
      * @response 204 scenario="success"
      */
-    public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse|HttpResponse
+    public function destroy(Character $character, string $classSlugOrFullSlug): HttpResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)
         $class = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $class) {
-            return response()->json([
-                'message' => 'Class not found',
-            ], Response::HTTP_NOT_FOUND);
+            abort(404, 'Class not found');
         }
 
         return DB::transaction(function () use ($character, $class) {
@@ -180,15 +178,11 @@ class CharacterClassController extends Controller
             $pivot = $character->characterClasses()->where('class_slug', $class->slug)->first();
 
             if (! $pivot) {
-                return response()->json([
-                    'message' => 'Class not found on character',
-                ], Response::HTTP_NOT_FOUND);
+                abort(404, 'Class not found on character');
             }
 
             if ($classCount <= 1) {
-                return response()->json([
-                    'message' => 'Cannot remove the only class',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                abort(422, 'Cannot remove the only class');
             }
 
             $pivot->delete();

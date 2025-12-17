@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\AuthResult;
 use App\Exceptions\Auth\InvalidCredentialsException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\AuthResource;
+use App\Http\Resources\MessageResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,7 +53,7 @@ class AuthController extends Controller
      *
      * @throws InvalidCredentialsException
      */
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request): AuthResource
     {
         $user = User::where('email', $request->email)->first();
 
@@ -60,14 +63,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('API Access Token')->plainTextToken;
 
-        return response()->json([
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ]);
+        return new AuthResource(new AuthResult($token, $user));
     }
 
     /**
@@ -117,14 +113,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('API Access Token')->plainTextToken;
 
-        return response()->json([
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
-        ], 201);
+        return (new AuthResource(new AuthResult($token, $user)))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -149,12 +140,10 @@ class AuthController extends Controller
      *
      * @param  Request  $request  Request with authenticated user
      */
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request): MessageResource
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
+        return new MessageResource('Logged out successfully');
     }
 }

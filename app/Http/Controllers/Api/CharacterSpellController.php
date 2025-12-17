@@ -7,6 +7,7 @@ use App\Http\Requests\Character\AvailableSpellsRequest;
 use App\Http\Requests\Character\CharacterSpellStoreRequest;
 use App\Http\Requests\Character\CharacterSpellUpdateRequest;
 use App\Http\Resources\CharacterSpellResource;
+use App\Http\Resources\MessageResource;
 use App\Http\Resources\SpellResource;
 use App\Http\Resources\SpellSlotsResource;
 use App\Models\Character;
@@ -341,7 +342,7 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
-    public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource|JsonResponse
+    public function unprepare(Character $character, string $spellIdOrSlug): CharacterSpellResource|MessageResource
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
@@ -351,9 +352,7 @@ class CharacterSpellController extends Controller
 
         // For prepared_from_list spells, the row is deleted entirely
         if ($characterSpell === null) {
-            return response()->json([
-                'message' => 'Spell unprepared and removed from preparations.',
-            ]);
+            return new MessageResource('Spell unprepared and removed from preparations.');
         }
 
         $characterSpell->load('spell.spellSchool');

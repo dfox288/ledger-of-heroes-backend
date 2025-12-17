@@ -33,6 +33,8 @@ final class BackgroundSearchService extends AbstractSearchService
         'languages.conditionLanguage',
         'equipment.item.contents.item',
         'tags',
+        'nonEquipmentChoices',
+        'equipmentChoices',
     ];
 
     /**

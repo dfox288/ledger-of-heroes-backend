@@ -44,6 +44,10 @@ class RaceResource extends JsonResource
             'senses' => EntitySenseResource::collection($this->whenLoaded('senses')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
 
+            // === CHOICES ===
+            /** @var array<EntityChoiceResource> Non-equipment choices (ability_score, language, proficiency, spell) */
+            'choices' => EntityChoiceResource::collection($this->whenLoaded('nonEquipmentChoices')),
+
             // === INHERITED DATA (subraces only) ===
             /**
              * Data inherited from parent race. Only included for subraces when parent is loaded.

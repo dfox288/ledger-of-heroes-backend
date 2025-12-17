@@ -129,7 +129,7 @@ class CharacterNoteController extends Controller
     public function show(Character $character, CharacterNote $note): CharacterNoteResource
     {
         // Ensure note belongs to character
-        abort_if($note->character_id !== $character->id, 404);
+        abort_if($note->character_id !== $character->id, Response::HTTP_NOT_FOUND);
 
         return new CharacterNoteResource($note);
     }
@@ -168,7 +168,7 @@ class CharacterNoteController extends Controller
         CharacterNote $note
     ): CharacterNoteResource {
         // Ensure note belongs to character
-        abort_if($note->character_id !== $character->id, 404);
+        abort_if($note->character_id !== $character->id, Response::HTTP_NOT_FOUND);
 
         $note->update($request->validated());
 
@@ -192,7 +192,7 @@ class CharacterNoteController extends Controller
     public function destroy(Character $character, CharacterNote $note): Response
     {
         // Ensure note belongs to character
-        abort_if($note->character_id !== $character->id, 404);
+        abort_if($note->character_id !== $character->id, Response::HTTP_NOT_FOUND);
 
         $note->delete();
 

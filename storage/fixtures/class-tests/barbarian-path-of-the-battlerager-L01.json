@@ -1,0 +1,267 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T00:08:31+00:00",
+    "character": {
+        "public_id": "wild-blade-umvY",
+        "name": "Path of the Battlerager L1",
+        "race": "phb:gnome-wgte",
+        "background": "scag:knight-of-the-order",
+        "alignment": "Lawful Neutral",
+        "ability_scores": {
+            "strength": 13,
+            "dexterity": 10,
+            "constitution": 8,
+            "intelligence": 15,
+            "wisdom": 14,
+            "charisma": 12
+        },
+        "max_hit_points": 12,
+        "current_hit_points": 12,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "equipment",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "hp_levels_resolved": [
+            1
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:barbarian",
+                "subclass": null,
+                "level": 1,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [],
+        "equipment": [
+            {
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "banner",
+                "custom_description": "{\"source\":\"background\",\"description\":\"banner\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "or seal representing your place or rank in the order",
+                "custom_description": "{\"source\":\"background\",\"description\":\"or seal representing your place or rank in the order\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "dmg:antimatter-rifle",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:handaxe",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"a\"}",
+                "quantity": 2,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:explorers-pack",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:javelin",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 4,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:gnomish",
+                "source": "race"
+            },
+            {
+                "language": "core:infernal",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:athletics",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:dice-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:gnome",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:gnome",
+                    "trait_name": "Gnome Cunning"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:gnome-wgte",
+                    "trait_name": "Gifted Scribe"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:gnome-wgte",
+                    "trait_name": "Scribe's Insight"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:gnome-wgte",
+                    "trait_name": "Whispering Wind"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian",
+                    "feature_name": "Rage",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian",
+                    "feature_name": "Unarmored Defense",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:knight-of-the-order",
+                    "trait_name": "Feature: Knightly Regard"
+                },
+                "source": "background",
+                "level_acquired": 1
+            }
+        ],
+        "counters": [],
+        "portrait": null
+    }
+}

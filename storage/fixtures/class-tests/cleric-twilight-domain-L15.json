@@ -1,0 +1,520 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-17T01:14:49+00:00",
+    "character": {
+        "public_id": "storm-sage-CEju",
+        "name": "Twilight Domain L15",
+        "race": "dmg:hobgoblin-legacy",
+        "background": "scag:cloistered-scholar",
+        "alignment": "Chaotic Evil",
+        "ability_scores": {
+            "strength": 14,
+            "dexterity": 13,
+            "constitution": 8,
+            "intelligence": 12,
+            "wisdom": 15,
+            "charisma": 10
+        },
+        "max_hit_points": 64,
+        "current_hit_points": 64,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 3,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:cleric",
+                "subclass": "tce:cleric-twilight-domain",
+                "level": 15,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:aura-of-life",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:aura-of-vitality",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:circle-of-power",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:faerie-fire",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:greater-invisibility",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:leomunds-tiny-hut",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:mending",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:mislead",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:moonbeam",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:resistance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:sacred-flame",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:see-invisibility",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:sleep",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:toll-the-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:word-of-radiance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:cleric",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:robes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "borrowed book on the subject of your current study",
+                "custom_description": "{\"source\":\"background\",\"description\":\"borrowed book on the subject of your current study\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:goblin",
+                "source": "race"
+            },
+            {
+                "language": "core:ignan",
+                "source": "background"
+            },
+            {
+                "language": "core:sahuagin",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:history",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:history",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": []
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 6,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 7,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 8,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:hobgoblin",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:hobgoblin",
+                    "trait_name": "Martial Advantage"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Domain",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-twilight-domain",
+                    "feature_name": "Divine Domain: Twilight Domain",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-twilight-domain",
+                    "feature_name": "Bonus Proficiencies (Twilight Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-twilight-domain",
+                    "feature_name": "Eyes of Night (Twilight Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:cleric-twilight-domain",
+                    "feature_name": "Vigilant Blessing (Twilight Domain)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:cloistered-scholar",
+                    "trait_name": "Feature: Library Access"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (1\/rest)",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Turn Undead",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity: Harness Divine Power",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1\/2)",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Channel Divinity (2\/rest)",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 1)",
+                    "level": 8
+                },
+                "source": "class",
+                "level_acquired": 8
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Divine Intervention",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 2)",
+                    "level": 11
+                },
+                "source": "class",
+                "level_acquired": 11
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:cleric",
+                    "feature_name": "Destroy Undead (CR 3)",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Channel Divinity",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:cleric",
+                "counter_name": "Harness Divine Power",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

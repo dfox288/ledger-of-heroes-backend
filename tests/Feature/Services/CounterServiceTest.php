@@ -285,4 +285,26 @@ class CounterServiceTest extends TestCase
 
         $this->assertEquals('phb:cleric:channel-divinity', $counter['slug']);
     }
+
+    #[Test]
+    public function it_sanitizes_special_characters_in_slug(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterCounter::factory()->create([
+            'character_id' => $character->id,
+            'source_type' => 'class',
+            'source_slug' => 'phb:fighter',
+            'counter_name' => "Fighter's Second Wind (Bonus)",
+            'current_uses' => null,
+            'max_uses' => 1,
+            'reset_timing' => 'S',
+        ]);
+
+        $counters = $this->service->getCountersForCharacter($character);
+        $counter = $counters->first();
+
+        // Str::slug removes apostrophes and parentheses
+        $this->assertEquals('phb:fighter:fighters-second-wind-bonus', $counter['slug']);
+    }
 }

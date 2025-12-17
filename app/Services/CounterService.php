@@ -98,7 +98,7 @@ class CounterService
             ->get()
             ->map(fn (CharacterCounter $counter) => [
                 'id' => $counter->id,
-                'slug' => $counter->source_slug.':'.Str::kebab($counter->counter_name),
+                'slug' => $counter->source_slug.':'.Str::slug($counter->counter_name),
                 'name' => $counter->counter_name,
                 'current' => $counter->remaining,
                 'max' => $counter->max_uses,

@@ -15,7 +15,10 @@ class HitDiceResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     hit_dice: array<string, array{available: int, max: int, spent: int}>,
+     *     total: array{available: int, max: int, spent: int}
+     * }
      */
     public function toArray(Request $request): array
     {

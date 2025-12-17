@@ -20,7 +20,13 @@ class SpellSlotsResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     slots: object,
+     *     pact_magic: array{level: int, total: int, spent: int, available: int}|null,
+     *     preparation_limit: int|null,
+     *     prepared_count: int,
+     *     preparation_limits: object|null
+     * }
      */
     public function toArray(Request $request): array
     {

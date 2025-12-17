@@ -126,6 +126,179 @@ Document filters in controller PHPDoc for OpenAPI generation:
 public function index(SpellIndexRequest $request): AnonymousResourceCollection
 ```
 
+## Scramble OpenAPI Schema Inference
+
+Scramble generates OpenAPI schemas by analyzing Resource classes. Follow these patterns to ensure proper schema generation.
+
+### Resources Must Have Explicit `@return` Docblocks
+
+For Scramble to generate proper field definitions (not generic `additionalProperties: {}`), add explicit `@return` docblocks:
+
+```php
+// ✅ CORRECT - Explicit field types
+class CounterResource extends JsonResource
+{
+    /**
+     * @return array{
+     *     id: int,
+     *     slug: string,
+     *     name: string,
+     *     current: int,
+     *     max: int,
+     *     reset_on: string|null,
+     *     source: string
+     * }
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            // ...
+        ];
+    }
+}
+
+// ❌ WRONG - Generic return type causes dictionary schema
+class CounterResource extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    // Results in: { "type": "object", "additionalProperties": {} }
+}
+```
+
+### Controller Return Types
+
+Controllers should return Resource types directly, not `JsonResponse`:
+
+```php
+// ✅ CORRECT - Scramble infers schema from Resource
+public function levelUp(Character $character): LevelUpResource
+{
+    $result = $this->service->levelUp($character);
+    return new LevelUpResource($result);
+}
+
+// ❌ WRONG - Scramble can't infer schema from JsonResponse
+public function levelUp(Character $character): JsonResponse
+{
+    return (new LevelUpResource($result))
+        ->response()
+        ->setStatusCode(200);
+    // Results in: { "type": "object" }
+}
+```
+
+Use `abort()` for errors instead of returning JsonResponse:
+
+```php
+// ✅ CORRECT
+abort_if(! $class, 404, 'Class not found');
+return new LevelUpResource($result);
+
+// ❌ WRONG
+if (! $class) {
+    return response()->json(['message' => 'Class not found'], 404);
+}
+```
+
+### Never Use `@response` Annotations with Inline Arrays
+
+Scramble infers schemas from Resources. Hardcoded `@response` annotations override inference:
+
+```php
+// ❌ WRONG - Creates inline schema, breaks $ref
+/**
+ * @response array{data: array{id: int, name: string}}
+ */
+public function show(Spell $spell): SpellResource
+
+// ✅ CORRECT - Let Scramble infer from Resource
+/**
+ * Get spell details.
+ */
+public function show(Spell $spell): SpellResource
+```
+
+### Paginated Collections Must Use Eloquent Paginator
+
+Manual `LengthAwarePaginator` with cached collections breaks type inference:
+
+```php
+// ❌ WRONG - Scramble shows items as "string" type
+$cached = $cache->getAll(); // Returns Collection
+$paginator = new LengthAwarePaginator($cached->forPage(...), ...);
+return SizeResource::collection($paginator);
+
+// ✅ CORRECT - Scramble properly infers Resource type
+return SizeResource::collection($query->paginate($perPage));
+```
+
+### Model-Backed Resources Should Use `@mixin`
+
+For Resources that wrap Eloquent models, add `@mixin` for IDE support:
+
+```php
+use App\Models\ProficiencyType;
+
+/**
+ * @mixin ProficiencyType
+ */
+class ProficiencyTypeResource extends JsonResource
+```
+
+### Pass-Through Resources Need Full Type Definitions
+
+Resources that pass through array data (not models) need complete `@return` types:
+
+```php
+// Resource wrapping service output (not a model)
+class CharacterExportResource extends JsonResource
+{
+    /**
+     * @return array{
+     *     format_version: string,
+     *     exported_at: string,
+     *     character: array{
+     *         public_id: string,
+     *         name: string,
+     *         // ... all fields explicitly defined
+     *     }
+     * }
+     */
+    public function toArray(Request $request): array
+    {
+        return $this->resource; // Pass-through
+    }
+}
+```
+
+### Known Limitations
+
+**Dictionary/Map types with dynamic keys:**
+When using `groupBy()` or manual array construction, Scramble shows `dictionary[string, array]` instead of `dictionary[string, ResourceType[]]`. The nested fields ARE documented, but the array type label is generic.
+
+```php
+// CharacterNotesGroupedResource groups by category
+// Docs show: data: dictionary[string, array]
+// Fields ARE documented, but not labeled as CharacterNoteResource[]
+// This is a Scramble limitation - accept it.
+```
+
+### Summary Table
+
+| Pattern | Result |
+|---------|--------|
+| `@return array<string, mixed>` | Generic dictionary, no fields |
+| `@return array{field: type}` | Proper field definitions |
+| Return `JsonResponse` | `{"type": "object"}` only |
+| Return `Resource` directly | Proper `$ref` to schema |
+| Manual `LengthAwarePaginator` | Items shown as strings |
+| `$query->paginate()` | Proper Resource type inference |
+| `@response` annotation | Overrides inference (avoid) |
+
 ## Testing Response Shape
 
 ```php

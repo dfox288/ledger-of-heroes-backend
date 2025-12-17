@@ -23,7 +23,17 @@ class CounterResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     id: int,
+     *     slug: string,
+     *     name: string,
+     *     current: int,
+     *     max: int,
+     *     reset_on: string|null,
+     *     source: string,
+     *     source_type: string,
+     *     unlimited: bool
+     * }
      */
     public function toArray(Request $request): array
     {

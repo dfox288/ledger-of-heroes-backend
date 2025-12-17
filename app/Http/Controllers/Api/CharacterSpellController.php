@@ -142,7 +142,7 @@ class CharacterSpellController extends Controller
             return response()->json([
                 'message' => 'Character already knows this spell.',
                 'errors' => ['spell' => ['Character already knows this spell.']],
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($spell) {

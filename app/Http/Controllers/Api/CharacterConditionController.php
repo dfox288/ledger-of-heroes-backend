@@ -10,6 +10,7 @@ use App\Models\CharacterCondition;
 use App\Models\Condition;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class CharacterConditionController extends Controller
 {
@@ -199,7 +200,7 @@ class CharacterConditionController extends Controller
      * @param  string  $conditionIdOrSlug  Condition ID (1-15) or slug (e.g., "poisoned")
      * @return JsonResponse 204 on success
      */
-    public function destroy(Character $character, string $conditionIdOrSlug): JsonResponse
+    public function destroy(Character $character, string $conditionIdOrSlug): Response
     {
         // Find by ID or slug
         $conditionModel = is_numeric($conditionIdOrSlug)
@@ -211,9 +212,9 @@ class CharacterConditionController extends Controller
             ->delete();
 
         if ($deleted === 0) {
-            abort(404, 'Character does not have this condition');
+            abort(Response::HTTP_NOT_FOUND, 'Character does not have this condition');
         }
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

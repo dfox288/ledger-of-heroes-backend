@@ -10,6 +10,7 @@ use App\Models\Character;
 use App\Services\CharacterFeatureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class CharacterFeatureController extends Controller
 {
@@ -157,7 +158,7 @@ class CharacterFeatureController extends Controller
         if (! in_array($source, $validSources)) {
             return response()->json([
                 'message' => 'Invalid source. Valid sources: '.implode(', ', $validSources),
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $this->featureService->clearFeatures($character, $source);

@@ -10,6 +10,7 @@ use App\Models\CharacterCounter;
 use App\Services\CounterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class CounterController extends Controller
 {
@@ -59,7 +60,7 @@ class CounterController extends Controller
         if (! $counter) {
             return response()->json([
                 'message' => 'Counter not found.',
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
 
         // Handle action mode
@@ -76,7 +77,7 @@ class CounterController extends Controller
             return response()->json([
                 'message' => 'Cannot set spent value for unlimited counter.',
                 'errors' => ['spent' => ['Unlimited counters cannot have a spent value.']],
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Validate spent doesn't exceed max
@@ -84,7 +85,7 @@ class CounterController extends Controller
             return response()->json([
                 'message' => 'The spent value exceeds the maximum.',
                 'errors' => ['spent' => ['The spent value cannot exceed the maximum of '.$max.'.']],
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Calculate remaining uses (max - spent)
@@ -105,7 +106,7 @@ class CounterController extends Controller
                 if (! $counter->use()) {
                     return response()->json([
                         'message' => 'No uses remaining for this counter.',
-                    ], 422);
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
                 break;
 
@@ -113,13 +114,13 @@ class CounterController extends Controller
                 if ($counter->isUnlimited()) {
                     return response()->json([
                         'message' => 'Cannot restore unlimited counter.',
-                    ], 422);
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
                 $remaining = $counter->remaining;
                 if ($remaining >= $counter->max_uses) {
                     return response()->json([
                         'message' => 'Counter is already at maximum.',
-                    ], 422);
+                    ], Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
                 // Increment by setting current_uses
                 $newRemaining = $remaining + 1;

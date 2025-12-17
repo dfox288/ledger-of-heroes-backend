@@ -242,4 +242,69 @@ class CounterServiceTest extends TestCase
         $this->assertEquals('long_rest', $counter['reset_on']);
         $this->assertFalse($counter['unlimited']);
     }
+
+    #[Test]
+    public function it_includes_slug_in_counter_response(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterCounter::factory()->create([
+            'character_id' => $character->id,
+            'source_type' => 'class',
+            'source_slug' => 'phb:barbarian',
+            'counter_name' => 'Rage',
+            'current_uses' => 2,
+            'max_uses' => 3,
+            'reset_timing' => 'L',
+        ]);
+
+        $counters = $this->service->getCountersForCharacter($character);
+        $counter = $counters->first();
+
+        $this->assertArrayHasKey('slug', $counter);
+        $this->assertEquals('phb:barbarian:rage', $counter['slug']);
+    }
+
+    #[Test]
+    public function it_generates_slug_with_kebab_case_counter_name(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterCounter::factory()->create([
+            'character_id' => $character->id,
+            'source_type' => 'class',
+            'source_slug' => 'phb:cleric',
+            'counter_name' => 'Channel Divinity',
+            'current_uses' => null,
+            'max_uses' => 1,
+            'reset_timing' => 'S',
+        ]);
+
+        $counters = $this->service->getCountersForCharacter($character);
+        $counter = $counters->first();
+
+        $this->assertEquals('phb:cleric:channel-divinity', $counter['slug']);
+    }
+
+    #[Test]
+    public function it_sanitizes_special_characters_in_slug(): void
+    {
+        $character = Character::factory()->create();
+
+        CharacterCounter::factory()->create([
+            'character_id' => $character->id,
+            'source_type' => 'class',
+            'source_slug' => 'phb:fighter',
+            'counter_name' => "Fighter's Second Wind (Bonus)",
+            'current_uses' => null,
+            'max_uses' => 1,
+            'reset_timing' => 'S',
+        ]);
+
+        $counters = $this->service->getCountersForCharacter($character);
+        $counter = $counters->first();
+
+        // Str::slug removes apostrophes and parentheses
+        $this->assertEquals('phb:fighter:fighters-second-wind-bonus', $counter['slug']);
+    }
 }

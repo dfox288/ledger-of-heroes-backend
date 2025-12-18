@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #804**: Add `description` and `higher_levels` fields to `CharacterSpellResource` nested spell object
+  - Frontend can now display full spell descriptions on character sheets
+  - `higher_levels` is nullable for spells without scaling effects
+
 ### Fixed
 
 - **Issue #701**: Subclasses that grant spellcasting (Eldritch Knight, Arcane Trickster) now receive spell slots

@@ -296,7 +296,6 @@ class SpellManagerService
         // Issue #735: When class_slug is provided, look for spell matching that class
         // This handles multiclass characters preparing from a specific class
         $query = $character->spells()->where('spell_slug', $spell->slug);
-
         if ($classSlug !== null) {
             // First try to find spell for the requested class
             $characterSpell = (clone $query)->where('class_slug', $classSlug)->first();

@@ -133,7 +133,7 @@ class CharacterImportService
             'asi_choices_remaining' => $data['asi_choices_remaining'] ?? 0,
             'hp_levels_resolved' => $data['hp_levels_resolved'] ?? [],
             'hp_calculation_method' => $data['hp_calculation_method'] ?? 'calculated',
-            // Physical description fields (v1.4)
+            // Physical description fields (issue #758)
             'age' => $data['age'] ?? null,
             'height' => $data['height'] ?? null,
             'weight' => $data['weight'] ?? null,

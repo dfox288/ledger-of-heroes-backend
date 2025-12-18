@@ -167,6 +167,13 @@ class CharacterPhysicalAttributesTest extends TestCase
             ->assertJsonPath('data.age', null)
             ->assertJsonPath('data.height', null)
             ->assertJsonPath('data.deity', null);
+
+        $this->assertDatabaseHas('characters', [
+            'id' => $character->id,
+            'age' => null,
+            'height' => null,
+            'deity' => null,
+        ]);
     }
 
     // =====================
@@ -229,10 +236,62 @@ class CharacterPhysicalAttributesTest extends TestCase
     }
 
     #[Test]
-    public function it_validates_deity_max_length(): void
+    public function it_validates_weight_max_length(): void
     {
         $response = $this->postJson('/api/v1/characters', [
             'public_id' => 'test-char-kl12',
+            'name' => 'Test',
+            'weight' => str_repeat('x', 51),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['weight']);
+    }
+
+    #[Test]
+    public function it_validates_eye_color_max_length(): void
+    {
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-mn34',
+            'name' => 'Test',
+            'eye_color' => str_repeat('x', 51),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['eye_color']);
+    }
+
+    #[Test]
+    public function it_validates_hair_color_max_length(): void
+    {
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-op56',
+            'name' => 'Test',
+            'hair_color' => str_repeat('x', 51),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['hair_color']);
+    }
+
+    #[Test]
+    public function it_validates_skin_color_max_length(): void
+    {
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-qr78',
+            'name' => 'Test',
+            'skin_color' => str_repeat('x', 51),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['skin_color']);
+    }
+
+    #[Test]
+    public function it_validates_deity_max_length(): void
+    {
+        $response = $this->postJson('/api/v1/characters', [
+            'public_id' => 'test-char-st90',
             'name' => 'Test',
             'deity' => str_repeat('x', 151), // 151 chars, max is 150
         ]);

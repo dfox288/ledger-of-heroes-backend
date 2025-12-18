@@ -1921,6 +1921,86 @@ class SubclassChoiceHandlerTest extends TestCase
     }
 
     #[Test]
+    public function only_includes_variant_choices_at_subclass_level(): void
+    {
+        // Issue #763: Totem Warrior has variants at L3, L6, L14 but SubclassChoiceHandler
+        // should only show L3 variants at subclass selection time
+
+        $barbarian = CharacterClass::factory()->create([
+            'name' => 'Barbarian',
+            'slug' => 'barbarian',
+            'parent_class_id' => null,
+        ]);
+
+        $totemWarrior = CharacterClass::factory()->create([
+            'name' => 'Path of the Totem Warrior',
+            'slug' => 'totem-warrior',
+            'parent_class_id' => $barbarian->id,
+        ]);
+
+        // L3 variant features (subclass level - should be shown)
+        ClassFeature::factory()->create([
+            'class_id' => $totemWarrior->id,
+            'feature_name' => 'Bear (Path of the Totem Warrior)',
+            'level' => 3,
+            'choice_group' => 'totem_spirit',
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $totemWarrior->id,
+            'feature_name' => 'Eagle (Path of the Totem Warrior)',
+            'level' => 3,
+            'choice_group' => 'totem_spirit',
+        ]);
+
+        // L6 variant features (should NOT be shown at subclass selection)
+        ClassFeature::factory()->create([
+            'class_id' => $totemWarrior->id,
+            'feature_name' => 'Aspect of the Bear (Path of the Totem Warrior)',
+            'level' => 6,
+            'choice_group' => 'totem_aspect',
+        ]);
+
+        // L14 variant features (should NOT be shown at subclass selection)
+        ClassFeature::factory()->create([
+            'class_id' => $totemWarrior->id,
+            'feature_name' => 'Bear (Path of the Totem Warrior)',
+            'level' => 14,
+            'choice_group' => 'totem_attunement',
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $barbarian->slug,
+            'subclass_slug' => null,
+            'level' => 3,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses.features');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(1, $choices);
+
+        $choice = $choices->first();
+        $totemOption = collect($choice->options)->firstWhere('slug', 'totem-warrior');
+
+        $this->assertNotNull($totemOption);
+        $this->assertArrayHasKey('variant_choices', $totemOption);
+
+        // Should ONLY have totem_spirit (L3), NOT totem_aspect (L6) or totem_attunement (L14)
+        $this->assertArrayHasKey('totem_spirit', $totemOption['variant_choices']);
+        $this->assertArrayNotHasKey('totem_aspect', $totemOption['variant_choices']);
+        $this->assertArrayNotHasKey('totem_attunement', $totemOption['variant_choices']);
+
+        // totem_spirit should have 2 options (bear, eagle)
+        $this->assertCount(2, $totemOption['variant_choices']['totem_spirit']['options']);
+    }
+
+    #[Test]
     public function resolve_throws_exception_for_invalid_choice_group(): void
     {
         // Issue #752: Should reject unknown choice_group keys

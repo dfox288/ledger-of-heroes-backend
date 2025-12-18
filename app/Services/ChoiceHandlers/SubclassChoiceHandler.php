@@ -70,7 +70,8 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
 
                 // Issue #752: Add variant choices for subclasses with choice_group features
                 // (e.g., Circle of the Land terrain variants)
-                $variantChoices = $this->getVariantChoicesForSubclass($subclass);
+                // Issue #763: Only show variants at or near subclass level, not later-level choices
+                $variantChoices = $this->getVariantChoicesForSubclass($subclass, $subclassLevel);
                 if (! empty($variantChoices)) {
                     $option['variant_choices'] = $variantChoices;
                 }
@@ -285,9 +286,11 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
      *
      * For single-choice subclasses like Circle of the Land, send: {"terrain": "arctic"}
      *
+     * @param  int|null  $atLevel  Only return variant groups where features are at or near this level.
+     *                             If null, returns all variant choices (used by SubclassVariantChoiceHandler).
      * @return array<string, array{required: bool, label: string, options: array}> Variant choices keyed by choice_group
      */
-    private function getVariantChoicesForSubclass(CharacterClass $subclass): array
+    public function getVariantChoicesForSubclass(CharacterClass $subclass, ?int $atLevel = null): array
     {
         // Get all features with a choice_group (variant features)
         $variantFeatures = $subclass->features()
@@ -300,6 +303,18 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
 
         // Group by choice_group
         $grouped = $variantFeatures->groupBy('choice_group');
+
+        // Issue #763: If filtering by level, only include choice groups where
+        // the features are at or near the specified level (within +1).
+        // This allows Circle of the Land (features at L3, subclass at L2) to work,
+        // while excluding Totem Warrior's L6/L14 choices at subclass selection.
+        if ($atLevel !== null) {
+            $grouped = $grouped->filter(function ($features) use ($atLevel) {
+                $minFeatureLevel = $features->min('level');
+
+                return $minFeatureLevel <= $atLevel + 1;
+            });
+        }
 
         $variantChoices = [];
         foreach ($grouped as $choiceGroup => $features) {

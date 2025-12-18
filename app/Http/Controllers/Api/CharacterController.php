@@ -57,10 +57,19 @@ class CharacterController extends Controller
      *
      * **Examples:**
      * ```
-     * GET /api/v1/characters               # All characters
-     * GET /api/v1/characters?per_page=10   # Custom page size
-     * GET /api/v1/characters?q=gandalf     # Search by name
+     * GET /api/v1/characters                              # All characters
+     * GET /api/v1/characters?per_page=10                  # Custom page size
+     * GET /api/v1/characters?q=gandalf                    # Search by name
+     * GET /api/v1/characters?status=complete              # Only complete characters
+     * GET /api/v1/characters?status=draft                 # Only draft/incomplete characters
+     * GET /api/v1/characters?class=phb:fighter            # Characters with Fighter class
+     * GET /api/v1/characters?status=complete&class=phb:wizard&q=gandalf  # Combined filters
      * ```
+     *
+     * @queryParam q string Search by character name. Example: gandalf
+     * @queryParam status string Filter by completion status (complete, draft). Example: complete
+     * @queryParam class string Filter by class slug. Example: phb:fighter
+     * @queryParam per_page integer Items per page (max 200). Example: 15
      */
     public function index(CharacterIndexRequest $request)
     {
@@ -77,6 +86,22 @@ class CharacterController extends Controller
         if ($request->has('q')) {
             $search = $request->validated('q');
             $query->where('name', 'LIKE', "%{$search}%");
+        }
+
+        // Filter by completion status
+        if ($request->has('status')) {
+            $status = $request->validated('status');
+            if ($status === 'complete') {
+                $query->complete();
+            } else {
+                $query->draft();
+            }
+        }
+
+        // Filter by class
+        if ($request->has('class')) {
+            $classSlug = $request->validated('class');
+            $query->hasClass($classSlug);
         }
 
         $characters = $query->paginate($perPage);

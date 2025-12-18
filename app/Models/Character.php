@@ -7,6 +7,7 @@ use App\Enums\ItemTypeCode;
 use App\Events\CharacterUpdated;
 use App\Services\CharacterChoiceService;
 use App\Services\CharacterStatCalculator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -470,6 +471,67 @@ class Character extends Model implements HasMedia
             && $this->intelligence !== null
             && $this->wisdom !== null
             && $this->charisma !== null;
+    }
+
+    // Query Scopes
+
+    /**
+     * Scope to filter complete characters.
+     *
+     * A character is complete if it has:
+     * - A race assigned
+     * - At least one class
+     * - All six ability scores set
+     *
+     * Note: This is a SQL approximation of the is_complete accessor.
+     * The accessor also checks hasAllRequiredChoicesResolved() which is
+     * too complex for SQL filtering. For list views, the basic 3 checks suffice.
+     */
+    public function scopeComplete(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('race_slug')
+            ->whereNotNull('strength')
+            ->whereNotNull('dexterity')
+            ->whereNotNull('constitution')
+            ->whereNotNull('intelligence')
+            ->whereNotNull('wisdom')
+            ->whereNotNull('charisma')
+            ->whereHas('characterClasses');
+    }
+
+    /**
+     * Scope to filter draft (incomplete) characters.
+     *
+     * A character is draft if it's missing any of:
+     * - A race
+     * - At least one class
+     * - Any of the six ability scores
+     */
+    public function scopeDraft(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereNull('race_slug')
+                ->orWhereNull('strength')
+                ->orWhereNull('dexterity')
+                ->orWhereNull('constitution')
+                ->orWhereNull('intelligence')
+                ->orWhereNull('wisdom')
+                ->orWhereNull('charisma')
+                ->orWhereDoesntHave('characterClasses');
+        });
+    }
+
+    /**
+     * Scope to filter characters by class slug.
+     *
+     * Matches characters that have the specified class (primary or multiclass).
+     */
+    public function scopeHasClass(Builder $query, string $classSlug): Builder
+    {
+        return $query->whereHas('characterClasses', function (Builder $q) use ($classSlug) {
+            $q->where('class_slug', $classSlug);
+        });
     }
 
     // HP Tracking Methods

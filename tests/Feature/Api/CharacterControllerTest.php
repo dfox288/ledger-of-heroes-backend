@@ -119,6 +119,243 @@ class CharacterControllerTest extends TestCase
     }
 
     // =====================
+    // Status Filter Tests (#754)
+    // =====================
+
+    #[Test]
+    public function it_filters_characters_by_complete_status(): void
+    {
+        $race = Race::factory()->create();
+        $class = CharacterClass::factory()->create();
+
+        // Complete characters (have race, class, and ability scores)
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Complete1']);
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Complete2']);
+
+        // Incomplete character (missing race)
+        Character::factory()->create(['name' => 'Draft']);
+
+        $response = $this->getJson('/api/v1/characters?status=complete');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        // All returned characters should be complete
+        foreach ($response->json('data') as $char) {
+            $this->assertTrue($char['is_complete']);
+        }
+    }
+
+    #[Test]
+    public function it_filters_characters_by_draft_status(): void
+    {
+        $race = Race::factory()->create();
+        $class = CharacterClass::factory()->create();
+
+        // Complete character
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Complete']);
+
+        // Incomplete characters
+        Character::factory()->create(['name' => 'Draft1']); // No race, class, or ability scores
+        Character::factory()->withRace($race)->create(['name' => 'Draft2']); // Has race but no class
+
+        $response = $this->getJson('/api/v1/characters?status=draft');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        // All returned characters should be incomplete (draft)
+        foreach ($response->json('data') as $char) {
+            $this->assertFalse($char['is_complete']);
+        }
+    }
+
+    #[Test]
+    public function it_rejects_invalid_status_filter_values(): void
+    {
+        $response = $this->getJson('/api/v1/characters?status=invalid');
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['status']);
+    }
+
+    #[Test]
+    public function it_returns_all_characters_when_status_not_provided(): void
+    {
+        $race = Race::factory()->create();
+        $class = CharacterClass::factory()->create();
+
+        // One complete
+        Character::factory()
+            ->withRace($race)
+            ->withClass($class)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create();
+
+        // One draft
+        Character::factory()->create();
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    // =====================
+    // Class Filter Tests (#754)
+    // =====================
+
+    #[Test]
+    public function it_filters_characters_by_class_slug(): void
+    {
+        $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter', 'name' => 'Fighter']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'phb:wizard', 'name' => 'Wizard']);
+
+        Character::factory()->withClass($fighter)->create(['name' => 'Conan']);
+        Character::factory()->withClass($wizard)->create(['name' => 'Gandalf']);
+        Character::factory()->create(['name' => 'NPC']); // No class
+
+        $response = $this->getJson('/api/v1/characters?class=phb:fighter');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Conan');
+    }
+
+    #[Test]
+    public function it_returns_all_characters_when_class_not_provided(): void
+    {
+        $fighter = CharacterClass::factory()->create();
+        Character::factory()->withClass($fighter)->create();
+        Character::factory()->create(); // No class
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function it_returns_empty_results_when_no_characters_have_specified_class(): void
+    {
+        $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+        Character::factory()->withClass($fighter)->create();
+
+        $response = $this->getJson('/api/v1/characters?class=phb:wizard');
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    #[Test]
+    public function it_filters_multiclass_characters_by_any_class(): void
+    {
+        $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+        $rogue = CharacterClass::factory()->create(['slug' => 'phb:rogue']);
+
+        // Create multiclass character: Fighter/Wizard
+        $multiclass = Character::factory()->withClass($fighter)->create(['name' => 'Eldritch Knight']);
+        $multiclass->characterClasses()->create([
+            'class_slug' => $wizard->slug,
+            'level' => 3,
+            'is_primary' => false,
+            'order' => 1,
+        ]);
+
+        // Create single-class character: Rogue
+        Character::factory()->withClass($rogue)->create(['name' => 'Shadow']);
+
+        // Filter by wizard should include the multiclass character
+        $response = $this->getJson('/api/v1/characters?class=phb:wizard');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Eldritch Knight');
+    }
+
+    // =====================
+    // Combined Filter Tests (#754)
+    // =====================
+
+    #[Test]
+    public function it_combines_status_and_class_filters(): void
+    {
+        $race = Race::factory()->create();
+        $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
+
+        // Complete fighter (has race, class, ability scores)
+        Character::factory()
+            ->withRace($race)
+            ->withClass($fighter)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Conan']);
+
+        // Draft fighter (no race or ability scores)
+        Character::factory()
+            ->withClass($fighter)
+            ->create(['name' => 'Noob Fighter']);
+
+        // Complete wizard
+        Character::factory()
+            ->withRace($race)
+            ->withClass($wizard)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Gandalf']);
+
+        $response = $this->getJson('/api/v1/characters?status=complete&class=phb:fighter');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Conan');
+    }
+
+    #[Test]
+    public function it_combines_status_class_and_name_search(): void
+    {
+        $race = Race::factory()->create();
+        $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+
+        // Complete fighter matching name
+        Character::factory()
+            ->withRace($race)
+            ->withClass($fighter)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Conan the Barbarian']);
+
+        // Draft fighter matching name (no race/ability scores)
+        Character::factory()
+            ->withClass($fighter)
+            ->create(['name' => 'Conan Junior']);
+
+        // Complete fighter not matching name
+        Character::factory()
+            ->withRace($race)
+            ->withClass($fighter)
+            ->withAbilityScores(['strength' => 10, 'dexterity' => 10, 'constitution' => 10, 'intelligence' => 10, 'wisdom' => 10, 'charisma' => 10])
+            ->create(['name' => 'Aragorn']);
+
+        $response = $this->getJson('/api/v1/characters?status=complete&class=phb:fighter&q=Conan');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Conan the Barbarian');
+    }
+
+    // =====================
     // Store Tests (Create)
     // =====================
 

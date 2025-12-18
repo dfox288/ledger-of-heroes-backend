@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Issue #763**: Path of the Totem Warrior now supports multi-level variant choices
+  - Added new `SubclassVariantChoiceHandler` for level-specific variant choices (L6, L14)
+  - Modified `SubclassChoiceHandler` to only show variant choices at subclass selection level
+  - Totem choices at L3 (totem_spirit), L6 (totem_aspect), L14 (totem_attunement) are now independent
+  - Players can choose different animals at each level (e.g., Bear spirit, Eagle aspect, Wolf attunement)
+  - New pending choice type `subclass_variant` appears at L6 and L14 for Totem Warrior
+  - Added migration to mark Totem Warrior features with appropriate choice_groups
+  - Previously showed all 15 totem variant features; now shows only chosen variants at each level
+
 - **Issue #752**: Circle of the Land Druid now correctly assigns only the chosen terrain's spells
   - Added `subclass_choices` JSON column to `character_classes` table for variant selections
   - Added `choice_group` column to `class_features` to mark mutually exclusive variants (terrain, totem, etc.)
@@ -17,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CharacterFeatureService::populateFromSubclass()` filters features by chosen variant
   - Frontend receives terrain options in subclass choice response for UI display
   - Previously assigned all 47 terrain spells; now correctly assigns only 8 for chosen terrain
-  - Infrastructure supports future fix for Totem Barbarian (#763)
 
 ### Changed
 

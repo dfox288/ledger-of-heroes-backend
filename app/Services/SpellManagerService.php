@@ -22,7 +22,11 @@ class SpellManagerService
      */
     public function getCharacterSpells(Character $character): Collection
     {
-        return $character->spells()->with('spell.spellSchool')->get();
+        return $character->spells()->with([
+            'spell.spellSchool',
+            'spell.effects.damageType',
+            'spell.savingThrows',
+        ])->get();
     }
 
     /**

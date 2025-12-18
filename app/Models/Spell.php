@@ -136,6 +136,26 @@ class Spell extends BaseModel
         return null;
     }
 
+    /**
+     * Parse attack type from spell description.
+     *
+     * Returns: 'melee', 'ranged', or null if no spell attack.
+     */
+    public function getAttackTypeAttribute(): ?string
+    {
+        $description = strtolower($this->description ?? '');
+
+        if (empty($description)) {
+            return null;
+        }
+
+        return match (true) {
+            str_contains($description, 'melee spell attack') => 'melee',
+            str_contains($description, 'ranged spell attack') => 'ranged',
+            default => null,
+        };
+    }
+
     // Relationships
     public function spellSchool(): BelongsTo
     {

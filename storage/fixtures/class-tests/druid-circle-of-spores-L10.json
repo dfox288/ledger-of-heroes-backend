@@ -1,0 +1,469 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-18T00:11:54+00:00",
+    "character": {
+        "public_id": "mighty-mage-2sRW",
+        "name": "Circle of Spores L10",
+        "race": "phb:half-elf-aquatic-elf-ancestry",
+        "background": "phb:guild-artisan",
+        "alignment": "Lawful Evil",
+        "ability_scores": {
+            "strength": 10,
+            "dexterity": 12,
+            "constitution": 13,
+            "intelligence": 15,
+            "wisdom": 8,
+            "charisma": 14
+        },
+        "max_hit_points": 62,
+        "current_hit_points": 62,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 2,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:druid",
+                "subclass": "tce:druid-circle-of-spores",
+                "level": 10,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:animate-dead",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:blight",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:blindnessdeafness",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:chill-touch",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:cloudkill",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:confusion",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:contagion",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:gaseous-form",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:gentle-repose",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:produce-flame",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:infestation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:magic-stone",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:shape-water",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": null,
+                "custom_name": "letter of introduction from your guild",
+                "custom_description": "{\"source\":\"background\",\"description\":\"letter of introduction from your guild\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 15,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 50,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:aarakocra",
+                "source": "background"
+            },
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:druidic",
+                "source": "class"
+            },
+            {
+                "language": "core:elvish",
+                "source": "race"
+            },
+            {
+                "language": "core:undercommon",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:insight",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:painters-supplies",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [
+            {
+                "ability_score_code": "CHA",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            },
+            {
+                "ability_score_code": "INT",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            }
+        ],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Fey Ancestry"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf",
+                    "trait_name": "Skill Versatility"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-elf-aquatic-elf-ancestry",
+                    "trait_name": "Variant: Aquatic"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Druidic",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:guild-artisan",
+                    "trait_name": "Feature: Guild Membership"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Wild Shape",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Druid Circle",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Wild Companion",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-spores",
+                    "feature_name": "Druid Circle: Circle of Spores",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-spores",
+                    "feature_name": "Circle Spells (Circle of Spores)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-spores",
+                    "feature_name": "Halo of Spores (Circle of Spores)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-spores",
+                    "feature_name": "Symbiotic Entity (Circle of Spores)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:druid",
+                "counter_name": "Natural Recovery",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:druid",
+                "counter_name": "Wild Shape",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

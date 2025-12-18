@@ -1,0 +1,486 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-18T00:22:05+00:00",
+    "character": {
+        "public_id": "wild-raven-GzVI",
+        "name": "Circle of Wildfire L15",
+        "race": "dmg:troglodyte-dmg-npc",
+        "background": "phb:soldier",
+        "alignment": "Neutral Good",
+        "ability_scores": {
+            "strength": 14,
+            "dexterity": 13,
+            "constitution": 15,
+            "intelligence": 12,
+            "wisdom": 8,
+            "charisma": 10
+        },
+        "max_hit_points": 106,
+        "current_hit_points": 106,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 3,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:druid",
+                "subclass": "tce:druid-circle-of-wildfire",
+                "level": 15,
+                "is_primary": true,
+                "hit_dice_spent": 0
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:aura-of-life",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:burning-hands",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:cure-wounds",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:druidcraft",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:fire-shield",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:flame-strike",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:flaming-sphere",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:guidance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:mass-cure-wounds",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:plant-growth",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:revivify",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:scorching-ray",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "phb:druid",
+                "level_acquired": 3
+            },
+            {
+                "spell": "xge:create-bonfire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:gust",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": null,
+                "custom_name": "insignia of rank",
+                "custom_description": "{\"source\":\"background\",\"description\":\"insignia of rank\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:dagger",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "bone dice or deck of cards",
+                "custom_description": "{\"source\":\"background\",\"description\":\"bone dice or deck of cards\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 50,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:druidic",
+                "source": "class"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:athletics",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:intimidation",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:arcana",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:playing-card-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 6,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 7,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 8,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Chameleon Skin"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Stench"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Sunlight Sensitivity"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Natural Armor"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Druidic",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:soldier",
+                    "trait_name": "Feature: Military Rank"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Wild Shape",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Druid Circle",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:druid",
+                    "feature_name": "Wild Companion",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-wildfire",
+                    "feature_name": "Druid Circle: Circle of Wildfire",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-wildfire",
+                    "feature_name": "Circle Spells (Circle of Wildfire)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:druid-circle-of-wildfire",
+                    "feature_name": "Summon Wildfire Spirit (Circle of Wildfire)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:druid",
+                "counter_name": "Natural Recovery",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:druid",
+                "counter_name": "Wild Shape",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

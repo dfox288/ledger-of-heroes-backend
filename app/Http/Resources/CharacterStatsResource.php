@@ -22,7 +22,7 @@ class CharacterStatsResource extends JsonResource
     {
         return [
             'character_id' => $this->resource->characterId,
-            'level' => $this->resource->level,
+            'total_level' => $this->resource->level,
             'proficiency_bonus' => $this->resource->proficiencyBonus,
 
             /** @var array<string, array{score: int|null, modifier: int|null}> Ability scores keyed by code (STR, DEX, etc.) */

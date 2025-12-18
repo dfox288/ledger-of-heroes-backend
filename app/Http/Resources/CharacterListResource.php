@@ -34,7 +34,7 @@ class CharacterListResource extends JsonResource
             'id' => $this->id,
             'public_id' => $this->public_id,
             'name' => $this->name,
-            'level' => (int) $this->total_level,
+            'total_level' => (int) $this->total_level,
             'race' => $this->formatEntity($this->race),
             'class_name' => $this->primary_class?->name,
             'classes' => $this->getClassesLightweight(),

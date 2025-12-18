@@ -36,7 +36,7 @@ class CharacterControllerTest extends TestCase
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'name', 'level', 'is_complete'],
+                    '*' => ['id', 'name', 'total_level', 'is_complete'],
                 ],
             ]);
     }

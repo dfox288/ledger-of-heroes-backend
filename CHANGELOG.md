@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - This matches `CharacterStatsResource` format for consistency across API
   - Frontend must update character parsing to use new structure
 
+- **Issue #807**: Aligned `level`/`total_level` field across character resources for API consistency
+  - **Changed** `CharacterStatsResource`: `level` → `total_level`
+  - **Changed** `PartyCharacterStatsResource`: `level` → `total_level`
+  - **Changed** `CharacterListResource`: `level` → `total_level`
+  - **Changed** `PartyCharacterResource`: `level` → `total_level`
+  - Now consistent with `CharacterResource.total_level` across all character-related endpoints
+  - Note: `classes[].level` in `CharacterListResource` remains unchanged (class-specific level)
+  - See migration guide: `wrapper/docs/backend/reference/MIGRATION-755-ABILITY-SCORES.md` (section "Issue #807")
+
 ### Added
 
 - **Issue #756**: Add combat fields to `CharacterSpellResource` nested spell object

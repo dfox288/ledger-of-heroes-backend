@@ -61,12 +61,21 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
                     ->whereNull('parent_feature_id')
                     ->get();
 
-                return [
+                $option = [
                     'slug' => $subclass->slug,
                     'name' => $subclass->name,
                     'description' => $subclass->description,
                     'features_preview' => $features->pluck('feature_name')->values()->all(),
                 ];
+
+                // Issue #752: Add variant choices for subclasses with choice_group features
+                // (e.g., Circle of the Land terrain variants)
+                $variantChoices = $this->getVariantChoicesForSubclass($subclass);
+                if (! empty($variantChoices)) {
+                    $option['variant_choices'] = $variantChoices;
+                }
+
+                return $option;
             })->values()->all();
 
             $choice = new PendingChoice(
@@ -124,10 +133,18 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
             );
         }
 
+        // Issue #752: Extract variant choices (e.g., terrain for Circle of the Land)
+        $variantChoices = $selection['variant_choices'] ?? null;
+
         // Update the character class pivot
+        $updateData = ['subclass_slug' => $subclassSlug];
+        if ($variantChoices !== null) {
+            $updateData['subclass_choices'] = $variantChoices;
+        }
+
         $character->characterClasses()
             ->where('class_slug', $classSlug)
-            ->update(['subclass_slug' => $subclassSlug]);
+            ->update($updateData);
 
         // Reload the relationship
         $character->load('characterClasses.subclass');
@@ -168,8 +185,11 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
             // Remove subclass features from the character (only for this subclass)
             $this->featureService->clearSubclassFeatures($character, $characterClass->subclass_slug);
 
-            // Clear subclass_slug on the pivot
-            $characterClass->update(['subclass_slug' => null]);
+            // Clear subclass_slug and subclass_choices on the pivot (Issue #752)
+            $characterClass->update([
+                'subclass_slug' => null,
+                'subclass_choices' => null,
+            ]);
         }
 
         // Reload the relationship
@@ -195,6 +215,68 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
             'ranger' => 'Ranger Archetype',
             'rogue' => 'Roguish Archetype',
             default => 'Subclass',
+        };
+    }
+
+    /**
+     * Get variant choices for a subclass that has choice_group features.
+     *
+     * Issue #752: Some subclasses have variant features that require an additional choice:
+     * - Circle of the Land: terrain (Arctic, Coast, Desert, etc.)
+     * - Path of the Totem Warrior: totem animals (Bear, Eagle, Wolf) at multiple levels
+     *
+     * @return array<string, array{required: bool, label: string, options: array}> Variant choices keyed by choice_group
+     */
+    private function getVariantChoicesForSubclass(CharacterClass $subclass): array
+    {
+        // Get all features with a choice_group (variant features)
+        $variantFeatures = $subclass->features()
+            ->whereNotNull('choice_group')
+            ->get();
+
+        if ($variantFeatures->isEmpty()) {
+            return [];
+        }
+
+        // Group by choice_group
+        $grouped = $variantFeatures->groupBy('choice_group');
+
+        $variantChoices = [];
+        foreach ($grouped as $choiceGroup => $features) {
+            // Build options for this choice group
+            $options = $features->map(function ($feature) {
+                // Extract variant name from feature name: "Arctic (Circle of the Land)" -> "arctic"
+                $variantName = $feature->variant_name; // Uses accessor
+
+                return [
+                    'value' => $variantName,
+                    'name' => ucfirst($variantName ?? $feature->feature_name),
+                    'description' => $feature->description,
+                    'spells' => $feature->spells->pluck('name')->values()->all(),
+                ];
+            })->values()->all();
+
+            $variantChoices[$choiceGroup] = [
+                'required' => true,
+                'label' => $this->getVariantChoiceLabel($choiceGroup),
+                'options' => $options,
+            ];
+        }
+
+        return $variantChoices;
+    }
+
+    /**
+     * Get a human-readable label for a variant choice group.
+     */
+    private function getVariantChoiceLabel(string $choiceGroup): string
+    {
+        return match ($choiceGroup) {
+            'terrain' => 'Choose your terrain',
+            'totem_spirit' => 'Choose your totem spirit',
+            'totem_aspect' => 'Choose your totem aspect',
+            'totem_attunement' => 'Choose your totemic attunement',
+            default => 'Choose your '.str_replace('_', ' ', $choiceGroup),
         };
     }
 }

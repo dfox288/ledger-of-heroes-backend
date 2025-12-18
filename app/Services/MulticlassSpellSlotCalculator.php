@@ -54,7 +54,10 @@ class MulticlassSpellSlotCalculator
      */
     public function calculate(Character $character): SpellSlotResult
     {
-        $character->load('characterClasses.characterClass.levelProgression');
+        $character->load([
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass.levelProgression',
+        ]);
 
         $casterLevel = $this->calculateCasterLevel($character);
         $pactSlots = $this->getPactMagicSlots($character);
@@ -81,25 +84,59 @@ class MulticlassSpellSlotCalculator
 
     /**
      * Calculate combined caster level from all classes.
+     *
+     * D&D 5e PHB p164: Some subclasses (Eldritch Knight, Arcane Trickster)
+     * grant spellcasting to otherwise non-caster base classes. We check
+     * both the base class and subclass, using whichever has spellcasting.
      */
     public function calculateCasterLevel(Character $character): int
     {
-        $character->load('characterClasses.characterClass.levelProgression');
+        $character->load([
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.subclass.levelProgression',
+        ]);
 
         $totalCasterLevel = 0;
 
         foreach ($character->characterClasses as $charClass) {
-            $class = $charClass->characterClass;
             $classLevel = $charClass->level;
 
-            // Get caster type (uses the model's accessor)
-            $casterType = $class->spellcasting_type ?? 'none';
+            // Determine effective spellcasting type:
+            // Check subclass first (Eldritch Knight, Arcane Trickster)
+            // Fall back to base class
+            $casterType = $this->getEffectiveCasterType($charClass);
 
             $multiplier = self::CASTER_MULTIPLIERS[$casterType] ?? 0.0;
             $totalCasterLevel += (int) floor($classLevel * $multiplier);
         }
 
         return $totalCasterLevel;
+    }
+
+    /**
+     * Get the effective caster type for a character's class.
+     *
+     * Checks subclass first (for cases like Fighter/Eldritch Knight),
+     * then falls back to base class.
+     */
+    private function getEffectiveCasterType($charClass): string
+    {
+        // Check subclass first - this handles Eldritch Knight and Arcane Trickster
+        $subclass = $charClass->subclass;
+        if ($subclass !== null) {
+            $subclassType = $subclass->spellcasting_type ?? 'none';
+            if ($subclassType !== 'none' && $subclassType !== 'unknown') {
+                return $subclassType;
+            }
+        }
+
+        // Fall back to base class
+        $class = $charClass->characterClass;
+        if ($class !== null) {
+            return $class->spellcasting_type ?? 'none';
+        }
+
+        return 'none';
     }
 
     /**

@@ -35,7 +35,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
@@ -54,7 +54,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $paladin->id,
+            'class_slug' => $paladin->slug,
             'level' => 6,
             'is_primary' => true,
             'order' => 1,
@@ -73,7 +73,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $eldritchKnight->id,
+            'class_slug' => $eldritchKnight->slug,
             'level' => 9,
             'is_primary' => true,
             'order' => 1,
@@ -92,7 +92,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $warlock->id,
+            'class_slug' => $warlock->slug,
             'level' => 10,
             'is_primary' => true,
             'order' => 1,
@@ -112,14 +112,14 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $cleric->id,
+            'class_slug' => $cleric->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $paladin->id,
+            'class_slug' => $paladin->slug,
             'level' => 4,
             'is_primary' => false,
             'order' => 2,
@@ -139,14 +139,14 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $cleric->id,
+            'class_slug' => $cleric->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -172,14 +172,14 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $wizard->id,
+            'class_slug' => $wizard->slug,
             'level' => 5,
             'is_primary' => true,
             'order' => 1,
         ]);
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $warlock->id,
+            'class_slug' => $warlock->slug,
             'level' => 3,
             'is_primary' => false,
             'order' => 2,
@@ -206,7 +206,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
 
         CharacterClassPivot::create([
             'character_id' => $character->id,
-            'class_id' => $fighter->id,
+            'class_slug' => $fighter->slug,
             'level' => 10,
             'is_primary' => true,
             'order' => 1,
@@ -215,6 +215,53 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
         $result = $this->calculator->calculate($character->fresh());
 
         $this->assertNull($result->standardSlots);
+        $this->assertNull($result->pactSlots);
+    }
+
+    #[Test]
+    public function it_uses_subclass_spellcasting_when_base_class_is_non_caster(): void
+    {
+        // D&D 5e: Fighter (non-caster base) with Eldritch Knight subclass (third caster)
+        $character = Character::factory()->create();
+        $fighter = $this->createNonCaster('FighterBase');
+        $eldritchKnight = $this->createThirdCasterSubclass('Eldritch Knight', $fighter);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $fighter->slug,
+            'subclass_slug' => $eldritchKnight->slug,
+            'level' => 9,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $casterLevel = $this->calculator->calculateCasterLevel($character->fresh());
+
+        // Eldritch Knight at level 9 = floor(9 * 0.334) = 3 caster level
+        $this->assertEquals(3, $casterLevel);
+    }
+
+    #[Test]
+    public function it_returns_spell_slots_for_fighter_eldritch_knight(): void
+    {
+        $character = Character::factory()->create();
+        $fighter = $this->createNonCaster('FighterBase2');
+        $eldritchKnight = $this->createThirdCasterSubclass('Eldritch Knight 2', $fighter);
+
+        CharacterClassPivot::create([
+            'character_id' => $character->id,
+            'class_slug' => $fighter->slug,
+            'subclass_slug' => $eldritchKnight->slug,
+            'level' => 3,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+
+        $result = $this->calculator->calculate($character->fresh());
+
+        // EK level 3 = caster level 1 = 2 1st level spell slots
+        $this->assertNotNull($result->standardSlots);
+        $this->assertEquals(2, $result->standardSlots['1st']);
         $this->assertNull($result->pactSlots);
     }
 
@@ -231,7 +278,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)),
+            'slug' => 'test:'.strtolower(str_replace(' ', '-', $name)),
             'parent_class_id' => null,
             'spellcasting_ability_id' => 4, // INT
         ]);
@@ -246,7 +293,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)),
+            'slug' => 'test:'.strtolower(str_replace(' ', '-', $name)),
             'parent_class_id' => null,
             'spellcasting_ability_id' => 6, // CHA
         ]);
@@ -261,7 +308,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
     {
         $class = CharacterClass::factory()->create([
             'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)),
+            'slug' => 'test:'.strtolower(str_replace(' ', '-', $name)),
             'parent_class_id' => null,
             'spellcasting_ability_id' => 4, // INT
         ]);
@@ -276,7 +323,7 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
     {
         return CharacterClass::factory()->create([
             'name' => 'Warlock',
-            'slug' => 'warlock',
+            'slug' => 'test:warlock',
             'parent_class_id' => null,
             'spellcasting_ability_id' => 6, // CHA
         ]);
@@ -286,10 +333,25 @@ class MulticlassSpellSlotCalculatorTest extends TestCase
     {
         return CharacterClass::factory()->create([
             'name' => $name,
-            'slug' => strtolower(str_replace(' ', '-', $name)),
+            'slug' => 'test:'.strtolower(str_replace(' ', '-', $name)),
             'parent_class_id' => null,
             'spellcasting_ability_id' => null,
         ]);
+    }
+
+    private function createThirdCasterSubclass(string $name, CharacterClass $parentClass): CharacterClass
+    {
+        $subclass = CharacterClass::factory()->create([
+            'name' => $name,
+            'slug' => 'test:'.strtolower(str_replace(' ', '-', $name)),
+            'parent_class_id' => $parentClass->id,
+            'spellcasting_ability_id' => 4, // INT
+        ]);
+
+        // Create level progression with 4th level spell slots (third caster)
+        $this->createLevelProgression($subclass->id, 4);
+
+        return $subclass;
     }
 
     private function createLevelProgression(int $classId, int $maxSpellLevel): void

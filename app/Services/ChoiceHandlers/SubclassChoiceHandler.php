@@ -9,12 +9,14 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Services\CharacterFeatureService;
+use App\Services\SpellSlotService;
 use Illuminate\Support\Collection;
 
 class SubclassChoiceHandler extends AbstractChoiceHandler
 {
     public function __construct(
-        private CharacterFeatureService $featureService
+        private CharacterFeatureService $featureService,
+        private SpellSlotService $spellSlotService,
     ) {}
 
     public function getType(): string
@@ -158,6 +160,10 @@ class SubclassChoiceHandler extends AbstractChoiceHandler
 
         // Assign subclass features to the character
         $this->featureService->populateFromSubclass($character, $classSlug, $subclassSlug);
+
+        // Recalculate spell slots - important for subclasses that grant spellcasting
+        // (e.g., Eldritch Knight, Arcane Trickster)
+        $this->spellSlotService->recalculateMaxSlots($character);
     }
 
     public function canUndo(Character $character, PendingChoice $choice): bool

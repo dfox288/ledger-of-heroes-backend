@@ -155,9 +155,17 @@ class ClassFeature extends BaseModel
     /**
      * Extract the variant name from the feature name.
      *
+     * Expected format: "VariantName (Subclass Name)" where:
+     * - VariantName is the terrain/totem/etc. being extracted
+     * - Subclass Name is in parentheses at the end
+     *
      * Examples:
      * - "Arctic (Circle of the Land)" → "arctic"
      * - "Bear (Path of the Totem Warrior)" → "bear"
+     *
+     * Edge cases handled:
+     * - No space before paren: "Arctic(Circle)" → "arctic"
+     * - Multiple parens: "Bear (Revised) (Totem)" → "bear (revised)" (extracts up to last paren group)
      *
      * @return string|null The lowercase variant name, or null if not a variant
      */
@@ -167,8 +175,9 @@ class ClassFeature extends BaseModel
             return null;
         }
 
-        // Pattern: "VariantName (Subclass Name)"
-        if (preg_match('/^(.+?)\s*\([^)]+\)$/', $this->feature_name, $matches)) {
+        // Pattern: Extract everything before the LAST parenthetical group
+        // Uses greedy .+ to match as much as possible before the final (...)
+        if (preg_match('/^(.+)\s*\([^)]+\)$/', $this->feature_name, $matches)) {
             return strtolower(trim($matches[1]));
         }
 

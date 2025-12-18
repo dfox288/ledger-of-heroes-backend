@@ -229,9 +229,10 @@ class CharacterFeatureService
 
         // Check if this feature matches the selection
         // e.g., "Arctic (Circle of the Land)" matches choice "arctic"
+        // Note: variant_name accessor returns lowercase, selectedVariant may be mixed-case from user input
         $featureVariantName = $feature->variant_name; // Uses accessor: "arctic"
 
-        return $featureVariantName !== null && strtolower($selectedVariant) === $featureVariantName;
+        return $featureVariantName !== null && $featureVariantName === strtolower($selectedVariant);
     }
 
     /**

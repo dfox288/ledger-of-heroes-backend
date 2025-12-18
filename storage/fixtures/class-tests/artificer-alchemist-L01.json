@@ -1,8 +1,8 @@
 {
-    "format_version": "1.2",
-    "exported_at": "2025-12-16T02:49:40+00:00",
+    "format_version": "1.3",
+    "exported_at": "2025-12-18T08:39:18+00:00",
     "character": {
-        "public_id": "bold-wanderer-oaAb",
+        "public_id": "flame-dragon-gu2u",
         "name": "Alchemist L1",
         "race": "dmg:kobold-dmg-npc",
         "background": "scag:uthgardt-tribe-member",
@@ -44,12 +44,14 @@
                 "spell": "phb:poison-spray",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             },
             {
                 "spell": "tce:lightning-lure",
                 "source": "class",
                 "preparation_status": "known",
+                "class_slug": "erlw:artificer",
                 "level_acquired": 1
             }
         ],
@@ -174,9 +176,7 @@
                     "trait_name": "Pack Tactics"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -187,9 +187,7 @@
                     "trait_name": "Darkvision"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -200,9 +198,7 @@
                     "trait_name": "Sunlight Sensitivity"
                 },
                 "source": "race",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -213,9 +209,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -226,9 +220,7 @@
                     "level": 1
                 },
                 "source": "class",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             },
             {
                 "feature_type": "App\\Models\\CharacterTrait",
@@ -239,11 +231,10 @@
                     "trait_name": "Feature: Uthgardt Heritage"
                 },
                 "source": "background",
-                "level_acquired": 1,
-                "uses_remaining": null,
-                "max_uses": null
+                "level_acquired": 1
             }
         ],
+        "counters": [],
         "portrait": null
     }
 }

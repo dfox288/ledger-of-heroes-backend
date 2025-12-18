@@ -1,19 +1,19 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-16T23:15:02+00:00",
+    "exported_at": "2025-12-18T08:43:06+00:00",
     "character": {
-        "public_id": "brave-sage-tBcR",
+        "public_id": "wise-knight-jWKR",
         "name": "Battle Smith L15",
         "race": "dmg:grimlock-dmg-npc",
         "background": "scag:inheritor",
         "alignment": "True Neutral",
         "ability_scores": {
-            "strength": 10,
-            "dexterity": 13,
-            "constitution": 14,
+            "strength": 12,
+            "dexterity": 14,
+            "constitution": 15,
             "intelligence": 15,
-            "wisdom": 8,
-            "charisma": 12
+            "wisdom": 9,
+            "charisma": 13
         },
         "max_hit_points": 106,
         "current_hit_points": 106,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": null,
-        "asi_choices_remaining": 3,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,6 +55,13 @@
         ],
         "spells": [
             {
+                "spell": "phb:acid-splash",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 14
+            },
+            {
                 "spell": "phb:aura-of-purity",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
@@ -83,13 +90,6 @@
                 "level_acquired": 9
             },
             {
-                "spell": "phb:dancing-lights",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 10
-            },
-            {
                 "spell": "phb:fire-shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
@@ -108,7 +108,7 @@
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "erlw:artificer",
-                "level_acquired": 14
+                "level_acquired": 10
             },
             {
                 "spell": "phb:poison-spray",
@@ -272,20 +272,10 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 10,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
                 "feature": "erlw:enhanced-arcane-focus",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 14,
+                "level_acquired": 10,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -306,6 +296,16 @@
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 6,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:radiant-weapon-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 14,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -342,16 +342,6 @@
                 "cost_formula": null
             },
             {
-                "feature": "erlw:resistant-armor-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
                 "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
@@ -362,10 +352,20 @@
                 "cost_formula": null
             },
             {
-                "feature": "tce:spell-refueling-ring-level-6",
+                "feature": "tce:helm-of-awareness-level-10",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 10,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:spell-refueling-ring-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,

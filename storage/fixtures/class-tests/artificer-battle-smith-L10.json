@@ -1,19 +1,19 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-16T23:14:44+00:00",
+    "exported_at": "2025-12-18T08:42:53+00:00",
     "character": {
-        "public_id": "frost-wolf-sEXO",
+        "public_id": "wild-warden-QXeu",
         "name": "Battle Smith L10",
         "race": "phb:half-elf-high-elf-ancestry",
         "background": "erlw:house-agent",
         "alignment": "Lawful Neutral",
         "ability_scores": {
-            "strength": 10,
+            "strength": 11,
             "dexterity": 15,
             "constitution": 8,
             "intelligence": 12,
             "wisdom": 14,
-            "charisma": 13
+            "charisma": 14
         },
         "max_hit_points": 44,
         "current_hit_points": 44,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 2,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -85,13 +85,6 @@
                 "level_acquired": 3
             },
             {
-                "spell": "phb:prestidigitation",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 10
-            },
-            {
                 "spell": "phb:shield",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
@@ -111,6 +104,13 @@
                 "preparation_status": "known",
                 "class_slug": "erlw:artificer",
                 "level_acquired": 1
+            },
+            {
+                "spell": "tce:lightning-lure",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 10
             }
         ],
         "equipment": [
@@ -216,7 +216,7 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
+                "feature": "erlw:enhanced-arcane-focus",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 10,
@@ -249,16 +249,6 @@
                 "feature": "erlw:radiant-weapon-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 6,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "erlw:repeating-shot",
-                "class": "erlw:artificer",
-                "subclass_name": null,
                 "level_acquired": 10,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
@@ -276,7 +266,17 @@
                 "cost_formula": null
             },
             {
-                "feature": "tce:armor-of-magical-strength",
+                "feature": "erlw:repulsion-shield-level-6",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 6,
@@ -507,6 +507,12 @@
                 },
                 "source": "subclass",
                 "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

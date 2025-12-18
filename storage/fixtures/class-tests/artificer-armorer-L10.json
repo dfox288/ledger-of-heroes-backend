@@ -1,19 +1,19 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-16T23:09:22+00:00",
+    "exported_at": "2025-12-18T08:40:39+00:00",
     "character": {
-        "public_id": "swift-rogue-yoaw",
+        "public_id": "wild-arrow-uexO",
         "name": "Armorer L10",
         "race": "phb:half-elf-drow-dark-elf-ancestry",
         "background": "scag:cloistered-scholar",
         "alignment": "Chaotic Neutral",
         "ability_scores": {
-            "strength": 8,
+            "strength": 9,
             "dexterity": 13,
             "constitution": 14,
             "intelligence": 12,
             "wisdom": 15,
-            "charisma": 10
+            "charisma": 13
         },
         "max_hit_points": 71,
         "current_hit_points": 71,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": null,
-        "asi_choices_remaining": 2,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -50,46 +50,11 @@
         ],
         "spells": [
             {
-                "spell": "phb:prestidigitation",
+                "spell": "phb:guidance",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "erlw:artificer",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:mending",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 1
-            },
-            {
-                "spell": "phb:magic-missile",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:thunderwave",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:mirror-image",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:shatter",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 5
+                "level_acquired": 10
             },
             {
                 "spell": "phb:hypnotic-pattern",
@@ -106,11 +71,46 @@
                 "level_acquired": 9
             },
             {
-                "spell": "xge:create-bonfire",
+                "spell": "phb:magic-missile",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mending",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "erlw:artificer",
-                "level_acquired": 10
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:mirror-image",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:prestidigitation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:shatter",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
             }
         ],
         "equipment": [
@@ -253,7 +253,7 @@
                 "feature": "erlw:enhanced-arcane-focus",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 6,
+                "level_acquired": 10,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -264,6 +264,16 @@
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:enhanced-weapon",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -314,16 +324,6 @@
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "tce:spell-refueling-ring-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 10,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,

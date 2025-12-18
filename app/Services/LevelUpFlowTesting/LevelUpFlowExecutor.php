@@ -327,7 +327,10 @@ class LevelUpFlowExecutor
     }
 
     /**
-     * Resolve all pending required choices.
+     * Resolve all pending required choices and ASI choices.
+     *
+     * ASI choices are technically optional (players can delay them), but for
+     * automated testing/fixture generation we want to resolve them immediately.
      */
     private function resolveAllPendingChoices(int $characterId, CharacterRandomizer $randomizer): int
     {
@@ -338,9 +341,15 @@ class LevelUpFlowExecutor
             $choicesResponse = $this->makeRequest('GET', "/api/v1/characters/{$characterId}/pending-choices");
             $allChoices = $choicesResponse['data']['choices'] ?? [];
 
-            // Filter to required choices with remaining > 0
+            // Filter to:
+            // 1. Required choices with remaining > 0
+            // 2. ASI choices (which are technically optional but we want to resolve them)
             $pending = array_filter($allChoices, function ($c) {
-                return ($c['required'] ?? false) === true && ($c['remaining'] ?? 0) > 0;
+                $hasRemaining = ($c['remaining'] ?? 0) > 0;
+                $isRequired = ($c['required'] ?? false) === true;
+                $isAsi = ($c['type'] ?? '') === 'asi_or_feat';
+
+                return $hasRemaining && ($isRequired || $isAsi);
             });
 
             if (empty($pending)) {
@@ -366,6 +375,7 @@ class LevelUpFlowExecutor
         $choiceId = $choice['id'];
         $choiceType = $choice['type'] ?? '';
         $options = $choice['options'] ?? [];
+        $metadata = $choice['metadata'] ?? [];
         $count = $choice['remaining'] ?? 1;
 
         // Fetch options from endpoint if not inline
@@ -376,7 +386,7 @@ class LevelUpFlowExecutor
             // This is needed when multiclassing into a spellcasting class, as the
             // available-spells endpoint defaults to the primary class's spell list
             if (in_array($choiceType, ['spell', 'spells_known', 'cantrip'], true)) {
-                $classSlug = $choice['metadata']['class_slug'] ?? null;
+                $classSlug = $metadata['class_slug'] ?? null;
                 if ($classSlug && ! str_contains($endpoint, 'class=')) {
                     $separator = str_contains($endpoint, '?') ? '&' : '?';
                     $endpoint .= $separator.'class='.urlencode($classSlug);
@@ -387,14 +397,17 @@ class LevelUpFlowExecutor
             $options = $optionsResponse['data'] ?? [];
         }
 
-        if (empty($options)) {
+        // ASI choices can work without fetched options if metadata has ability_scores
+        $hasAsiMetadata = $choiceType === 'asi_or_feat' && ! empty($metadata['ability_scores']);
+
+        if (empty($options) && ! $hasAsiMetadata) {
             Log::warning('Level-up flow: empty options for choice', [
                 'character_id' => $characterId,
                 'choice_id' => $choiceId,
                 'choice_type' => $choiceType,
                 'choice_label' => $choice['label'] ?? 'unknown',
                 'options_endpoint' => $choice['options_endpoint'] ?? 'none',
-                'metadata' => $choice['metadata'] ?? [],
+                'metadata' => $metadata,
             ]);
 
             return false;
@@ -403,7 +416,7 @@ class LevelUpFlowExecutor
         // Select based on type
         $selected = match ($choiceType) {
             'hit_points' => $this->selectHpChoice($options, $randomizer),
-            'asi_or_feat' => $this->selectAsiChoice($options, $randomizer),
+            'asi_or_feat' => $this->selectAsiChoice($options, $metadata, $randomizer),
             'subclass' => $this->selectSubclass($options, $randomizer),
             'spell', 'spells_known', 'cantrip' => $this->selectSpells($options, $randomizer, $count),
             'feat' => $this->selectFeat($options, $randomizer),
@@ -419,9 +432,14 @@ class LevelUpFlowExecutor
             return false;
         }
 
-        $response = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", [
-            'selected' => (array) $selected,
-        ]);
+        // ASI choices use a different payload format (type, increases/feat_slug at root level)
+        if ($choiceType === 'asi_or_feat') {
+            $payload = $selected; // Already in correct format from selectAsiChoice
+        } else {
+            $payload = ['selected' => (array) $selected];
+        }
+
+        $response = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", $payload);
 
         if (isset($response['error'])) {
             Log::warning('Level-up flow: choice resolution failed', [
@@ -429,7 +447,7 @@ class LevelUpFlowExecutor
                 'choice_id' => $choiceId,
                 'choice_type' => $choiceType,
                 'choice_label' => $choice['label'] ?? 'unknown',
-                'selected' => $selected,
+                'payload' => $payload,
                 'error' => $response['message'] ?? 'unknown',
                 'errors' => $response['errors'] ?? [],
             ]);
@@ -460,18 +478,106 @@ class LevelUpFlowExecutor
         return $randomizer->pickRandom($values, 1);
     }
 
-    private function selectAsiChoice(array $options, CharacterRandomizer $randomizer): array
+    /**
+     * Select ASI choice - either ability score increase or feat.
+     *
+     * @param  array  $options  Available feats from the options endpoint
+     * @param  array  $metadata  Choice metadata containing ability_scores and asi_points
+     * @param  CharacterRandomizer  $randomizer  For random selections
+     * @return array Selection in format: ['type' => 'asi', 'increases' => [...]] or ['type' => 'feat', 'feat_slug' => '...']
+     */
+    private function selectAsiChoice(array $options, array $metadata, CharacterRandomizer $randomizer): array
     {
-        // ASI choices might be ability score increases or feats
-        $values = array_column($options, 'value');
-        if (empty($values)) {
-            $values = array_column($options, 'slug');
-        }
-        if (empty($values)) {
-            $values = array_column($options, 'code');
+        // Extract feat slugs safely from options
+        $featSlugs = array_filter(array_column($options, 'slug'));
+        $hasFeatOption = ! empty($featSlugs);
+
+        $abilityScores = $metadata['ability_scores'] ?? [];
+        $asiPoints = $metadata['asi_points'] ?? 2;
+
+        // If no ability scores available, must pick feat
+        if (empty($abilityScores) && $hasFeatOption) {
+            $featSlugs = array_values($featSlugs); // Re-index
+
+            return ['type' => 'feat', 'feat_slug' => $featSlugs[$randomizer->randomInt(0, count($featSlugs) - 1)]];
         }
 
-        return $randomizer->pickRandom(array_filter(array_map('strval', $values)), 1);
+        // If no feats available (or no valid slugs), must pick ASI
+        if (! $hasFeatOption) {
+            return $this->buildAsiSelection($abilityScores, $asiPoints, $randomizer);
+        }
+
+        // Both options available - randomly choose (70% ASI, 30% feat)
+        $roll = $randomizer->randomInt(1, 100);
+        if ($roll <= 70) {
+            return $this->buildAsiSelection($abilityScores, $asiPoints, $randomizer);
+        }
+
+        // Pick a feat
+        $featSlugs = array_values($featSlugs); // Re-index
+
+        return ['type' => 'feat', 'feat_slug' => $featSlugs[$randomizer->randomInt(0, count($featSlugs) - 1)]];
+    }
+
+    /**
+     * Build an ASI selection distributing points across ability scores.
+     *
+     * @param  array  $abilityScores  Available ability scores with current values
+     * @param  int  $asiPoints  Points to distribute (typically 2)
+     * @param  CharacterRandomizer  $randomizer  For random selections
+     * @return array Selection in format: ['type' => 'asi', 'increases' => ['STR' => 2]]
+     */
+    private function buildAsiSelection(array $abilityScores, int $asiPoints, CharacterRandomizer $randomizer): array
+    {
+        $maxScore = 20;
+        $increases = [];
+
+        // Filter to scores that can be increased (below max)
+        $eligibleScores = array_filter($abilityScores, fn ($as) => ($as['current_value'] ?? 10) < $maxScore);
+
+        if (empty($eligibleScores)) {
+            // All scores at max - return empty increases (edge case)
+            return ['type' => 'asi', 'increases' => []];
+        }
+
+        // Re-index for random selection
+        $eligibleScores = array_values($eligibleScores);
+        $remainingPoints = $asiPoints;
+
+        // Decide distribution: 50% chance +2 to one, 50% chance +1 to two
+        $distribution = $randomizer->randomInt(1, 100) <= 50 ? 'single' : 'split';
+
+        if ($distribution === 'single' || count($eligibleScores) === 1) {
+            // +2 to one ability score
+            $selected = $eligibleScores[$randomizer->randomInt(0, count($eligibleScores) - 1)];
+            $code = $selected['code'];
+            $currentValue = $selected['current_value'] ?? 10;
+
+            // Cap at 20
+            $increase = min($remainingPoints, $maxScore - $currentValue);
+            if ($increase > 0) {
+                $increases[$code] = $increase;
+            }
+        } else {
+            // +1 to two ability scores
+            $firstIndex = $randomizer->randomInt(0, count($eligibleScores) - 1);
+            $first = $eligibleScores[$firstIndex];
+            $increases[$first['code']] = 1;
+
+            // Pick second (different from first)
+            $otherScores = array_filter($eligibleScores, fn ($as, $idx) => $idx !== $firstIndex && ($as['current_value'] ?? 10) < $maxScore, ARRAY_FILTER_USE_BOTH);
+
+            if (! empty($otherScores)) {
+                $otherScores = array_values($otherScores);
+                $second = $otherScores[$randomizer->randomInt(0, count($otherScores) - 1)];
+                $increases[$second['code']] = 1;
+            } else {
+                // Can't split - just add +2 to first
+                $increases[$first['code']] = 2;
+            }
+        }
+
+        return ['type' => 'asi', 'increases' => $increases];
     }
 
     private function selectSubclass(array $options, CharacterRandomizer $randomizer): array

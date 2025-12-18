@@ -1,16 +1,16 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-16T23:08:51+00:00",
+    "exported_at": "2025-12-18T08:40:09+00:00",
     "character": {
-        "public_id": "flame-wolf-u3kn",
+        "public_id": "mighty-blade-lxUc",
         "name": "Alchemist L20",
         "race": "dmg:kenku-dmg-npc",
         "background": "scag:clan-crafter",
         "alignment": "Chaotic Neutral",
         "ability_scores": {
-            "strength": 8,
-            "dexterity": 10,
-            "constitution": 14,
+            "strength": 10,
+            "dexterity": 13,
+            "constitution": 15,
             "intelligence": 12,
             "wisdom": 15,
             "charisma": 13
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -60,6 +60,83 @@
         ],
         "spells": [
             {
+                "spell": "phb:blight",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:cloudkill",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:death-ward",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:flaming-sphere",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:gaseous-form",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:guidance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 14
+            },
+            {
+                "spell": "phb:healing-word",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:mass-healing-word",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:melfs-acid-arrow",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:raise-dead",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:ray-of-sickness",
+                "source": "subclass",
+                "preparation_status": "always_prepared",
+                "class_slug": "erlw:artificer",
+                "level_acquired": 3
+            },
+            {
                 "spell": "phb:spare-the-dying",
                 "source": "class",
                 "preparation_status": "known",
@@ -74,88 +151,11 @@
                 "level_acquired": 1
             },
             {
-                "spell": "phb:healing-word",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:ray-of-sickness",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:flaming-sphere",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:melfs-acid-arrow",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:gaseous-form",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:mass-healing-word",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 9
-            },
-            {
-                "spell": "xge:thunderclap",
+                "spell": "xge:magic-stone",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "erlw:artificer",
                 "level_acquired": 10
-            },
-            {
-                "spell": "phb:blight",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 13
-            },
-            {
-                "spell": "phb:death-ward",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 13
-            },
-            {
-                "spell": "tce:booming-blade",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 14
-            },
-            {
-                "spell": "phb:cloudkill",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 17
-            },
-            {
-                "spell": "phb:raise-dead",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "erlw:artificer",
-                "level_acquired": 17
             }
         ],
         "equipment": [
@@ -251,17 +251,27 @@
         "conditions": [],
         "feature_selections": [
             {
-                "feature": "erlw:enhanced-defense",
+                "feature": "erlw:boots-of-the-winding-path-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
+                "level_acquired": 6,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
                 "cost_formula": null
             },
             {
-                "feature": "erlw:replicate-magic-item",
+                "feature": "erlw:enhanced-arcane-focus",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 6,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:enhanced-defense",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 2,
@@ -281,10 +291,10 @@
                 "cost_formula": null
             },
             {
-                "feature": "tce:mind-sharpener",
+                "feature": "erlw:radiant-weapon-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 2,
+                "level_acquired": 18,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -294,26 +304,6 @@
                 "feature": "erlw:repeating-shot",
                 "class": "erlw:artificer",
                 "subclass_name": null,
-                "level_acquired": 6,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "erlw:enhanced-weapon",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 6,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "erlw:boots-of-the-winding-path-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
                 "level_acquired": 10,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
@@ -321,40 +311,20 @@
                 "cost_formula": null
             },
             {
-                "feature": "tce:helm-of-awareness-level-10",
+                "feature": "erlw:replicate-magic-item",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "erlw:resistant-armor-level-6",
                 "class": "erlw:artificer",
                 "subclass_name": null,
                 "level_acquired": 10,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "erlw:enhanced-arcane-focus",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 14,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "erlw:repulsion-shield-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 14,
-                "feature_type": "artificer_infusion",
-                "resource_type": null,
-                "resource_cost": null,
-                "cost_formula": null
-            },
-            {
-                "feature": "tce:spell-refueling-ring-level-6",
-                "class": "erlw:artificer",
-                "subclass_name": null,
-                "level_acquired": 18,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -364,7 +334,37 @@
                 "feature": "erlw:returning-weapon",
                 "class": "erlw:artificer",
                 "subclass_name": null,
+                "level_acquired": 14,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:armor-of-magical-strength",
+                "class": "erlw:artificer",
+                "subclass_name": null,
                 "level_acquired": 18,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:helm-of-awareness-level-10",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 14,
+                "feature_type": "artificer_infusion",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:mind-sharpener",
+                "class": "erlw:artificer",
+                "subclass_name": null,
+                "level_acquired": 2,
                 "feature_type": "artificer_infusion",
                 "resource_type": null,
                 "resource_cost": null,
@@ -561,6 +561,12 @@
                 "level_acquired": 7
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -581,6 +587,12 @@
                 },
                 "source": "class",
                 "level_acquired": 11
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 12
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

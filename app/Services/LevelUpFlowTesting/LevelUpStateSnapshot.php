@@ -107,7 +107,10 @@ class LevelUpStateSnapshot extends StateSnapshot
 
             // Feats have source = 'feat'
             if ($source === 'feat') {
-                $featSlugs[] = $feature['slug'];
+                $slug = $feature['slug'] ?? null;
+                if ($slug !== null) {
+                    $featSlugs[] = $slug;
+                }
             }
         }
 

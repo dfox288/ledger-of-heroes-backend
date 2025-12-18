@@ -35,14 +35,30 @@ class SubclassVariantChoiceHandler extends AbstractChoiceHandler
     {
         $choices = collect();
 
+        // Batch load all subclasses and parent classes to prevent N+1 queries
+        $subclassSlugs = $character->characterClasses
+            ->pluck('subclass_slug')
+            ->filter()
+            ->unique();
+
+        $classSlugs = $character->characterClasses
+            ->pluck('class_slug')
+            ->filter()
+            ->unique();
+
+        $allSlugs = $subclassSlugs->merge($classSlugs)->unique();
+        $classesById = CharacterClass::whereIn('slug', $allSlugs)
+            ->get()
+            ->keyBy('slug');
+
         foreach ($character->characterClasses as $characterClass) {
             // Skip if no subclass selected
             if ($characterClass->subclass_slug === null) {
                 continue;
             }
 
-            // Get the subclass
-            $subclass = CharacterClass::where('slug', $characterClass->subclass_slug)->first();
+            // Get the subclass from batch-loaded collection
+            $subclass = $classesById->get($characterClass->subclass_slug);
             if (! $subclass) {
                 continue;
             }
@@ -58,8 +74,7 @@ class SubclassVariantChoiceHandler extends AbstractChoiceHandler
             $currentChoices = $characterClass->subclass_choices ?? [];
 
             // Get the subclass level (for filtering what was already handled at selection)
-            // Query directly to avoid relationship loading issues
-            $parentClass = CharacterClass::where('slug', $characterClass->class_slug)->first();
+            $parentClass = $classesById->get($characterClass->class_slug);
             $subclassLevel = $parentClass?->subclass_level ?? 3;
 
             // Find pending variant choices at or below character's current level
@@ -147,6 +162,14 @@ class SubclassVariantChoiceHandler extends AbstractChoiceHandler
 
         // Get the subclass for validation
         $subclass = CharacterClass::where('slug', $subclassSlug)->first();
+
+        if (! $subclass) {
+            throw new InvalidSelectionException(
+                $choice->id,
+                'subclass_not_found',
+                "Subclass {$subclassSlug} not found"
+            );
+        }
 
         // Validate the selection
         $this->validateVariantChoice($choice->id, $subclass, $choiceGroup, $selectedValue);

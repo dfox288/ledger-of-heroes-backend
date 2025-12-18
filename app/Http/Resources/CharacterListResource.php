@@ -37,10 +37,33 @@ class CharacterListResource extends JsonResource
             'level' => (int) $this->total_level,
             'race' => $this->formatEntity($this->race),
             'class_name' => $this->primary_class?->name,
+            'classes' => $this->getClassesLightweight(),
             'portrait' => $this->getPortraitThumb(),
             'is_complete' => (bool) $this->is_complete,
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Get lightweight classes array for list display.
+     *
+     * @return array<int, array{name: string, level: int, is_primary: bool}>
+     */
+    private function getClassesLightweight(): array
+    {
+        if (! $this->relationLoaded('characterClasses')) {
+            return [];
+        }
+
+        return $this->characterClasses
+            ->map(fn ($pivot) => [
+                'name' => $pivot->characterClass?->name,
+                'level' => (int) $pivot->level,
+                'is_primary' => (bool) $pivot->is_primary,
+            ])
+            ->filter(fn ($class) => $class['name'] !== null)
+            ->values()
+            ->all();
     }
 
     /**

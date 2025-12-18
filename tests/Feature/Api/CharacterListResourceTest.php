@@ -51,6 +51,7 @@ class CharacterListResourceTest extends TestCase
                         'level',
                         'race',
                         'class_name',
+                        'classes',
                         'portrait',
                         'is_complete',
                         'updated_at',
@@ -83,6 +84,7 @@ class CharacterListResourceTest extends TestCase
         $data = $response->json('data.0');
 
         // These heavy fields should NOT be in the list response
+        // Note: 'classes' IS included but as a lightweight array (name, level, is_primary only)
         $heavyFields = [
             'ability_scores',
             'base_ability_scores',
@@ -104,7 +106,6 @@ class CharacterListResourceTest extends TestCase
             'attunement_slots',
             'speeds',
             'senses',
-            'classes', // Full multiclass array with hit dice
             'validation_status',
             'conditions',
             'optional_features',
@@ -159,6 +160,61 @@ class CharacterListResourceTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.0.level', 8) // 5 + 3
             ->assertJsonPath('data.0.class_name', 'Fighter'); // Primary class only
+    }
+
+    #[Test]
+    public function character_list_includes_lightweight_classes_array(): void
+    {
+        $fighter = CharacterClass::factory()->create(['name' => 'Fighter']);
+        $wizard = CharacterClass::factory()->create(['name' => 'Wizard']);
+
+        $character = Character::factory()->create();
+
+        // Add Fighter as primary (order 1), then Wizard
+        $character->characterClasses()->create([
+            'class_slug' => $fighter->slug,
+            'level' => 5,
+            'is_primary' => true,
+            'order' => 1,
+        ]);
+        $character->characterClasses()->create([
+            'class_slug' => $wizard->slug,
+            'level' => 3,
+            'is_primary' => false,
+            'order' => 2,
+        ]);
+
+        $response = $this->getJson('/api/v1/characters');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'classes' => [
+                            '*' => ['name', 'level', 'is_primary'],
+                        ],
+                    ],
+                ],
+            ]);
+
+        // Verify classes array content
+        $classes = $response->json('data.0.classes');
+        $this->assertCount(2, $classes);
+
+        // Classes should be in order (primary first by order column)
+        $this->assertEquals('Fighter', $classes[0]['name']);
+        $this->assertEquals(5, $classes[0]['level']);
+        $this->assertTrue($classes[0]['is_primary']);
+
+        $this->assertEquals('Wizard', $classes[1]['name']);
+        $this->assertEquals(3, $classes[1]['level']);
+        $this->assertFalse($classes[1]['is_primary']);
+
+        // Should NOT have heavy fields like hit_dice, subclass, slug
+        $this->assertArrayNotHasKey('hit_dice', $classes[0]);
+        $this->assertArrayNotHasKey('subclass', $classes[0]);
+        $this->assertArrayNotHasKey('slug', $classes[0]);
+        $this->assertArrayNotHasKey('class', $classes[0]); // No nested class object
     }
 
     #[Test]

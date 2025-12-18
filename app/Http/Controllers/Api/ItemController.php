@@ -13,6 +13,7 @@ use App\Models\Item;
 use App\Services\Cache\EntityCacheService;
 use App\Services\ItemSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class ItemController extends Controller
@@ -143,10 +144,11 @@ class ItemController extends Controller
      * @param  ItemIndexRequest  $request  Validated request with filtering parameters
      * @param  ItemSearchService  $service  Service layer for item queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<ItemResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, type_name, type_code, rarity, requires_attunement, is_magic, weight, cost_cp, source_codes, damage_dice, versatile_damage, damage_type, range_normal, range_long, armor_class, strength_requirement, stealth_disadvantage, charges_max, has_charges, recharge_timing, recharge_formula, spell_slugs, tag_slugs, property_codes, modifier_categories, proficiency_names, saving_throw_abilities, has_prerequisites, proficiency_category, magic_bonus. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'proficiency_category = martial_melee AND magic_bonus >= 1')]
-    public function index(ItemIndexRequest $request, ItemSearchService $service, Client $meilisearch)
+    public function index(ItemIndexRequest $request, ItemSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = ItemSearchDTO::fromRequest($request);
 
@@ -172,7 +174,7 @@ class ItemController extends Controller
      * properties, abilities, random tables, modifiers, proficiencies, and prerequisites.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache, ItemSearchService $service)
+    public function show(ItemShowRequest $request, Item $item, EntityCacheService $cache, ItemSearchService $service): ItemResource
     {
         return $this->showWithCache(
             request: $request,

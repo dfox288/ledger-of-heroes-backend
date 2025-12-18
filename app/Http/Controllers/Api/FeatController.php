@@ -11,6 +11,7 @@ use App\Models\Feat;
 use App\Services\Cache\EntityCacheService;
 use App\Services\FeatSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class FeatController extends Controller
@@ -115,10 +116,11 @@ class FeatController extends Controller
      * @param  FeatIndexRequest  $request  Validated request with filtering parameters
      * @param  FeatSearchService  $service  Service layer for feat queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<FeatResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields: id, slug, source_codes, tag_slugs, has_prerequisites, grants_proficiencies, is_half_feat, improved_abilities, prerequisite_types, parent_feat_slug. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'is_half_feat = true AND improved_abilities IN [STR]')]
-    public function index(FeatIndexRequest $request, FeatSearchService $service, Client $meilisearch)
+    public function index(FeatIndexRequest $request, FeatSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = FeatSearchDTO::fromRequest($request);
 
@@ -143,7 +145,7 @@ class FeatController extends Controller
      * Returns detailed information about a specific feat including modifiers, proficiencies,
      * conditions, prerequisites, and source citations. Supports selective relationship loading.
      */
-    public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache, FeatSearchService $service)
+    public function show(FeatShowRequest $request, Feat $feat, EntityCacheService $cache, FeatSearchService $service): FeatResource
     {
         return $this->showWithCache(
             request: $request,

@@ -17,6 +17,7 @@ use App\Models\Spell;
 use App\Services\Cache\EntityCacheService;
 use App\Services\SpellSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class SpellController extends Controller
@@ -115,10 +116,11 @@ class SpellController extends Controller
      * @param  SpellIndexRequest  $request  Validated request with filtering parameters
      * @param  SpellSearchService  $service  Service layer for spell queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<SpellResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Filterable fields include: id, level, school_code, school_name, concentration, ritual, requires_verbal, requires_somatic, requires_material, class_slugs, tag_slugs, source_codes, damage_types, saving_throws, effect_types, material_cost_gp, material_consumed, aoe_type, aoe_size. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'aoe_type = sphere AND aoe_size >= 20')]
-    public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch)
+    public function index(SpellIndexRequest $request, SpellSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = SpellSearchDTO::fromRequest($request);
 
@@ -144,7 +146,7 @@ class SpellController extends Controller
      * like spell school, sources, damage effects, and associated classes.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service)
+    public function show(SpellShowRequest $request, Spell $spell, EntityCacheService $cache, SpellSearchService $service): SpellResource
     {
         return $this->showWithCache(
             request: $request,
@@ -179,10 +181,8 @@ class SpellController extends Controller
      * across 131 classes/subclasses and 477 spells imported from official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find classes for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, hit_die: int, is_base_class: bool}>}
      */
-    public function classes(Spell $spell)
+    public function classes(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['classes' => function ($query) {
             $query->orderBy('name');
@@ -215,10 +215,8 @@ class SpellController extends Controller
      * monster imports with 100% spell name match rate.
      *
      * @param  Spell  $spell  The spell to find monsters for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, challenge_rating: string|null, type: string|null}>}
      */
-    public function monsters(Spell $spell)
+    public function monsters(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['monsters' => function ($query) {
             $query->orderBy('name');
@@ -251,10 +249,8 @@ class SpellController extends Controller
      * ChargedItemStrategy during item imports using case-insensitive spell name matching.
      *
      * @param  Spell  $spell  The spell to find items for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, type: string|null, rarity: string|null}>}
      */
-    public function items(Spell $spell)
+    public function items(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['items' => function ($query) {
             $query->orderBy('name');
@@ -287,10 +283,8 @@ class SpellController extends Controller
      * official D&D sourcebooks.
      *
      * @param  Spell  $spell  The spell to find races for (accepts ID or slug)
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
-    public function races(Spell $spell)
+    public function races(Spell $spell): AnonymousResourceCollection
     {
         $spell->load(['races' => function ($query) {
             $query->orderBy('name');

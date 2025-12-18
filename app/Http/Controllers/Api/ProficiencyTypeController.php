@@ -12,7 +12,7 @@ use App\Http\Resources\RaceResource;
 use App\Models\ProficiencyType;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProficiencyTypeController extends Controller
 {
@@ -51,13 +51,11 @@ class ProficiencyTypeController extends Controller
      * - **Multiclass Planning:** "What martial weapons can a Rogue use after Fighter dip?"
      * - **Character Building:** Find which proficiencies your race/class/background grants
      * - **Equipment Shopping:** Browse weapon proficiencies to know what you can use effectively
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, category: string, subcategory: string|null}>}
      */
     #[QueryParameter('q', description: 'Search proficiencies by name', example: 'longsword')]
     #[QueryParameter('category', description: 'Filter by category (weapon, armor, tool, language, skill, saving-throw)', example: 'weapon')]
     #[QueryParameter('subcategory', description: 'Filter by subcategory within category (e.g., simple, martial)', example: 'martial')]
-    public function index(ProficiencyTypeIndexRequest $request, LookupCacheService $cache)
+    public function index(ProficiencyTypeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
         $query = ProficiencyType::query();
 
@@ -184,10 +182,8 @@ class ProficiencyTypeController extends Controller
      * - Results are alphabetically sorted for consistent browsing
      * - Includes base classes AND subclasses (e.g., Eldritch Knight Fighter counts separately)
      * - Check `parent_class_id` in response to distinguish base vs subclass
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, hit_die: int, description: string|null, archetype: string|null, parent_class_id: int|null, is_base_class: bool}>}
      */
-    public function classes(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
+    public function classes(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): AnonymousResourceCollection
     {
         $perPage = $request->validated('per_page', 50);
 
@@ -195,7 +191,7 @@ class ProficiencyTypeController extends Controller
             ->with(['sources', 'tags'])
             ->paginate($perPage);
 
-        return ClassResource::collection($classes)->toResponse($request);
+        return ClassResource::collection($classes);
     }
 
     /**
@@ -247,10 +243,8 @@ class ProficiencyTypeController extends Controller
      * - Results include base races AND subraces (e.g., High Elf, Wood Elf count separately)
      * - Check `parent_race_id` in response to distinguish base race vs subrace
      * - Results alphabetically sorted for consistent browsing
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, speed: int|null, is_subrace: bool}>}
      */
-    public function races(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
+    public function races(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): AnonymousResourceCollection
     {
         $perPage = $request->validated('per_page', 50);
 
@@ -258,7 +252,7 @@ class ProficiencyTypeController extends Controller
             ->with(['sources', 'tags', 'size'])
             ->paginate($perPage);
 
-        return RaceResource::collection($races)->toResponse($request);
+        return RaceResource::collection($races);
     }
 
     /**
@@ -317,10 +311,8 @@ class ProficiencyTypeController extends Controller
      * - Results alphabetically sorted for consistent navigation
      * - All backgrounds are base-level (no "sub-backgrounds" like races/classes have)
      * - Check background description for thematic fit beyond mechanical proficiencies
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, feature_name: string|null, feature_description: string|null}>}
      */
-    public function backgrounds(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): JsonResponse
+    public function backgrounds(ProficiencyTypeShowRequest $request, ProficiencyType $proficiencyType): AnonymousResourceCollection
     {
         $perPage = $request->validated('per_page', 50);
 
@@ -328,6 +320,6 @@ class ProficiencyTypeController extends Controller
             ->with(['sources', 'tags'])
             ->paginate($perPage);
 
-        return BackgroundResource::collection($backgrounds)->toResponse($request);
+        return BackgroundResource::collection($backgrounds);
     }
 }

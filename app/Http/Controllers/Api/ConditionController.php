@@ -53,6 +53,8 @@ class ConditionController extends Controller
      * - **Spell Selection:** Choose control spells based on conditions they inflict (Hold Person = Paralyzed)
      * - **Monster Abilities:** Understand dangerous monster attacks (Ghoul claws = Paralyzed, Medusa gaze = Petrified)
      * - **Condition Removal:** Prepare Lesser Restoration (removes Blinded, Deafened, Paralyzed, Poisoned)
+     *
+     * @response AnonymousResourceCollection<ConditionResource>
      */
     #[QueryParameter('q', description: 'Search by name', example: 'frightened')]
     public function index(ConditionIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection

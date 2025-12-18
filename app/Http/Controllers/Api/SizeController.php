@@ -11,6 +11,7 @@ use App\Models\Size;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SizeController extends Controller
 {
@@ -52,11 +53,9 @@ class SizeController extends Controller
      * - **Encounter Design:** "What space requirements do I need for a Large boss fight?" (10ft × 10ft minimum)
      * - **Mount Planning:** "My Small Halfling needs a Medium mount - what are the options?" (Pony, Wolf, Mastiff)
      * - **Dungeon Navigation:** "Will a Large PC fit through standard 5ft doors?" (Yes, but squeezing)
-     *
-     * @response array{data: array<int, array{id: int, code: string, name: string}>}
      */
     #[QueryParameter('q', description: 'Search by name', example: 'medium')]
-    public function index(SizeIndexRequest $request, LookupCacheService $cache)
+    public function index(SizeIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection
     {
         $query = Size::query();
 

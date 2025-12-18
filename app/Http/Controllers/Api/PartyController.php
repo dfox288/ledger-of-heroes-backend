@@ -81,11 +81,11 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function destroy(Request $request, Party $party): JsonResponse
+    public function destroy(Request $request, Party $party): Response
     {
         $party->delete();
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
     /**
@@ -114,16 +114,16 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function removeCharacter(Request $request, Party $party, Character $character): JsonResponse
+    public function removeCharacter(Request $request, Party $party, Character $character): Response
     {
         // Check if character is in party
         if (! $party->characters()->where('character_id', $character->id)->exists()) {
-            return response()->json(['message' => 'Character not in party'], Response::HTTP_NOT_FOUND);
+            abort(404, 'Character not in party');
         }
 
         $party->characters()->detach($character->id);
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
     /**

@@ -22,6 +22,7 @@ use App\Services\LevelUpService;
 use App\Services\ReplaceClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -98,7 +99,7 @@ class CharacterClassController extends Controller
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
      *
-     * @response 201 array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @response CharacterClassPivotResource
      */
     public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
@@ -157,19 +158,15 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response 204 scenario="success"
      */
-    public function destroy(Character $character, string $classSlugOrFullSlug): JsonResponse
+    public function destroy(Character $character, string $classSlugOrFullSlug): HttpResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)
         $class = CharacterClass::where('slug', $classSlugOrFullSlug)
             ->first();
 
         if (! $class) {
-            return response()->json([
-                'message' => 'Class not found',
-            ], Response::HTTP_NOT_FOUND);
+            abort(404, 'Class not found');
         }
 
         return DB::transaction(function () use ($character, $class) {
@@ -179,20 +176,16 @@ class CharacterClassController extends Controller
             $pivot = $character->characterClasses()->where('class_slug', $class->slug)->first();
 
             if (! $pivot) {
-                return response()->json([
-                    'message' => 'Class not found on character',
-                ], Response::HTTP_NOT_FOUND);
+                abort(404, 'Class not found on character');
             }
 
             if ($classCount <= 1) {
-                return response()->json([
-                    'message' => 'Cannot remove the only class',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                abort(422, 'Cannot remove the only class');
             }
 
             $pivot->delete();
 
-            return response()->json(null, Response::HTTP_NO_CONTENT);
+            return response()->noContent();
         });
     }
 
@@ -242,8 +235,7 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     *
-     * @response array{data: array{previous_level: int, new_level: int, hp_increase: int, new_max_hp: int, features_gained: array<array{id: int, name: string, description: string|null}>, spell_slots: array<string, int>, asi_pending: bool, hp_choice_pending: bool, pending_choice_summary: array{total_pending: int, required_pending: int, optional_pending: int, by_type: array<string, int>, by_source: array<string, int>}}}
+     * @return \Illuminate\Http\JsonResponse<LevelUpResource>
      */
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -326,8 +318,7 @@ class CharacterClassController extends Controller
      * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
-     *
-     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
+     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
      */
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -406,11 +397,10 @@ class CharacterClassController extends Controller
      * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classSlugOrFullSlug  Class slug
+     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
-     *
-     * @response array{data: array{class: array{id: int, name: string, slug: string}|null, class_slug: string, is_dangling: bool, subclass: array{id: int, name: string, slug: string}|null, subclass_slug: string|null, level: int, is_primary: bool, order: int, hit_dice: array{die: string, max: int, spent: int, available: int}|null}}
      */
     public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {

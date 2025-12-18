@@ -13,6 +13,7 @@ use App\Models\Background;
 use App\Services\BackgroundSearchService;
 use App\Services\Cache\EntityCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class BackgroundController extends Controller
@@ -97,10 +98,11 @@ class BackgroundController extends Controller
      * @param  BackgroundIndexRequest  $request  Validated request with filtering parameters
      * @param  BackgroundSearchService  $service  Service layer for background queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<BackgroundResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Integer fields (=,!=,>,>=,<,<=): id. String fields (=,!=): name, slug. Boolean fields (=,!=,IS NULL): grants_language_choice. Array fields (IN,NOT IN,IS EMPTY): source_codes, tag_slugs, skill_proficiencies, tool_proficiency_types. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'skill_proficiencies IN [Insight, Religion] AND source_codes IN [PHB]')]
-    public function index(BackgroundIndexRequest $request, BackgroundSearchService $service, Client $meilisearch)
+    public function index(BackgroundIndexRequest $request, BackgroundSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = BackgroundSearchDTO::fromRequest($request);
 
@@ -126,7 +128,7 @@ class BackgroundController extends Controller
      * traits with random tables (personality, ideals, bonds, flaws), languages, and sources.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache, BackgroundSearchService $service)
+    public function show(BackgroundShowRequest $request, Background $background, EntityCacheService $cache, BackgroundSearchService $service): BackgroundResource
     {
         return $this->showWithCache(
             request: $request,

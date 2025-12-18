@@ -44,6 +44,8 @@ class AbilityScoreController extends Controller
      * - **Character Building:** Determine which ability scores to prioritize based on class (Wizards need INT, Clerics need WIS, Rogues need DEX)
      * - **Ability Score Checks:** Understand what modifiers apply to skill checks and saving throws
      * - **Combat Analysis:** Know which abilities affect attack rolls, damage, and AC (DEX for AC, STR for melee attacks)
+     *
+     * @response AnonymousResourceCollection<AbilityScoreResource>
      */
     #[QueryParameter('q', description: 'Search ability scores by name or code', example: 'strength')]
     public function index(AbilityScoreIndexRequest $request, LookupCacheService $cache): AnonymousResourceCollection

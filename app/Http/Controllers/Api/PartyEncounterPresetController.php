@@ -74,7 +74,7 @@ class PartyEncounterPresetController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function destroy(Party $party, EncounterPreset $encounterPreset): JsonResponse
+    public function destroy(Party $party, EncounterPreset $encounterPreset): Response
     {
         if ($encounterPreset->party_id !== $party->id) {
             abort(404, 'Preset not found in this party');
@@ -82,7 +82,7 @@ class PartyEncounterPresetController extends Controller
 
         $encounterPreset->delete();
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        return response()->noContent();
     }
 
     /**

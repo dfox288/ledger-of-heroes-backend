@@ -14,6 +14,7 @@ use App\Models\Monster;
 use App\Services\Cache\EntityCacheService;
 use App\Services\MonsterSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class MonsterController extends Controller
@@ -208,10 +209,11 @@ class MonsterController extends Controller
      * @param  MonsterIndexRequest  $request  Validated request with filtering parameters
      * @param  MonsterSearchService  $service  Service layer for monster queries
      * @param  Client  $meilisearch  Meilisearch client for advanced filtering
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     *
+     * @response AnonymousResourceCollection<MonsterResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: challenge_rating, armor_class, hit_points_average, experience_points, strength, dexterity, constitution, intelligence, wisdom, charisma, speed_walk, speed_fly, speed_swim, speed_burrow, speed_climb, passive_perception, legendary_resistance_uses, type, size_code, size_name, alignment, armor_type, slug, has_legendary_actions, has_lair_actions, is_spellcaster, has_reactions, has_legendary_resistance, has_magic_resistance, can_hover, is_npc, source_codes, tag_slugs, spell_slugs. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'challenge_rating >= 10 AND has_legendary_actions = true')]
-    public function index(MonsterIndexRequest $request, MonsterSearchService $service, Client $meilisearch)
+    public function index(MonsterIndexRequest $request, MonsterSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = MonsterSearchDTO::fromRequest($request);
 
@@ -237,7 +239,7 @@ class MonsterController extends Controller
      * legendary actions, spellcasting, modifiers, conditions, and source citations.
      * Supports selective relationship loading via the 'include' parameter.
      */
-    public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache, MonsterSearchService $service)
+    public function show(MonsterShowRequest $request, Monster $monster, EntityCacheService $cache, MonsterSearchService $service): MonsterResource
     {
         return $this->showWithCache(
             request: $request,
@@ -275,10 +277,8 @@ class MonsterController extends Controller
      * **Data Source:**
      * Powered by SpellcasterStrategy which syncs 1,098 spell relationships
      * across 129 spellcasting monsters with 100% match rate.
-     *
-     * @response array{data: array<int, array{id: int, slug: string, name: string, level: int, school: array{id: int, name: string, code: string}|null}>}
      */
-    public function spells(Monster $monster)
+    public function spells(Monster $monster): AnonymousResourceCollection
     {
         $monster->load(['spells' => function ($query) {
             $query->orderBy('level')->orderBy('name');

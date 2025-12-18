@@ -31,27 +31,6 @@ class CharacterExperienceController extends Controller
      * @operationId characters.showXp
      *
      * @tags Characters
-     *
-     * @response 200 {
-     *   "data": {
-     *     "experience_points": 10000,
-     *     "level": 5,
-     *     "next_level_xp": 14000,
-     *     "xp_to_next_level": 4000,
-     *     "xp_progress_percent": 46.67,
-     *     "is_max_level": false
-     *   }
-     * }
-     * @response 200 scenario="Max level" {
-     *   "data": {
-     *     "experience_points": 400000,
-     *     "level": 20,
-     *     "next_level_xp": null,
-     *     "xp_to_next_level": 0,
-     *     "xp_progress_percent": 100,
-     *     "is_max_level": true
-     *   }
-     * }
      */
     public function show(Character $character): XpProgressResource
     {
@@ -86,21 +65,6 @@ class CharacterExperienceController extends Controller
      * @operationId characters.addXp
      *
      * @tags Characters
-     *
-     * @bodyParam amount integer required XP to add (min: 0). Example: 500
-     * @bodyParam auto_level boolean Trigger level-up if threshold crossed. Example: true
-     *
-     * @response 200 {
-     *   "data": {
-     *     "experience_points": 500,
-     *     "level": 2,
-     *     "next_level_xp": 900,
-     *     "xp_to_next_level": 400,
-     *     "xp_progress_percent": 33.3,
-     *     "is_max_level": false,
-     *     "leveled_up": false
-     *   }
-     * }
      */
     public function addXp(AddExperienceRequest $request, Character $character): XpProgressResource
     {

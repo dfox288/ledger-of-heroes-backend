@@ -17,6 +17,7 @@ use App\Services\Cache\EntityCacheService;
 use App\Services\ClassProgressionTableGenerator;
 use App\Services\ClassSearchService;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use MeiliSearch\Client;
 
 class ClassController extends Controller
@@ -338,9 +339,11 @@ class ClassController extends Controller
      *
      * For complete operator documentation and syntax, see:
      * https://www.meilisearch.com/docs/reference/api/search#filter
+     *
+     * @response AnonymousResourceCollection<ClassResource>
      */
     #[QueryParameter('filter', description: 'Meilisearch filter expression. Supports all operators by data type: Integer (=,!=,>,>=,<,<=,TO), String (=,!=), Boolean (=,!=,IS NULL,EXISTS), Array (IN,NOT IN,IS EMPTY). Fields: id, slug, hit_die, spell_count, max_spell_level, optional_feature_count, primary_ability, spellcasting_ability, parent_class_name, is_base_class, is_subclass, has_spells, is_spellcaster, has_optional_features, source_codes, tag_slugs, saving_throw_proficiencies, armor_proficiencies, weapon_proficiencies, tool_proficiencies, skill_proficiencies, optional_feature_types. See docs/MEILISEARCH-FILTER-OPERATORS.md for details.', example: 'is_base_class = true AND armor_proficiencies IN ["Heavy Armor"]')]
-    public function index(ClassIndexRequest $request, ClassSearchService $service, Client $meilisearch)
+    public function index(ClassIndexRequest $request, ClassSearchService $service, Client $meilisearch): AnonymousResourceCollection
     {
         $dto = ClassSearchDTO::fromRequest($request);
 
@@ -518,7 +521,7 @@ class ClassController extends Controller
      * The `computed` object is **only included on show endpoint** for performance.
      * Index endpoint returns base fields and relationships without computed data.
      */
-    public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache, ClassSearchService $service)
+    public function show(ClassShowRequest $request, CharacterClass $class, EntityCacheService $cache, ClassSearchService $service): ClassResource
     {
         return $this->showWithCache(
             request: $request,

@@ -48,21 +48,7 @@ class CharacterExportController extends Controller
      *
      * @operationId importCharacter
      *
-     * @response 201 array{
-     *     data: array{
-     *         success: bool,
-     *         character: array{
-     *             public_id: string,
-     *             name: string,
-     *             race: string|null
-     *         },
-     *         warnings: array<string>
-     *     }
-     * }
-     * @response 422 array{
-     *     message: string,
-     *     errors: array<string, array<string>>
-     * }
+     * @response CharacterImportResultResource
      */
     public function import(CharacterImportRequest $request): JsonResponse
     {

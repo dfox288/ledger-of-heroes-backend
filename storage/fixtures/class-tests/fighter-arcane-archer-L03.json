@@ -1,0 +1,320 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-18T18:54:01+00:00",
+    "character": {
+        "public_id": "bold-rogue-j61u",
+        "name": "Arcane Archer L3",
+        "race": "dmg:zombie-dmg-npc",
+        "background": "phb:folk-hero",
+        "alignment": "Lawful Neutral",
+        "ability_scores": {
+            "strength": 15,
+            "dexterity": 13,
+            "constitution": 12,
+            "intelligence": 10,
+            "wisdom": 8,
+            "charisma": 14
+        },
+        "max_hit_points": 24,
+        "current_hit_points": 24,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:fighter",
+                "subclass": "xge:fighter-arcane-archer",
+                "level": 3,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [],
+        "equipment": [
+            {
+                "item": "phb:shovel",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:iron-pot",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:animal-handling",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:woodcarvers-tools",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:great-weapon-fighting",
+                "class": "phb:fighter",
+                "subclass_name": null,
+                "level_acquired": 1,
+                "feature_type": "fighting_style",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "xge:banishing-arrow",
+                "class": "phb:fighter",
+                "subclass_name": "Arcane Archer",
+                "level_acquired": 3,
+                "feature_type": "arcane_shot",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "xge:seeking-arrow",
+                "class": "phb:fighter",
+                "subclass_name": "Arcane Archer",
+                "level_acquired": 3,
+                "feature_type": "arcane_shot",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:zombie",
+                    "trait_name": "Undead Fortitude"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:zombie",
+                    "trait_name": "Undead Nature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:zombie",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Second Wind",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Fighting Style",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:folk-hero",
+                    "trait_name": "Feature: Rustic Hospitality"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Action Surge",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Martial Archetype",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:fighter-arcane-archer",
+                    "feature_name": "Martial Archetype: Arcane Archer",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:fighter-arcane-archer",
+                    "feature_name": "Arcane Archer Lore (Arcane Archer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:fighter-arcane-archer",
+                    "feature_name": "Arcane Shot (Arcane Archer)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Action Surge",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Fighting Styles Known",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Second Wind",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

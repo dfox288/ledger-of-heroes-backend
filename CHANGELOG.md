@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #804**: Add `description` and `higher_levels` fields to `CharacterSpellResource` nested spell object
+  - Frontend can now display full spell descriptions on character sheets
+  - `higher_levels` is nullable for spells without scaling effects
+
 ### Fixed
+
+- **Issue #701**: Subclasses that grant spellcasting (Eldritch Knight, Arcane Trickster) now receive spell slots
+  - `MulticlassSpellSlotCalculator` now checks subclass spellcasting type, not just base class
+  - `SubclassChoiceHandler::resolve()` now recalculates spell slots after subclass selection
+  - Previously, Fighter/Eldritch Knight and Rogue/Arcane Trickster had 0 spell slots
+  - Now correctly calculates spell slots based on third-caster progression
 
 - **Issue #763**: Path of the Totem Warrior now supports multi-level variant choices
   - Added new `SubclassVariantChoiceHandler` for level-specific variant choices (L6, L14)

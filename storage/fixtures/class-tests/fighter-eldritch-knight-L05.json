@@ -1,0 +1,424 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-18T18:53:17+00:00",
+    "character": {
+        "public_id": "mighty-raven-Fv5G",
+        "name": "Eldritch Knight L5",
+        "race": "vrgtr:reborn",
+        "background": "scag:faction-agent",
+        "alignment": "Lawful Good",
+        "ability_scores": {
+            "strength": 14,
+            "dexterity": 8,
+            "constitution": 13,
+            "intelligence": 10,
+            "wisdom": 14,
+            "charisma": 15
+        },
+        "max_hit_points": 38,
+        "current_hit_points": 38,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "equipment",
+        "size_id": 3,
+        "asi_choices_remaining": 0,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:fighter",
+                "subclass": "phb:fighter-eldritch-knight",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [],
+        "equipment": [
+            {
+                "item": "phb:emblem",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "copy of a seminal faction text (or code-book for a covert faction)",
+                "custom_description": "{\"source\":\"background\",\"description\":\"copy of a seminal faction text (or code-book for a covert faction)\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 15,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:chain-mail",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"a\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:shortsword",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:light-crossbow",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"a\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:crossbow-bolts-20",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"a\"}",
+                "quantity": 20,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:backpack",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:bedroll",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:mess-kit",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:tinderbox",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:torch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:rations-1-day",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:waterskin",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:hempen-rope-50-feet",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_4\",\"selected_option\":\"b\",\"from_pack\":\"phb:explorers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:abyssal",
+                "source": "background"
+            },
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:giant",
+                "source": "race"
+            },
+            {
+                "language": "core:undercommon",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:insight",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:animal-handling",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:athletics",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": []
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "tce:superior-technique",
+                "class": "phb:fighter",
+                "subclass_name": null,
+                "level_acquired": 1,
+                "feature_type": "fighting_style",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Ancestral Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Deathless Nature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Knowledge from a Past Life"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Second Wind",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Fighting Style",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:faction-agent",
+                    "trait_name": "Feature: Safe Haven"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Action Surge",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Martial Archetype",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter-eldritch-knight",
+                    "feature_name": "Martial Archetype: Eldritch Knight",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter-eldritch-knight",
+                    "feature_name": "Spellcasting (Eldritch Knight)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter-eldritch-knight",
+                    "feature_name": "Weapon Bond (Eldritch Knight)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:fighter",
+                    "feature_name": "Extra Attack",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Action Surge",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Fighting Styles Known",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:fighter",
+                "counter_name": "Second Wind",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "S"
+            }
+        ],
+        "portrait": null
+    }
+}

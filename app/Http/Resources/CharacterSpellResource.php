@@ -28,6 +28,8 @@ class CharacterSpellResource extends JsonResource
                 'duration' => $this->spell->duration,
                 'concentration' => $this->spell->needs_concentration,
                 'ritual' => $this->spell->is_ritual,
+                'description' => $this->spell->description,
+                'higher_levels' => $this->spell->higher_levels,
             ] : null,
             'spell_slug' => $this->spell_slug,
             'is_dangling' => $this->spell === null,

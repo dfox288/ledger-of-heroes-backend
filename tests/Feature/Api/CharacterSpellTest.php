@@ -46,6 +46,73 @@ class CharacterSpellTest extends TestCase
     }
 
     #[Test]
+    public function it_includes_description_and_higher_levels_in_nested_spell_object(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'description' => 'A bright streak flashes from your pointing finger.',
+            'higher_levels' => 'When you cast this spell using a spell slot of 4th level or higher...',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'spell' => [
+                            'id',
+                            'name',
+                            'slug',
+                            'level',
+                            'school',
+                            'casting_time',
+                            'range',
+                            'components',
+                            'duration',
+                            'concentration',
+                            'ritual',
+                            'description',
+                            'higher_levels',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.0.spell.description', 'A bright streak flashes from your pointing finger.')
+            ->assertJsonPath('data.0.spell.higher_levels', 'When you cast this spell using a spell slot of 4th level or higher...');
+    }
+
+    #[Test]
+    public function it_returns_null_higher_levels_when_spell_has_none(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'description' => 'You create a magical bond between yourself and a willing creature.',
+            'higher_levels' => null,
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.description', 'You create a magical bond between yourself and a willing creature.')
+            ->assertJsonPath('data.0.spell.higher_levels', null);
+    }
+
+    #[Test]
     public function it_returns_empty_array_when_character_has_no_spells(): void
     {
         $character = Character::factory()->create();

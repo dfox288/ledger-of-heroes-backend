@@ -70,6 +70,10 @@ class CharacterStatsDTO
         public readonly ?array $encumbrance,
         // Issue #498.3.1: Weapon attack/damage calculation
         public readonly array $weapons,
+        // Issue #751: Unarmed strike calculation
+        public readonly ?array $unarmedStrike,
+        // Issue #751: Improvised weapon calculation
+        public readonly ?array $improvisedWeapon,
         // Issue #675: Spell preparation method for spellcasters
         public readonly ?string $preparationMethod,
     ) {}
@@ -221,6 +225,12 @@ class CharacterStatsDTO
             $calculator
         );
 
+        // Build unarmed strike stats (Issue #751)
+        $unarmedStrike = self::buildUnarmedStrike($abilityModifiers, $proficiencyBonus);
+
+        // Build improvised weapon stats (Issue #751)
+        $improvisedWeapon = self::buildImprovisedWeapon($abilityModifiers);
+
         // Compute preparation method (Issue #675)
         $preparationMethod = self::computePreparationMethod($character);
 
@@ -262,6 +272,8 @@ class CharacterStatsDTO
             currentWeight: $currentWeight,
             encumbrance: $encumbrance,
             weapons: $weapons,
+            unarmedStrike: $unarmedStrike,
+            improvisedWeapon: $improvisedWeapon,
             preparationMethod: $preparationMethod,
         );
     }
@@ -381,6 +393,72 @@ class CharacterStatsDTO
         }
 
         return 0;
+    }
+
+    /**
+     * Build unarmed strike stats.
+     *
+     * Issue #751: Provides pre-computed unarmed strike for battle page.
+     *
+     * D&D 5e Rules (PHB p.195):
+     * - Base damage: 1 + STR modifier (flat damage, no dice)
+     * - Attack roll: STR modifier + proficiency bonus (everyone is proficient)
+     * - Damage type: bludgeoning
+     *
+     * @param  array<string, int|null>  $abilityModifiers
+     * @return array{name: string, attack_bonus: int, damage_dice: string|null, damage_bonus: int, damage_type: string, ability_used: string, source: string|null}|null
+     */
+    private static function buildUnarmedStrike(array $abilityModifiers, int $proficiencyBonus): ?array
+    {
+        $strMod = $abilityModifiers['STR'];
+
+        // Can't calculate without STR
+        if ($strMod === null) {
+            return null;
+        }
+
+        return [
+            'name' => 'Unarmed Strike',
+            'attack_bonus' => $strMod + $proficiencyBonus,
+            'damage_dice' => null, // Flat damage (1 + STR mod)
+            'damage_bonus' => $strMod,
+            'damage_type' => 'bludgeoning',
+            'ability_used' => 'STR',
+            'source' => null, // No special source for basic unarmed strike
+        ];
+    }
+
+    /**
+     * Build improvised weapon stats.
+     *
+     * Issue #751: Provides pre-computed improvised weapon for battle page.
+     *
+     * D&D 5e Rules (PHB p.147-148):
+     * - Damage: 1d4 + ability modifier
+     * - Attack roll: ability modifier only (NO proficiency by default)
+     * - Damage type: DM assigns based on object
+     *
+     * @param  array<string, int|null>  $abilityModifiers
+     * @return array{name: string, attack_bonus: int, damage_dice: string, damage_bonus: int, damage_type: string|null, ability_used: string, source: string|null}|null
+     */
+    private static function buildImprovisedWeapon(array $abilityModifiers): ?array
+    {
+        $strMod = $abilityModifiers['STR'];
+
+        // Can't calculate without STR
+        if ($strMod === null) {
+            return null;
+        }
+
+        return [
+            'name' => 'Improvised Weapon',
+            'attack_bonus' => $strMod, // NO proficiency bonus for improvised weapons
+            'damage_dice' => '1d4',
+            'damage_bonus' => $strMod,
+            'damage_type' => null, // DM determines based on object
+            'ability_used' => 'STR',
+            'source' => null,
+        ];
     }
 
     /**

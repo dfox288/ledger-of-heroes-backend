@@ -108,6 +108,14 @@ class CharacterStatsResource extends JsonResource
             /** @var array<int, array{name: string, damage_dice: string|null, attack_bonus: int, damage_bonus: int, ability_used: string, is_proficient: bool}> Equipped weapon stats */
             'weapons' => $this->resource->weapons,
 
+            // Issue #751: Unarmed strike calculation
+            /** @var array{name: string, attack_bonus: int, damage_dice: string|null, damage_bonus: int, damage_type: string, ability_used: string, source: string|null}|null Unarmed strike stats */
+            'unarmed_strike' => $this->resource->unarmedStrike,
+
+            // Issue #751: Improvised weapon calculation
+            /** @var array{name: string, attack_bonus: int, damage_dice: string, damage_bonus: int, damage_type: string|null, ability_used: string, source: string|null}|null Improvised weapon stats (no proficiency) */
+            'improvised_weapon' => $this->resource->improvisedWeapon,
+
             // Issue #675: Spell preparation method
             /** @var string|null Spell preparation method: known, spellbook, prepared, mixed, or null for non-casters */
             'preparation_method' => $this->resource->preparationMethod,

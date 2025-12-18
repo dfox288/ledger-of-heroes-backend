@@ -22,6 +22,13 @@ class CharacterExportResource extends JsonResource
      *         race: string|null,
      *         background: string|null,
      *         alignment: string|null,
+     *         age: string|null,
+     *         height: string|null,
+     *         weight: string|null,
+     *         eye_color: string|null,
+     *         hair_color: string|null,
+     *         skin_color: string|null,
+     *         deity: string|null,
      *         ability_scores: array{
      *             strength: int|null,
      *             dexterity: int|null,

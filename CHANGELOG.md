@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #754**: Add `status` and `class` filter support to Characters API
+  - New query params: `status=complete|draft` and `class={slug}` (e.g., `phb:fighter`)
+  - Filters can be combined: `?status=complete&class=phb:wizard&q=gandalf`
+  - `status=complete` returns characters with race, class, and all ability scores set
+  - `status=draft` returns characters missing any of those requirements
+  - `class` filter matches any class (primary or multiclass)
+  - Added `scopeComplete()`, `scopeDraft()`, and `scopeHasClass()` query scopes to Character model
+
 - **Issue #747**: Expose `choices` field on entity view endpoints (Race, Background, Feat)
   - Added `choices` field to RaceResource, BackgroundResource, and FeatResource
   - Uses `EntityChoiceResource` for flat collection of non-equipment choices (ability_score, language, proficiency, spell)

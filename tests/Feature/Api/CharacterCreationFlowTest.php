@@ -80,9 +80,9 @@ class CharacterCreationFlowTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 8)
-            ->assertJsonPath('data.ability_scores.INT', 16)
-            ->assertJsonPath('data.modifiers.INT', 3) // (16-10)/2 = 3
+            ->assertJsonPath('data.ability_scores.STR.score', 8)
+            ->assertJsonPath('data.ability_scores.INT.score', 16)
+            ->assertJsonPath('data.ability_scores.INT.modifier', 3) // (16-10)/2 = 3
             ->assertJsonPath('data.is_complete', true); // Now complete!
 
         // Step 5: Optionally set background
@@ -119,7 +119,7 @@ class CharacterCreationFlowTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.name', 'Elara the Wise')
-            ->assertJsonPath('data.level', 1)
+            ->assertJsonPath('data.total_level', 1)
             ->assertJsonPath('data.race.name', 'High Elf')
             ->assertJsonPath('data.classes.0.class.name', 'Wizard')
             ->assertJsonPath('data.background.name', 'Sage')
@@ -244,13 +244,13 @@ class CharacterCreationFlowTest extends TestCase
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
         $response->assertOk()
-            // Ability modifiers
-            ->assertJsonPath('data.modifiers.STR', -1)  // (8-10)/2 = -1
-            ->assertJsonPath('data.modifiers.DEX', 2)   // (14-10)/2 = 2
-            ->assertJsonPath('data.modifiers.CON', 2)   // (14-10)/2 = 2
-            ->assertJsonPath('data.modifiers.INT', 4)   // (18-10)/2 = 4
-            ->assertJsonPath('data.modifiers.WIS', 1)   // (12-10)/2 = 1
-            ->assertJsonPath('data.modifiers.CHA', 0)   // (10-10)/2 = 0
+            // Ability modifiers (nested in ability_scores)
+            ->assertJsonPath('data.ability_scores.STR.modifier', -1)  // (8-10)/2 = -1
+            ->assertJsonPath('data.ability_scores.DEX.modifier', 2)   // (14-10)/2 = 2
+            ->assertJsonPath('data.ability_scores.CON.modifier', 2)   // (14-10)/2 = 2
+            ->assertJsonPath('data.ability_scores.INT.modifier', 4)   // (18-10)/2 = 4
+            ->assertJsonPath('data.ability_scores.WIS.modifier', 1)   // (12-10)/2 = 1
+            ->assertJsonPath('data.ability_scores.CHA.modifier', 0)   // (10-10)/2 = 0
             // Proficiency bonus (level 5 = +3)
             ->assertJsonPath('data.proficiency_bonus', 3);
     }
@@ -265,7 +265,7 @@ class CharacterCreationFlowTest extends TestCase
         $response = $this->getJson("/api/v1/characters/{$character->id}");
 
         $response->assertOk()
-            ->assertJsonPath('data.level', 10)
+            ->assertJsonPath('data.total_level', 10)
             ->assertJsonPath('data.proficiency_bonus', 4); // Level 9-12 = +4
     }
 

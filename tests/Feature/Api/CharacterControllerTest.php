@@ -381,7 +381,7 @@ class CharacterControllerTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('data.name', 'Gandalf')
             ->assertJsonPath('data.public_id', 'shadow-warden-q3x9')
-            ->assertJsonPath('data.level', 0) // No class = no level
+            ->assertJsonPath('data.total_level', 0) // No class = no level
             ->assertJsonPath('data.is_complete', false)
             ->assertJsonPath('data.validation_status.missing', ['race', 'class', 'ability_scores']);
 
@@ -494,7 +494,7 @@ class CharacterControllerTest extends TestCase
                     'id',
                     'public_id',
                     'name',
-                    'level',
+                    'total_level',
                     'experience_points',
                     'is_complete',
                     'validation_status',
@@ -527,11 +527,11 @@ class CharacterControllerTest extends TestCase
         $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 18)
-            ->assertJsonPath('data.ability_scores.DEX', 14)
-            ->assertJsonPath('data.modifiers.STR', 4)  // (18-10)/2 = 4
-            ->assertJsonPath('data.modifiers.DEX', 2)  // (14-10)/2 = 2
-            ->assertJsonPath('data.modifiers.CHA', -1); // (8-10)/2 = -1
+            ->assertJsonPath('data.ability_scores.STR.score', 18)
+            ->assertJsonPath('data.ability_scores.DEX.score', 14)
+            ->assertJsonPath('data.ability_scores.STR.modifier', 4)  // (18-10)/2 = 4
+            ->assertJsonPath('data.ability_scores.DEX.modifier', 2)  // (14-10)/2 = 2
+            ->assertJsonPath('data.ability_scores.CHA.modifier', -1); // (8-10)/2 = -1
     }
 
     #[Test]
@@ -585,11 +585,11 @@ class CharacterControllerTest extends TestCase
         $response = $this->getJson("/api/v1/characters/{$character->public_id}");
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 11) // 10 base + 1 chosen
-            ->assertJsonPath('data.ability_scores.DEX', 11) // 10 base + 1 chosen
-            ->assertJsonPath('data.ability_scores.CON', 10) // unchanged
-            ->assertJsonPath('data.modifiers.STR', 0)  // (11-10)/2 = 0
-            ->assertJsonPath('data.modifiers.DEX', 0); // (11-10)/2 = 0
+            ->assertJsonPath('data.ability_scores.STR.score', 11) // 10 base + 1 chosen
+            ->assertJsonPath('data.ability_scores.DEX.score', 11) // 10 base + 1 chosen
+            ->assertJsonPath('data.ability_scores.CON.score', 10) // unchanged
+            ->assertJsonPath('data.ability_scores.STR.modifier', 0)  // (11-10)/2 = 0
+            ->assertJsonPath('data.ability_scores.DEX.modifier', 0); // (11-10)/2 = 0
     }
 
     #[Test]
@@ -637,8 +637,8 @@ class CharacterControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 18)
-            ->assertJsonPath('data.modifiers.STR', 4);
+            ->assertJsonPath('data.ability_scores.STR.score', 18)
+            ->assertJsonPath('data.ability_scores.STR.modifier', 4);
     }
 
     #[Test]
@@ -987,11 +987,11 @@ class CharacterControllerTest extends TestCase
 
         $response->assertOk()
             // Final ability scores include racial bonuses
-            ->assertJsonPath('data.ability_scores.CHA', 12) // 10 base + 2 racial
-            ->assertJsonPath('data.ability_scores.STR', 14) // No bonus
+            ->assertJsonPath('data.ability_scores.CHA.score', 12) // 10 base + 2 racial
+            ->assertJsonPath('data.ability_scores.STR.score', 14) // No bonus
             // Base ability scores are the raw values before bonuses
-            ->assertJsonPath('data.base_ability_scores.CHA', 10)
-            ->assertJsonPath('data.base_ability_scores.STR', 14);
+            ->assertJsonPath('data.base_ability_scores.CHA.score', 10)
+            ->assertJsonPath('data.base_ability_scores.STR.score', 14);
     }
 
     #[Test]
@@ -1013,9 +1013,9 @@ class CharacterControllerTest extends TestCase
 
         $response->assertOk()
             // With no race, base and final should match
-            ->assertJsonPath('data.ability_scores.STR', 15)
-            ->assertJsonPath('data.base_ability_scores.STR', 15)
-            ->assertJsonPath('data.ability_scores.CHA', 8)
-            ->assertJsonPath('data.base_ability_scores.CHA', 8);
+            ->assertJsonPath('data.ability_scores.STR.score', 15)
+            ->assertJsonPath('data.base_ability_scores.STR.score', 15)
+            ->assertJsonPath('data.ability_scores.CHA.score', 8)
+            ->assertJsonPath('data.base_ability_scores.CHA.score', 8);
     }
 }

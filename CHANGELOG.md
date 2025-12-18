@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Issue #755**: Unified ability scores format and removed duplicate fields in `CharacterResource`
+  - **Removed** `level` field - use `total_level` instead
+  - **Removed** `modifiers` field - modifiers are now nested in `ability_scores`
+  - **Changed** `ability_scores` format from flat `{STR: 15}` to nested `{STR: {score: 15, modifier: 2}}`
+  - **Changed** `base_ability_scores` to use same nested format
+  - This matches `CharacterStatsResource` format for consistency across API
+  - Frontend must update character parsing to use new structure
+
 ### Added
 
 - **Issue #756**: Add combat fields to `CharacterSpellResource` nested spell object

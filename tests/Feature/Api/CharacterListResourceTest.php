@@ -48,7 +48,7 @@ class CharacterListResourceTest extends TestCase
                         'id',
                         'public_id',
                         'name',
-                        'level',
+                        'total_level',
                         'race',
                         'class_name',
                         'classes',
@@ -158,7 +158,7 @@ class CharacterListResourceTest extends TestCase
         $response = $this->getJson('/api/v1/characters');
 
         $response->assertOk()
-            ->assertJsonPath('data.0.level', 8) // 5 + 3
+            ->assertJsonPath('data.0.total_level', 8) // 5 + 3
             ->assertJsonPath('data.0.class_name', 'Fighter'); // Primary class only
     }
 

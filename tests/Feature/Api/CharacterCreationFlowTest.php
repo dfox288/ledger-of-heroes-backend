@@ -296,7 +296,7 @@ class CharacterCreationFlowTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     'character_id',
-                    'level',
+                    'total_level',
                     'proficiency_bonus',
                     'ability_scores',
                     'saving_throws',
@@ -320,7 +320,7 @@ class CharacterCreationFlowTest extends TestCase
                     'passive',
                 ],
             ])
-            ->assertJsonPath('data.level', 5)
+            ->assertJsonPath('data.total_level', 5)
             ->assertJsonPath('data.proficiency_bonus', 3)
             ->assertJsonPath('data.ability_scores.INT.score', 18)
             ->assertJsonPath('data.ability_scores.INT.modifier', 4)

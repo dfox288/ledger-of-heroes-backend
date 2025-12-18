@@ -30,7 +30,7 @@ class CharacterExportResource extends JsonResource
      *             wisdom: int|null,
      *             charisma: int|null
      *         },
-     *         classes: array<array{class: string, subclass: string|null, level: int, is_primary: bool}>,
+     *         classes: array<array{class: string, subclass: string|null, level: int, is_primary: bool, hit_dice_spent: int, subclass_choices: array<string, string>|null}>,
      *         spells: array<array{spell: string, source: string, preparation_status: string}>,
      *         equipment: array<array{item: string|null, custom_name: string|null, quantity: int, equipped: bool}>,
      *         languages: array<array{language: string, source: string}>,

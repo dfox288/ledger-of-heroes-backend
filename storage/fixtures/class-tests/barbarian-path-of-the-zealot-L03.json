@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:05:55+00:00",
+    "exported_at": "2025-12-18T17:20:08+00:00",
     "character": {
-        "public_id": "cunning-knight-t4pe",
+        "public_id": "frost-titan-Wv7n",
         "name": "Path of the Zealot L3",
         "race": "erlw:kalashtar",
         "background": "phb:sage",
@@ -38,7 +38,8 @@
                 "subclass": "xge:barbarian-path-of-the-zealot",
                 "level": 3,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],

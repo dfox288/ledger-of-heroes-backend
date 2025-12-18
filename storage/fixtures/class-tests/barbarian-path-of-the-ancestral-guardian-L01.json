@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:04:13+00:00",
+    "exported_at": "2025-12-18T17:18:15+00:00",
     "character": {
-        "public_id": "bold-wolf-PSbp",
+        "public_id": "valiant-guardian-mrS3",
         "name": "Path of the Ancestral Guardian L1",
         "race": "twbtw:fairy-legacy",
         "background": "phb:guild-artisan",
@@ -36,7 +36,8 @@
                 "subclass": null,
                 "level": 1,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],

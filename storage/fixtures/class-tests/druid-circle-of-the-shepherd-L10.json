@@ -1,18 +1,18 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:20:00+00:00",
+    "exported_at": "2025-12-18T17:26:09+00:00",
     "character": {
-        "public_id": "flame-seeker-O3ar",
+        "public_id": "wild-blade-R3uo",
         "name": "Circle of the Shepherd L10",
         "race": "vrgtr:hexblood",
         "background": "phb:sage",
         "alignment": "Chaotic Evil",
         "ability_scores": {
             "strength": 14,
-            "dexterity": 10,
+            "dexterity": 11,
             "constitution": 12,
             "intelligence": 8,
-            "wisdom": 15,
+            "wisdom": 16,
             "charisma": 13
         },
         "max_hit_points": 62,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": 2,
-        "asi_choices_remaining": 2,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -45,7 +45,8 @@
                 "subclass": "xge:druid-circle-of-the-shepherd",
                 "level": 10,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [
@@ -64,7 +65,7 @@
                 "level_acquired": 4
             },
             {
-                "spell": "xge:gust",
+                "spell": "xge:create-bonfire",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "phb:druid",
@@ -429,6 +430,12 @@
                 },
                 "source": "subclass",
                 "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
             }
         ],
         "counters": [

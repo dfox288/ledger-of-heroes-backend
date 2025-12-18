@@ -1,18 +1,18 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:03:34+00:00",
+    "exported_at": "2025-12-18T17:17:42+00:00",
     "character": {
-        "public_id": "bold-arrow-muyI",
+        "public_id": "iron-guardian-l1qk",
         "name": "Path of the Totem Warrior L15",
         "race": "dmg:zombie-dmg-npc",
         "background": "phb:pirate",
         "alignment": "Lawful Neutral",
         "ability_scores": {
-            "strength": 12,
+            "strength": 14,
             "dexterity": 10,
             "constitution": 13,
-            "intelligence": 14,
-            "wisdom": 8,
+            "intelligence": 17,
+            "wisdom": 9,
             "charisma": 15
         },
         "max_hit_points": 124,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 3,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -50,7 +50,12 @@
                 "subclass": "phb:barbarian-path-of-the-totem-warrior",
                 "level": 15,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": {
+                    "totem_aspect": "aspect of the tiger",
+                    "totem_spirit": "bear",
+                    "totem_attunement": "eagle"
+                }
             }
         ],
         "spells": [],
@@ -302,28 +307,6 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
-                    "feature_name": "Elk (Path of the Totem Warrior)",
-                    "level": 3
-                },
-                "source": "subclass",
-                "level_acquired": 3
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
-                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
-                    "feature_name": "Tiger (Path of the Totem Warrior)",
-                    "level": 3
-                },
-                "source": "subclass",
-                "level_acquired": 3
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
                     "class_slug": "phb:barbarian",
                     "feature_name": "Extra Attack",
                     "level": 5
@@ -341,6 +324,28 @@
                 },
                 "source": "class",
                 "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Aspect of the Beast (Path of the Totem Warrior)",
+                    "level": 6
+                },
+                "source": "subclass",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Aspect of the Tiger (Path of the Totem Warrior)",
+                    "level": 6
+                },
+                "source": "subclass",
+                "level_acquired": 6
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -407,6 +412,28 @@
                 },
                 "source": "class",
                 "level_acquired": 13
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Spirit Walker (Path of the Totem Warrior)",
+                    "level": 10
+                },
+                "source": "subclass",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Totemic Attunement (Path of the Totem Warrior)",
+                    "level": 14
+                },
+                "source": "subclass",
+                "level_acquired": 14
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:04:16+00:00",
+    "exported_at": "2025-12-18T17:18:21+00:00",
     "character": {
-        "public_id": "frost-titan-OGTf",
+        "public_id": "swift-titan-C5RZ",
         "name": "Path of the Ancestral Guardian L3",
         "race": "dmg:aarakocra-dmg",
         "background": "scag:far-traveler",
@@ -38,7 +38,8 @@
                 "subclass": "xge:barbarian-path-of-the-ancestral-guardian",
                 "level": 3,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],

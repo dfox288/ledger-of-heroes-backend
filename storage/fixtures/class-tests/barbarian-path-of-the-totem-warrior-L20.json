@@ -1,22 +1,22 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:04:02+00:00",
+    "exported_at": "2025-12-18T17:18:10+00:00",
     "character": {
-        "public_id": "golden-hunter-oq1K",
+        "public_id": "storm-knight-mh6S",
         "name": "Path of the Totem Warrior L20",
-        "race": "phb:halfling-ghostwise",
-        "background": "vrgtr:haunted-one-van-richtens",
-        "alignment": "Chaotic Neutral",
+        "race": "phb:human-variant",
+        "background": "erlw:house-agent",
+        "alignment": "Neutral Evil",
         "ability_scores": {
-            "strength": 10,
-            "dexterity": 12,
-            "constitution": 14,
-            "intelligence": 8,
-            "wisdom": 13,
-            "charisma": 15
+            "strength": 13,
+            "dexterity": 13,
+            "constitution": 16,
+            "intelligence": 14,
+            "wisdom": 15,
+            "charisma": 9
         },
-        "max_hit_points": 183,
-        "current_hit_points": 183,
+        "max_hit_points": 203,
+        "current_hit_points": 203,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,13 +55,18 @@
                 "subclass": "phb:barbarian-path-of-the-totem-warrior",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": {
+                    "totem_aspect": "aspect of the elk",
+                    "totem_spirit": "elk",
+                    "totem_attunement": "tiger"
+                }
             }
         ],
         "spells": [],
         "equipment": [
             {
-                "item": "phb:chest",
+                "item": "phb:fine-clothes",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -69,15 +74,7 @@
                 "location": "backpack"
             },
             {
-                "item": "phb:trinket",
-                "custom_name": null,
-                "custom_description": "{\"source\":\"background\"}",
-                "quantity": 1,
-                "equipped": false,
-                "location": "backpack"
-            },
-            {
-                "item": "phb:common-clothes",
+                "item": "phb:signet-ring",
                 "custom_name": null,
                 "custom_description": "{\"source\":\"background\"}",
                 "quantity": 1,
@@ -86,9 +83,25 @@
             },
             {
                 "item": null,
-                "custom_name": "sp.",
-                "custom_description": "{\"source\":\"background\",\"description\":\"sp.\"}",
+                "custom_name": "identification papers",
+                "custom_description": "{\"source\":\"background\",\"description\":\"identification papers\"}",
                 "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 20,
                 "equipped": false,
                 "location": "backpack"
             },
@@ -101,10 +114,10 @@
                 "location": "backpack"
             },
             {
-                "item": "phb:silvered-greatclub",
+                "item": "phb:handaxe",
                 "custom_name": null,
-                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"b\"}",
-                "quantity": 1,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"a\"}",
+                "quantity": 2,
                 "equipped": false,
                 "location": "backpack"
             },
@@ -127,24 +140,36 @@
         ],
         "languages": [
             {
-                "language": "core:common",
+                "language": "core:aarakocra",
                 "source": "race"
             },
             {
-                "language": "core:halfling",
+                "language": "core:common",
                 "source": "race"
             }
         ],
         "proficiencies": {
             "skills": [
                 {
-                    "skill": "core:intimidation",
+                    "skill": "core:investigation",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:animal-handling",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_1"
                 },
                 {
-                    "skill": "core:nature",
+                    "skill": "core:athletics",
                     "source": "class",
                     "expertise": false,
                     "choice_group": "skill_choice_1"
@@ -155,7 +180,20 @@
         "conditions": [],
         "feature_selections": [],
         "notes": [],
-        "ability_score_choices": [],
+        "ability_score_choices": [
+            {
+                "ability_score_code": "CHA",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            },
+            {
+                "ability_score_code": "INT",
+                "bonus": 1,
+                "source": "race",
+                "choice_group": "ability_score_choice_1"
+            }
+        ],
         "spell_slots": [],
         "features": [
             {
@@ -163,8 +201,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "phb:halfling",
-                    "trait_name": "Lucky"
+                    "entity_slug": "phb:human-variant",
+                    "trait_name": "Skills"
                 },
                 "source": "race",
                 "level_acquired": 1
@@ -174,30 +212,8 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "race",
-                    "entity_slug": "phb:halfling",
-                    "trait_name": "Brave"
-                },
-                "source": "race",
-                "level_acquired": 1
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:halfling",
-                    "trait_name": "Halfling Nimbleness"
-                },
-                "source": "race",
-                "level_acquired": 1
-            },
-            {
-                "feature_type": "App\\Models\\CharacterTrait",
-                "portable_id": {
-                    "type": "character_trait",
-                    "entity_type": "race",
-                    "entity_slug": "phb:halfling-ghostwise",
-                    "trait_name": "Silent Speech"
+                    "entity_slug": "phb:human-variant",
+                    "trait_name": "Feat"
                 },
                 "source": "race",
                 "level_acquired": 1
@@ -229,10 +245,16 @@
                 "portable_id": {
                     "type": "character_trait",
                     "entity_type": "background",
-                    "entity_slug": "vrgtr:haunted-one-van-richtens",
-                    "trait_name": "Feature: Heart of Darkness"
+                    "entity_slug": "erlw:house-agent",
+                    "trait_name": "Feature: House Connections"
                 },
                 "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "race",
                 "level_acquired": 1
             },
             {
@@ -327,17 +349,6 @@
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
-                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
-                    "feature_name": "Tiger (Path of the Totem Warrior)",
-                    "level": 3
-                },
-                "source": "subclass",
-                "level_acquired": 3
-            },
-            {
-                "feature_type": "App\\Models\\ClassFeature",
-                "portable_id": {
-                    "type": "class_feature",
                     "class_slug": "phb:barbarian",
                     "feature_name": "Extra Attack",
                     "level": 5
@@ -355,6 +366,28 @@
                 },
                 "source": "class",
                 "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Aspect of the Beast (Path of the Totem Warrior)",
+                    "level": 6
+                },
+                "source": "subclass",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Aspect of the Elk (Path of the Totem Warrior)",
+                    "level": 6
+                },
+                "source": "subclass",
+                "level_acquired": 6
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",
@@ -412,6 +445,12 @@
                 "level_acquired": 11
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 12
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -421,6 +460,39 @@
                 },
                 "source": "class",
                 "level_acquired": 13
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Spirit Walker (Path of the Totem Warrior)",
+                    "level": 10
+                },
+                "source": "subclass",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Totemic Attunement (Path of the Totem Warrior)",
+                    "level": 14
+                },
+                "source": "subclass",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:barbarian-path-of-the-totem-warrior",
+                    "feature_name": "Tiger (Path of the Totem Warrior)",
+                    "level": 14
+                },
+                "source": "subclass",
+                "level_acquired": 14
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

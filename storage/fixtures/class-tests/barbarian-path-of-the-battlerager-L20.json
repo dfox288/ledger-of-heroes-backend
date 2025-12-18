@@ -1,19 +1,19 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:09:18+00:00",
+    "exported_at": "2025-12-18T17:23:00+00:00",
     "character": {
-        "public_id": "noble-hawk-kuYU",
+        "public_id": "mighty-mage-JIIU",
         "name": "Path of the Battlerager L20",
         "race": "phb:dragonborn-chromatic",
         "background": "phb:criminal",
         "alignment": "Neutral Good",
         "ability_scores": {
-            "strength": 8,
-            "dexterity": 12,
+            "strength": 10,
+            "dexterity": 13,
             "constitution": 15,
             "intelligence": 13,
-            "wisdom": 10,
-            "charisma": 14
+            "wisdom": 14,
+            "charisma": 15
         },
         "max_hit_points": 183,
         "current_hit_points": 183,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,7 +55,8 @@
                 "subclass": "scag:barbarian-path-of-the-battlerager",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],
@@ -328,6 +329,12 @@
                 },
                 "source": "class",
                 "level_acquired": 7
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

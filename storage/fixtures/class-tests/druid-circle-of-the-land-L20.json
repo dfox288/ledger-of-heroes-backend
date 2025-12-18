@@ -1,22 +1,22 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:17:08+00:00",
+    "exported_at": "2025-12-18T17:24:03+00:00",
     "character": {
-        "public_id": "silver-oracle-JFnT",
+        "public_id": "frost-warrior-sa3h",
         "name": "Circle of the Land L20",
         "race": "erlw:warforged",
         "background": "phb:gladiator",
         "alignment": "Chaotic Good",
         "ability_scores": {
-            "strength": 10,
+            "strength": 12,
             "dexterity": 8,
-            "constitution": 14,
-            "intelligence": 12,
-            "wisdom": 15,
+            "constitution": 16,
+            "intelligence": 15,
+            "wisdom": 18,
             "charisma": 13
         },
-        "max_hit_points": 141,
-        "current_hit_points": 141,
+        "max_hit_points": 161,
+        "current_hit_points": 161,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,17 +55,13 @@
                 "subclass": "phb:druid-circle-of-the-land",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": {
+                    "terrain": "desert"
+                }
             }
         ],
         "spells": [
-            {
-                "spell": "phb:barkskin",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
             {
                 "spell": "phb:blight",
                 "source": "subclass",
@@ -81,48 +77,6 @@
                 "level_acquired": 3
             },
             {
-                "spell": "phb:call-lightning",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:cloudkill",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:commune-with-nature",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:cone-of-cold",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:conjure-elemental",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:control-water",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
                 "spell": "phb:create-food-and-water",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
@@ -130,77 +84,7 @@
                 "level_acquired": 5
             },
             {
-                "spell": "phb:darkness",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:daylight",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:divination",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:dream",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:freedom-of-movement",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:gaseous-form",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:greater-invisibility",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
                 "spell": "phb:hallucinatory-terrain",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:haste",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:hold-person",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:ice-storm",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "class_slug": "phb:druid",
@@ -214,41 +98,6 @@
                 "level_acquired": 9
             },
             {
-                "spell": "phb:invisibility",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:lightning-bolt",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:locate-creature",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:meld-into-stone",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:melfs-acid-arrow",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
                 "spell": "phb:mending",
                 "source": "class",
                 "preparation_status": "known",
@@ -256,60 +105,11 @@
                 "level_acquired": 10
             },
             {
-                "spell": "phb:mirror-image",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:misty-step",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:pass-without-trace",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:passwall",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
-                "spell": "phb:plant-growth",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
                 "spell": "phb:protection-from-energy",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "class_slug": "phb:druid",
                 "level_acquired": 5
-            },
-            {
-                "spell": "phb:resistance",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "phb:druid",
-                "level_acquired": 4
-            },
-            {
-                "spell": "phb:scrying",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
             },
             {
                 "spell": "phb:shillelagh",
@@ -326,62 +126,6 @@
                 "level_acquired": 3
             },
             {
-                "spell": "phb:sleet-storm",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:slow",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:spider-climb",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:spike-growth",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:stinking-cloud",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:stone-shape",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:stoneskin",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 7
-            },
-            {
-                "spell": "phb:tree-stride",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 9
-            },
-            {
                 "spell": "phb:wall-of-stone",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
@@ -389,32 +133,18 @@
                 "level_acquired": 9
             },
             {
-                "spell": "phb:water-breathing",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:water-walk",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 5
-            },
-            {
-                "spell": "phb:web",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
                 "spell": "xge:create-bonfire",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "phb:druid",
                 "level_acquired": 1
+            },
+            {
+                "spell": "xge:mold-earth",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 4
             }
         ],
         "equipment": [

@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:05:02+00:00",
+    "exported_at": "2025-12-18T17:19:10+00:00",
     "character": {
-        "public_id": "shadow-seeker-RnjY",
+        "public_id": "cunning-seeker-3XDA",
         "name": "Path of the Storm Herald L1",
         "race": "vgm:triton-legacy",
         "background": "phb:folk-hero",
@@ -36,7 +36,8 @@
                 "subclass": null,
                 "level": 1,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],

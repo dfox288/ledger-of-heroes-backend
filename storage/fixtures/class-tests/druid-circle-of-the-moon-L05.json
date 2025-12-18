@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:17:37+00:00",
+    "exported_at": "2025-12-18T17:24:14+00:00",
     "character": {
-        "public_id": "golden-warrior-ZsMj",
+        "public_id": "silent-warden-995h",
         "name": "Circle of the Moon L5",
         "race": "dmg:grimlock-dmg-npc",
         "background": "scag:inheritor",
@@ -11,7 +11,7 @@
             "strength": 8,
             "dexterity": 10,
             "constitution": 14,
-            "intelligence": 13,
+            "intelligence": 15,
             "wisdom": 12,
             "charisma": 15
         },
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "equipment",
         "size_id": null,
-        "asi_choices_remaining": 1,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -40,7 +40,8 @@
                 "subclass": "phb:druid-circle-of-the-moon",
                 "level": 5,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [

@@ -1,17 +1,17 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:21:20+00:00",
+    "exported_at": "2025-12-18T17:29:33+00:00",
     "character": {
-        "public_id": "silver-raven-qSDI",
+        "public_id": "cunning-shield-bNgb",
         "name": "Circle of Wildfire L5",
         "race": "phb:dwarf-hill",
         "background": "scag:city-watch",
         "alignment": "Neutral Evil",
         "ability_scores": {
-            "strength": 10,
+            "strength": 11,
             "dexterity": 12,
             "constitution": 15,
-            "intelligence": 14,
+            "intelligence": 15,
             "wisdom": 8,
             "charisma": 13
         },
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 1,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -40,7 +40,8 @@
                 "subclass": "tce:druid-circle-of-wildfire",
                 "level": 5,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [

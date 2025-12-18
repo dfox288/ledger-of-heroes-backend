@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:06:52+00:00",
+    "exported_at": "2025-12-18T17:20:50+00:00",
     "character": {
-        "public_id": "ancient-blade-yil6",
+        "public_id": "valiant-sage-Iua8",
         "name": "Path of Wild Magic L3",
         "race": "phb:dwarf-mountain",
         "background": "phb:guild-merchant",
@@ -38,7 +38,8 @@
                 "subclass": "tce:barbarian-path-of-wild-magic",
                 "level": 3,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],

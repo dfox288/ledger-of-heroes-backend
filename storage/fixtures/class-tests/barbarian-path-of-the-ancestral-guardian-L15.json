@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:04:42+00:00",
+    "exported_at": "2025-12-18T17:18:51+00:00",
     "character": {
-        "public_id": "shadow-warrior-u1lW",
+        "public_id": "brave-shield-3nUX",
         "name": "Path of the Ancestral Guardian L15",
         "race": "vgm:triton-legacy",
         "background": "phb:outlander",
@@ -10,13 +10,13 @@
         "ability_scores": {
             "strength": 10,
             "dexterity": 14,
-            "constitution": 15,
-            "intelligence": 12,
-            "wisdom": 13,
+            "constitution": 16,
+            "intelligence": 13,
+            "wisdom": 16,
             "charisma": 8
         },
-        "max_hit_points": 138,
-        "current_hit_points": 138,
+        "max_hit_points": 153,
+        "current_hit_points": 153,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 3,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -50,7 +50,8 @@
                 "subclass": "xge:barbarian-path-of-the-ancestral-guardian",
                 "level": 15,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],
@@ -332,6 +333,12 @@
                 },
                 "source": "subclass",
                 "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

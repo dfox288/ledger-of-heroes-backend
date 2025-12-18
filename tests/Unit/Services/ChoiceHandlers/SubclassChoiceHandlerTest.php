@@ -1598,4 +1598,513 @@ class SubclassChoiceHandlerTest extends TestCase
         $character->refresh();
         $this->assertCount(1, $character->spells);
     }
+
+    // =====================
+    // Variant Choice Tests (Issue #752 - Circle of the Land terrain)
+    // =====================
+
+    #[Test]
+    public function includes_variant_choices_for_subclasses_with_choice_group_features(): void
+    {
+        // Issue #752: Circle of the Land has terrain variants that should be
+        // presented as a sub-choice when selecting that subclass
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create non-variant feature (Bonus Cantrip)
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Bonus Cantrip (Circle of the Land)',
+            'level' => 2,
+            'is_optional' => false,
+        ]);
+
+        // Create terrain variant features with choice_group
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Coast (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Desert (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $character->load('characterClasses.characterClass.subclasses.features');
+
+        $choices = $this->handler->getChoices($character);
+
+        $this->assertCount(1, $choices);
+
+        $choice = $choices->first();
+        $this->assertCount(1, $choice->options); // Only 1 subclass option
+
+        $circleOption = $choice->options[0];
+        $this->assertEquals('circle-of-the-land', $circleOption['slug']);
+
+        // Should have variant_choices for terrain
+        $this->assertArrayHasKey('variant_choices', $circleOption);
+        $this->assertArrayHasKey('terrain', $circleOption['variant_choices']);
+
+        $terrainChoice = $circleOption['variant_choices']['terrain'];
+        $this->assertTrue($terrainChoice['required']);
+        $this->assertEquals('Choose your terrain', $terrainChoice['label']);
+        $this->assertCount(3, $terrainChoice['options']); // Arctic, Coast, Desert
+
+        // Verify terrain options have correct format
+        $terrainOptions = collect($terrainChoice['options']);
+        $arcticOption = $terrainOptions->firstWhere('value', 'arctic');
+        $this->assertNotNull($arcticOption);
+        $this->assertEquals('Arctic', $arcticOption['name']);
+    }
+
+    #[Test]
+    public function resolve_stores_variant_choice_in_subclass_choices(): void
+    {
+        // Issue #752: When resolving with a variant_choice, store it in subclass_choices
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create terrain variant features
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $circleOfLand->slug,
+            'variant_choices' => [
+                'terrain' => 'arctic',
+            ],
+        ]);
+
+        $pivot->refresh();
+        $this->assertEquals($circleOfLand->slug, $pivot->subclass_slug);
+        $this->assertEquals(['terrain' => 'arctic'], $pivot->subclass_choices);
+    }
+
+    #[Test]
+    public function resolve_assigns_only_chosen_terrain_spells(): void
+    {
+        // Issue #752: End-to-end test for terrain spell assignment
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create terrain variant features with spells
+        $arcticFeature = ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        $coastFeature = ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Coast (Circle of the Land)',
+            'level' => 3,
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        // Create spells
+        $holdPerson = Spell::factory()->create([
+            'name' => 'Hold Person',
+            'slug' => 'test:hold-person-terrain',
+            'level' => 2,
+        ]);
+
+        $mirrorImage = Spell::factory()->create([
+            'name' => 'Mirror Image',
+            'slug' => 'test:mirror-image-terrain',
+            'level' => 2,
+        ]);
+
+        // Link spells to features
+        DB::table('entity_spells')->insert([
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $arcticFeature->id,
+                'spell_id' => $holdPerson->id,
+                'level_requirement' => 3,
+                'is_cantrip' => false,
+            ],
+            [
+                'reference_type' => ClassFeature::class,
+                'reference_id' => $coastFeature->id,
+                'spell_id' => $mirrorImage->id,
+                'level_requirement' => 3,
+                'is_cantrip' => false,
+            ],
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 3,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        // Resolve with Arctic terrain selected
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $circleOfLand->slug,
+            'variant_choices' => [
+                'terrain' => 'arctic',
+            ],
+        ]);
+
+        // Verify only Arctic spells were assigned
+        $character->refresh();
+        $spellSlugs = $character->spells->pluck('spell_slug')->toArray();
+
+        $this->assertCount(1, $character->spells);
+        $this->assertContains('test:hold-person-terrain', $spellSlugs);
+        $this->assertNotContains('test:mirror-image-terrain', $spellSlugs);
+
+        // Verify the Arctic feature was assigned, not Coast
+        $featureIds = $character->features->pluck('feature_id')->toArray();
+        $this->assertContains($arcticFeature->id, $featureIds);
+        $this->assertNotContains($coastFeature->id, $featureIds);
+    }
+
+    #[Test]
+    public function undo_clears_subclass_choices(): void
+    {
+        // Issue #752: When undoing subclass choice, also clear subclass_choices
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => $circleOfLand->slug,
+            'subclass_choices' => ['terrain' => 'arctic'],
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 0,
+            selected: [(string) $circleOfLand->id],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        $this->handler->undo($character, $choice);
+
+        $pivot->refresh();
+        $this->assertNull($pivot->subclass_slug);
+        $this->assertNull($pivot->subclass_choices);
+    }
+
+    #[Test]
+    public function resolve_throws_exception_for_invalid_choice_group(): void
+    {
+        // Issue #752: Should reject unknown choice_group keys
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create terrain variant features (valid choice_group is 'terrain')
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'choice_group' => 'terrain',
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage("Unknown choice group 'wrong_key'");
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $circleOfLand->slug,
+            'variant_choices' => [
+                'wrong_key' => 'arctic',  // Invalid - should be 'terrain'
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function resolve_throws_exception_for_invalid_variant_value(): void
+    {
+        // Issue #752: Should reject invalid variant values
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        // Create terrain variant features (valid values are 'arctic', etc.)
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'choice_group' => 'terrain',
+        ]);
+
+        $character = Character::factory()->create();
+
+        CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        $this->expectException(InvalidSelectionException::class);
+        $this->expectExceptionMessage("Invalid terrain value 'underwater'");
+
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $circleOfLand->slug,
+            'variant_choices' => [
+                'terrain' => 'underwater',  // Invalid - not a real terrain option
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function resolve_accepts_variant_value_case_insensitively(): void
+    {
+        // Issue #752: Variant values should be case-insensitive
+
+        $druid = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'druid',
+            'parent_class_id' => null,
+        ]);
+
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'circle-of-the-land',
+            'parent_class_id' => $druid->id,
+        ]);
+
+        ClassFeature::factory()->create([
+            'class_id' => $circleOfLand->id,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'level' => 3,
+            'choice_group' => 'terrain',
+        ]);
+
+        $character = Character::factory()->create();
+
+        $pivot = CharacterClassPivot::factory()->create([
+            'character_id' => $character->id,
+            'class_slug' => $druid->slug,
+            'subclass_slug' => null,
+            'level' => 2,
+            'is_primary' => true,
+        ]);
+
+        $choice = new PendingChoice(
+            id: "subclass|class|{$druid->slug}|2|subclass",
+            type: 'subclass',
+            subtype: null,
+            source: 'class',
+            sourceName: 'Druid',
+            levelGranted: 2,
+            required: true,
+            quantity: 1,
+            remaining: 1,
+            selected: [],
+            options: [],
+            optionsEndpoint: null,
+            metadata: ['class_slug' => $druid->slug],
+        );
+
+        // Should work with uppercase value - validation normalizes to lowercase
+        $this->handler->resolve($character, $choice, [
+            'subclass_slug' => $circleOfLand->slug,
+            'variant_choices' => [
+                'terrain' => 'Arctic',  // Uppercase - should be accepted
+            ],
+        ]);
+
+        $pivot->refresh();
+        $this->assertEquals($circleOfLand->slug, $pivot->subclass_slug);
+        // Note: The stored value keeps the original case since we only normalize for comparison
+        $this->assertEquals(['terrain' => 'Arctic'], $pivot->subclass_choices);
+    }
 }

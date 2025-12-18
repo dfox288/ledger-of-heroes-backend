@@ -37,6 +37,7 @@ class ClassFeature extends BaseModel
         'feature_name',
         'is_optional',
         'is_multiclass_only',
+        'choice_group',
         'parent_feature_id',
         'description',
         'sort_order',
@@ -135,6 +136,52 @@ class ClassFeature extends BaseModel
     public function getIsChoiceOptionAttribute(): bool
     {
         return $this->parent_feature_id !== null;
+    }
+
+    /**
+     * Check if this feature is a variant choice that requires player selection.
+     *
+     * Variant features are mutually exclusive options within a subclass:
+     * - Circle of the Land terrain variants (Arctic, Coast, Desert, etc.)
+     * - Path of the Totem Warrior animal variants (Bear, Eagle, Wolf, etc.)
+     *
+     * Features with the same choice_group are mutually exclusive.
+     */
+    public function getIsVariantChoiceAttribute(): bool
+    {
+        return $this->choice_group !== null;
+    }
+
+    /**
+     * Extract the variant name from the feature name.
+     *
+     * Expected format: "VariantName (Subclass Name)" where:
+     * - VariantName is the terrain/totem/etc. being extracted
+     * - Subclass Name is in parentheses at the end
+     *
+     * Examples:
+     * - "Arctic (Circle of the Land)" → "arctic"
+     * - "Bear (Path of the Totem Warrior)" → "bear"
+     *
+     * Edge cases handled:
+     * - No space before paren: "Arctic(Circle)" → "arctic"
+     * - Multiple parens: "Bear (Revised) (Totem)" → "bear (revised)" (extracts up to last paren group)
+     *
+     * @return string|null The lowercase variant name, or null if not a variant
+     */
+    public function getVariantNameAttribute(): ?string
+    {
+        if ($this->choice_group === null) {
+            return null;
+        }
+
+        // Pattern: Extract everything before the LAST parenthetical group
+        // Uses greedy .+ to match as much as possible before the final (...)
+        if (preg_match('/^(.+)\s*\([^)]+\)$/', $this->feature_name, $matches)) {
+            return strtolower(trim($matches[1]));
+        }
+
+        return null;
     }
 
     /**

@@ -143,6 +143,11 @@ class CharacterFeatureService
      * Called when a subclass is selected via the choice system.
      * Also assigns any spells granted by subclass features.
      *
+     * Handles variant features (Issue #752):
+     * - Features with choice_group (e.g., terrain for Circle of the Land) require a selection
+     * - Only the selected variant's feature and spells are assigned
+     * - If no selection made for a choice_group, those variant features are skipped
+     *
      * @param  string  $classSlug  The base class slug (to find the character's level in that class)
      * @param  string  $subclassSlug  The selected subclass slug
      */
@@ -175,6 +180,12 @@ class CharacterFeatureService
             ->get();
 
         foreach ($features as $feature) {
+            // Issue #752: Handle variant features (terrain, totem animals, etc.)
+            // Skip variant features that don't match the character's selection
+            if (! $this->shouldIncludeVariantFeature($feature, $characterClass)) {
+                continue;
+            }
+
             $this->createFeatureIfNotExists(
                 $character,
                 ClassFeature::class,
@@ -189,6 +200,39 @@ class CharacterFeatureService
         }
 
         $character->load(['features', 'spells']);
+    }
+
+    /**
+     * Determine if a variant feature should be included based on character's selection.
+     *
+     * Variant features have a choice_group (e.g., 'terrain' for Circle of the Land).
+     * Only the variant matching the character's subclass_choices is included.
+     *
+     * @param  ClassFeature  $feature  The feature to check
+     * @param  \App\Models\CharacterClassPivot  $characterClass  The character's class pivot with subclass_choices
+     * @return bool True if the feature should be included, false if it should be skipped
+     */
+    private function shouldIncludeVariantFeature(ClassFeature $feature, $characterClass): bool
+    {
+        // Non-variant features are always included
+        if ($feature->choice_group === null) {
+            return true;
+        }
+
+        // Get the character's choice for this variant group (e.g., 'arctic' for terrain)
+        $selectedVariant = $characterClass->getSubclassChoice($feature->choice_group);
+
+        // If no selection made for this choice group, skip the feature
+        if ($selectedVariant === null) {
+            return false;
+        }
+
+        // Check if this feature matches the selection
+        // e.g., "Arctic (Circle of the Land)" matches choice "arctic"
+        // Note: variant_name accessor returns lowercase, selectedVariant may be mixed-case from user input
+        $featureVariantName = $feature->variant_name; // Uses accessor: "arctic"
+
+        return $featureVariantName !== null && $featureVariantName === strtolower($selectedVariant);
     }
 
     /**

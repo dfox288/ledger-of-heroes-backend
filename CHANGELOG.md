@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Issue #752**: Circle of the Land Druid now correctly assigns only the chosen terrain's spells
+  - Added `subclass_choices` JSON column to `character_classes` table for variant selections
+  - Added `choice_group` column to `class_features` to mark mutually exclusive variants (terrain, totem, etc.)
+  - `SubclassChoiceHandler::getChoices()` now includes `variant_choices` for subclasses with variant features
+  - `SubclassChoiceHandler::resolve()` stores terrain choice and only assigns matching spells
+  - `CharacterFeatureService::populateFromSubclass()` filters features by chosen variant
+  - Frontend receives terrain options in subclass choice response for UI display
+  - Previously assigned all 47 terrain spells; now correctly assigns only 8 for chosen terrain
+  - Infrastructure supports future fix for Totem Barbarian (#763)
+
 ### Changed
 
 - **Issue #739**: Replace raw JSON responses with Laravel Resources across 7 endpoints

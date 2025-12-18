@@ -717,4 +717,247 @@ class CharacterFeatureServiceTest extends TestCase
             'Domain spell should have class_slug set to the granting class'
         );
     }
+
+    // =====================
+    // Subclass Variant Choice Tests (Circle of the Land terrain, etc.)
+    // =====================
+
+    #[Test]
+    public function it_skips_variant_features_when_no_choice_is_made(): void
+    {
+        // Issue #752: Circle of the Land assigns all terrain spells instead of chosen terrain
+        // This test verifies that variant features (with choice_group set) are skipped
+        // when no subclass_choices have been made
+
+        // Create Druid base class
+        $druidClass = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'test-druid-'.uniqid(),
+        ]);
+
+        // Create Circle of the Land subclass
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'test-druid-circle-of-the-land-'.uniqid(),
+            'parent_class_id' => $druidClass->id,
+        ]);
+
+        // Create a non-variant feature (should be assigned)
+        $bonusCantrip = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 2,
+            'feature_name' => 'Bonus Cantrip (Circle of the Land)',
+            'description' => 'You gain one druid cantrip.',
+            'is_optional' => false,
+        ]);
+
+        // Create terrain variant features (should be SKIPPED when no choice made)
+        $arcticFeature = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 3,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'description' => 'Arctic circle spells.',
+            'is_optional' => false,
+            'choice_group' => 'terrain', // This marks it as a variant
+        ]);
+
+        $coastFeature = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 3,
+            'feature_name' => 'Coast (Circle of the Land)',
+            'description' => 'Coast circle spells.',
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        // Create spells for each terrain
+        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid()]);
+        $mirrorImage = \App\Models\Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid()]);
+
+        $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+        $coastFeature->spells()->attach($mirrorImage->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+
+        // Create character WITHOUT terrain choice
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $druidClass->slug,
+            'subclass_slug' => $circleOfLand->slug,
+            'level' => 3,
+            // subclass_choices is NULL - no terrain selected
+        ]);
+
+        // Populate subclass features
+        $this->service->populateFromSubclass($character, $druidClass->slug, $circleOfLand->slug);
+
+        // Verify: Non-variant feature should be assigned
+        $character->refresh();
+        $features = $character->features;
+        $this->assertTrue(
+            $features->contains('feature_id', $bonusCantrip->id),
+            'Non-variant features should be assigned'
+        );
+
+        // Verify: No terrain variant features should be assigned
+        $this->assertFalse(
+            $features->contains('feature_id', $arcticFeature->id),
+            'Arctic variant should NOT be assigned when no terrain choice made'
+        );
+        $this->assertFalse(
+            $features->contains('feature_id', $coastFeature->id),
+            'Coast variant should NOT be assigned when no terrain choice made'
+        );
+
+        // Verify: No terrain spells should be assigned
+        $this->assertCount(0, $character->spells, 'No terrain spells should be assigned without a choice');
+    }
+
+    #[Test]
+    public function it_assigns_only_chosen_terrain_variant_feature_and_spells(): void
+    {
+        // Issue #752: When terrain choice is made, only that terrain's feature and spells
+        // should be assigned
+
+        // Create Druid base class
+        $druidClass = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'test-druid-'.uniqid(),
+        ]);
+
+        // Create Circle of the Land subclass
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'test-druid-circle-of-the-land-'.uniqid(),
+            'parent_class_id' => $druidClass->id,
+        ]);
+
+        // Create terrain variant features
+        $arcticFeature = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 3,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'description' => 'Arctic circle spells.',
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        $coastFeature = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 3,
+            'feature_name' => 'Coast (Circle of the Land)',
+            'description' => 'Coast circle spells.',
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        // Create spells for each terrain
+        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
+        $spikeGrowth = \App\Models\Spell::factory()->create(['name' => 'Spike Growth', 'slug' => 'test-spike-growth-'.uniqid(), 'level' => 2]);
+        $mirrorImage = \App\Models\Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid(), 'level' => 2]);
+        $mistyStep = \App\Models\Spell::factory()->create(['name' => 'Misty Step', 'slug' => 'test-misty-step-'.uniqid(), 'level' => 2]);
+
+        // Arctic gets Hold Person + Spike Growth
+        $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+        $arcticFeature->spells()->attach($spikeGrowth->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+
+        // Coast gets Mirror Image + Misty Step
+        $coastFeature->spells()->attach($mirrorImage->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+        $coastFeature->spells()->attach($mistyStep->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+
+        // Create character WITH Arctic terrain choice
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $druidClass->slug,
+            'subclass_slug' => $circleOfLand->slug,
+            'level' => 3,
+            'subclass_choices' => ['terrain' => 'arctic'], // Arctic selected!
+        ]);
+
+        // Populate subclass features
+        $this->service->populateFromSubclass($character, $druidClass->slug, $circleOfLand->slug);
+
+        // Verify: Arctic variant feature should be assigned
+        $character->refresh();
+        $features = $character->features;
+        $this->assertTrue(
+            $features->contains('feature_id', $arcticFeature->id),
+            'Arctic variant should be assigned when arctic terrain chosen'
+        );
+
+        // Verify: Coast variant should NOT be assigned
+        $this->assertFalse(
+            $features->contains('feature_id', $coastFeature->id),
+            'Coast variant should NOT be assigned when arctic terrain chosen'
+        );
+
+        // Verify: Only Arctic spells should be assigned (2 spells)
+        $this->assertCount(2, $character->spells, 'Only Arctic spells should be assigned');
+
+        $spellSlugs = $character->spells->pluck('spell_slug')->toArray();
+        $this->assertContains($holdPerson->slug, $spellSlugs, 'Hold Person (Arctic) should be assigned');
+        $this->assertContains($spikeGrowth->slug, $spellSlugs, 'Spike Growth (Arctic) should be assigned');
+        $this->assertNotContains($mirrorImage->slug, $spellSlugs, 'Mirror Image (Coast) should NOT be assigned');
+        $this->assertNotContains($mistyStep->slug, $spellSlugs, 'Misty Step (Coast) should NOT be assigned');
+    }
+
+    #[Test]
+    public function it_handles_terrain_spells_at_multiple_levels(): void
+    {
+        // Issue #752: Terrain spells are granted at levels 3, 5, 7, 9
+        // Verify correct spells are granted based on character level
+
+        // Create Druid base class
+        $druidClass = CharacterClass::factory()->create([
+            'name' => 'Druid',
+            'slug' => 'test-druid-'.uniqid(),
+        ]);
+
+        // Create Circle of the Land subclass
+        $circleOfLand = CharacterClass::factory()->create([
+            'name' => 'Circle of the Land',
+            'slug' => 'test-druid-circle-of-the-land-'.uniqid(),
+            'parent_class_id' => $druidClass->id,
+        ]);
+
+        // Create Arctic terrain feature
+        $arcticFeature = ClassFeature::create([
+            'class_id' => $circleOfLand->id,
+            'level' => 3,
+            'feature_name' => 'Arctic (Circle of the Land)',
+            'description' => 'Arctic circle spells.',
+            'is_optional' => false,
+            'choice_group' => 'terrain',
+        ]);
+
+        // Create spells at various level requirements
+        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
+        $sleetStorm = \App\Models\Spell::factory()->create(['name' => 'Sleet Storm', 'slug' => 'test-sleet-storm-'.uniqid(), 'level' => 3]);
+        $iceStorm = \App\Models\Spell::factory()->create(['name' => 'Ice Storm', 'slug' => 'test-ice-storm-'.uniqid(), 'level' => 4]);
+
+        // Attach spells with different level requirements
+        $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);
+        $arcticFeature->spells()->attach($sleetStorm->id, ['level_requirement' => 5, 'is_cantrip' => false]);
+        $arcticFeature->spells()->attach($iceStorm->id, ['level_requirement' => 7, 'is_cantrip' => false]);
+
+        // Create level 5 character with Arctic choice
+        $character = Character::factory()->create();
+        $character->characterClasses()->create([
+            'class_slug' => $druidClass->slug,
+            'subclass_slug' => $circleOfLand->slug,
+            'level' => 5,
+            'subclass_choices' => ['terrain' => 'arctic'],
+        ]);
+
+        // Populate subclass features
+        $this->service->populateFromSubclass($character, $druidClass->slug, $circleOfLand->slug);
+
+        // Verify: Spells at L3 and L5 should be assigned, L7 should not
+        $character->refresh();
+        $spellSlugs = $character->spells->pluck('spell_slug')->toArray();
+
+        $this->assertContains($holdPerson->slug, $spellSlugs, 'Hold Person (L3 req) should be assigned at L5');
+        $this->assertContains($sleetStorm->slug, $spellSlugs, 'Sleet Storm (L5 req) should be assigned at L5');
+        $this->assertNotContains($iceStorm->slug, $spellSlugs, 'Ice Storm (L7 req) should NOT be assigned at L5');
+
+        $this->assertCount(2, $character->spells, 'Should have 2 spells at level 5');
+    }
 }

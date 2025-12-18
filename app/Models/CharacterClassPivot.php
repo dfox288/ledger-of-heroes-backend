@@ -16,6 +16,7 @@ class CharacterClassPivot extends Model
         'character_id',
         'class_slug',
         'subclass_slug',
+        'subclass_choices',
         'level',
         'is_primary',
         'order',
@@ -24,6 +25,7 @@ class CharacterClassPivot extends Model
 
     protected $casts = [
         'character_id' => 'integer',
+        'subclass_choices' => 'array',
         'level' => 'integer',
         'is_primary' => 'boolean',
         'order' => 'integer',
@@ -53,5 +55,33 @@ class CharacterClassPivot extends Model
     public function getAvailableHitDiceAttribute(): int
     {
         return $this->level - $this->hit_dice_spent;
+    }
+
+    /**
+     * Get a specific subclass variant choice.
+     *
+     * Used for subclasses with variant options like:
+     * - Circle of the Land: terrain (arctic, coast, desert, etc.)
+     * - Path of the Totem Warrior: totem_spirit, totem_aspect, totem_attunement
+     *
+     * @param  string  $choiceGroup  The choice group to retrieve (e.g., 'terrain')
+     * @return string|null The selected variant (e.g., 'arctic') or null if not set
+     */
+    public function getSubclassChoice(string $choiceGroup): ?string
+    {
+        return $this->subclass_choices[$choiceGroup] ?? null;
+    }
+
+    /**
+     * Set a specific subclass variant choice.
+     *
+     * @param  string  $choiceGroup  The choice group (e.g., 'terrain')
+     * @param  string  $value  The selected variant (e.g., 'arctic')
+     */
+    public function setSubclassChoice(string $choiceGroup, string $value): void
+    {
+        $choices = $this->subclass_choices ?? [];
+        $choices[$choiceGroup] = $value;
+        $this->subclass_choices = $choices;
     }
 }

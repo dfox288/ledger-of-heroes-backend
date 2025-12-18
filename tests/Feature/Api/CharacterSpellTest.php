@@ -7,6 +7,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterSpell;
 use App\Models\CharacterSpellSlot;
 use App\Models\Spell;
+use App\Models\SpellEffect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -110,6 +111,221 @@ class CharacterSpellTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.0.spell.description', 'You create a magical bond between yourself and a willing creature.')
             ->assertJsonPath('data.0.spell.higher_levels', null);
+    }
+
+    // =====================
+    // Combat Fields Tests (Issue #756)
+    // =====================
+
+    #[Test]
+    public function it_includes_damage_types_from_spell_effects(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'description' => 'A bright streak flashes from your pointing finger to a point you choose.',
+        ]);
+
+        // Create fire damage effect
+        SpellEffect::factory()->damage('Fire')->create(['spell_id' => $spell->id]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'spell' => [
+                            'damage_types',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.0.spell.damage_types', ['Fire']);
+    }
+
+    #[Test]
+    public function it_includes_multiple_damage_types_for_spells_with_multiple_effects(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Chromatic Orb',
+            'description' => 'You hurl a sphere of energy at a creature.',
+        ]);
+
+        // Create effects with different damage types
+        SpellEffect::factory()->damage('Fire')->create(['spell_id' => $spell->id]);
+        SpellEffect::factory()->damage('Cold')->create(['spell_id' => $spell->id]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+        $damageTypes = $response->json('data.0.spell.damage_types');
+        $this->assertCount(2, $damageTypes);
+        $this->assertContains('Fire', $damageTypes);
+        $this->assertContains('Cold', $damageTypes);
+    }
+
+    #[Test]
+    public function it_returns_empty_array_when_spell_has_no_damage_type(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Shield',
+            'description' => 'An invisible barrier of magical force appears and protects you.',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.damage_types', []);
+    }
+
+    #[Test]
+    public function it_includes_saving_throw_ability(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'description' => 'Each creature in a 20-foot-radius sphere must make a Dexterity saving throw.',
+        ]);
+
+        // Attach DEX saving throw
+        $dex = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $spell->savingThrows()->attach($dex->id, [
+            'save_effect' => 'half damage',
+            'is_initial_save' => true,
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'spell' => [
+                            'saving_throw',
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.0.spell.saving_throw', 'DEX');
+    }
+
+    #[Test]
+    public function it_returns_null_saving_throw_when_spell_has_none(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Magic Missile',
+            'description' => 'You create three glowing darts of magical force.',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.saving_throw', null);
+    }
+
+    #[Test]
+    public function it_includes_attack_type_for_ranged_spell_attack(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Fire Bolt',
+            'description' => 'You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target.',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.attack_type', 'ranged');
+    }
+
+    #[Test]
+    public function it_includes_attack_type_for_melee_spell_attack(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Shocking Grasp',
+            'description' => 'Lightning springs from your hand to deliver a shock. Make a melee spell attack against the target.',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.attack_type', 'melee');
+    }
+
+    #[Test]
+    public function it_returns_null_attack_type_when_spell_has_no_attack(): void
+    {
+        $character = Character::factory()->create();
+        $spell = Spell::factory()->create([
+            'name' => 'Fireball',
+            'description' => 'A bright streak flashes. Each creature must make a Dexterity saving throw.',
+        ]);
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.spell.attack_type', null);
     }
 
     #[Test]

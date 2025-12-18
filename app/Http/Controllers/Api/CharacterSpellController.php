@@ -157,7 +157,11 @@ class CharacterSpellController extends Controller
             ]);
         }
 
-        $characterSpell->load('spell.spellSchool');
+        $characterSpell->load([
+            'spell.spellSchool',
+            'spell.effects.damageType',
+            'spell.savingThrows',
+        ]);
 
         return (new CharacterSpellResource($characterSpell))
             ->response()
@@ -199,7 +203,11 @@ class CharacterSpellController extends Controller
         }
 
         $isPrepared = $request->boolean('is_prepared');
-        $characterSpell->load('spell.spellSchool');
+        $characterSpell->load([
+            'spell.spellSchool',
+            'spell.effects.damageType',
+            'spell.savingThrows',
+        ]);
 
         if ($isPrepared) {
             // Prepare the spell
@@ -313,7 +321,11 @@ class CharacterSpellController extends Controller
         $classSlug = $request->input('class_slug');
 
         $characterSpell = $this->spellManager->prepareSpell($character, $spell, $classSlug);
-        $characterSpell->load('spell.spellSchool');
+        $characterSpell->load([
+            'spell.spellSchool',
+            'spell.effects.damageType',
+            'spell.savingThrows',
+        ]);
 
         // Explicitly return 200 OK since "prepare" is an action, not a create.
         // Without this, Laravel returns 201 if the spell was auto-added (wasRecentlyCreated).
@@ -355,7 +367,11 @@ class CharacterSpellController extends Controller
             return new MessageResource('Spell unprepared and removed from preparations.');
         }
 
-        $characterSpell->load('spell.spellSchool');
+        $characterSpell->load([
+            'spell.spellSchool',
+            'spell.effects.damageType',
+            'spell.savingThrows',
+        ]);
 
         return new CharacterSpellResource($characterSpell);
     }

@@ -30,6 +30,15 @@ class CharacterSpellResource extends JsonResource
                 'ritual' => $this->spell->is_ritual,
                 'description' => $this->spell->description,
                 'higher_levels' => $this->spell->higher_levels,
+                // Combat fields (Issue #756)
+                'damage_types' => $this->spell->effects
+                    ->filter(fn ($e) => $e->damageType)
+                    ->pluck('damageType.name')
+                    ->unique()
+                    ->values()
+                    ->all(),
+                'saving_throw' => $this->spell->savingThrows->first()?->code,
+                'attack_type' => $this->spell->attack_type,
             ] : null,
             'spell_slug' => $this->spell_slug,
             'is_dangling' => $this->spell === null,

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #756**: Add combat fields to `CharacterSpellResource` nested spell object
+  - `damage_types`: Array of damage type names from spell effects (e.g., `["Fire"]`)
+  - `saving_throw`: Ability code for the spell's saving throw (e.g., `"DEX"`) or null
+  - `attack_type`: `"melee"`, `"ranged"`, or null based on spell description
+  - Added `attack_type` accessor to Spell model (parses "melee/ranged spell attack" from description)
+  - Eager loads `effects.damageType` and `savingThrows` relationships for performance
+
 - **Issue #804**: Add `description` and `higher_levels` fields to `CharacterSpellResource` nested spell object
   - Frontend can now display full spell descriptions on character sheets
   - `higher_levels` is nullable for spells without scaling effects

@@ -35,6 +35,12 @@ use Illuminate\Validation\Rule;
  * {"type": "feat", "feat": "phb:alert"}
  * ```
  * The `feat` is the slug of the chosen feat.
+ *
+ * **Subclass with Variant Choices** (e.g., Totem Warrior, Circle of the Land):
+ * ```json
+ * {"selected": ["phb:barbarian-path-of-the-totem-warrior"], "variant_choices": {"totem_spirit": "bear"}}
+ * ```
+ * The `variant_choices` maps choice groups to selected values.
  */
 class CharacterChoiceResolveRequest extends FormRequest
 {
@@ -83,6 +89,11 @@ class CharacterChoiceResolveRequest extends FormRequest
             // Equipment mode gold amount (when selecting gold instead of equipment)
             // Max 500 covers highest possible roll: 5d4 * 10 = 200 max, with buffer for edge cases
             'gold_amount' => ['sometimes', 'integer', 'min:1', 'max:500'],
+
+            // Subclass variant choices (e.g., Totem Warrior totem_spirit, Circle of the Land terrain)
+            // Maps choice_group to selected value: {"totem_spirit": "bear", "terrain": "arctic"}
+            'variant_choices' => ['sometimes', 'array'],
+            'variant_choices.*' => ['string', 'max:100'],
 
             // ASI/Feat specific fields
             'type' => ['sometimes', 'string', Rule::in(['asi', 'feat'])],

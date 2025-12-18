@@ -573,6 +573,7 @@ class FlowExecutor
                 'feat' => $this->selectFeat($options, $randomizer, $alreadySelected),
                 'optional_feature' => $this->selectOptionalFeature($options, $randomizer, $count, $alreadySelected),
                 'ability_score' => $this->selectAbilityScore($options, $randomizer, $count),
+                'subclass' => $this->selectSubclass($options, $randomizer),
                 default => $this->selectGeneric($options, $randomizer, $count, $alreadySelected),
             };
 
@@ -593,9 +594,38 @@ class FlowExecutor
                 $finalSelected = array_merge($existingSelected, $finalSelected);
             }
 
-            $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", [
-                'selected' => $finalSelected,
-            ]);
+            $payload = ['selected' => $finalSelected];
+
+            // Subclass choices may have variant_choices (e.g., Totem Warrior totem_spirit, Circle of the Land terrain)
+            if ($choiceType === 'subclass') {
+                $selectedSlug = $selected[0] ?? null;
+                $foundOption = null;
+                foreach ($options as $opt) {
+                    if (($opt['slug'] ?? '') === $selectedSlug) {
+                        $foundOption = $opt;
+                        break;
+                    }
+                }
+
+                if ($foundOption && ! empty($foundOption['variant_choices'])) {
+                    $variantSelections = [];
+                    foreach ($foundOption['variant_choices'] as $choiceGroup => $choiceData) {
+                        $variantOptions = $choiceData['options'] ?? [];
+                        if (! empty($variantOptions)) {
+                            $variantValues = array_column($variantOptions, 'value');
+                            $pickedVariant = $randomizer->pickRandom($variantValues, 1);
+                            if (! empty($pickedVariant)) {
+                                $variantSelections[$choiceGroup] = $pickedVariant[0];
+                            }
+                        }
+                    }
+                    if (! empty($variantSelections)) {
+                        $payload['variant_choices'] = $variantSelections;
+                    }
+                }
+            }
+
+            $lastResponse = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", $payload);
 
             if (isset($lastResponse['error']) && $lastResponse['error']) {
                 return $lastResponse;
@@ -771,6 +801,35 @@ class FlowExecutor
                             $itemSlugs = array_column($selectableItems, 'slug');
                             $pickedItem = $randomizer->pickRandom($itemSlugs, 1);
                             $payload['item_selections'] = [$selectedOption => $pickedItem];
+                        }
+                    }
+                }
+
+                // Subclass choices may have variant_choices (e.g., Totem Warrior totem_spirit, Circle of the Land terrain)
+                if ($choiceType === 'subclass') {
+                    $selectedSlug = $selected[0] ?? null;
+                    $foundOption = null;
+                    foreach ($options as $opt) {
+                        if (($opt['slug'] ?? '') === $selectedSlug) {
+                            $foundOption = $opt;
+                            break;
+                        }
+                    }
+
+                    if ($foundOption && ! empty($foundOption['variant_choices'])) {
+                        $variantSelections = [];
+                        foreach ($foundOption['variant_choices'] as $choiceGroup => $choiceData) {
+                            $variantOptions = $choiceData['options'] ?? [];
+                            if (! empty($variantOptions)) {
+                                $variantValues = array_column($variantOptions, 'value');
+                                $pickedVariant = $randomizer->pickRandom($variantValues, 1);
+                                if (! empty($pickedVariant)) {
+                                    $variantSelections[$choiceGroup] = $pickedVariant[0];
+                                }
+                            }
+                        }
+                        if (! empty($variantSelections)) {
+                            $payload['variant_choices'] = $variantSelections;
                         }
                     }
                 }

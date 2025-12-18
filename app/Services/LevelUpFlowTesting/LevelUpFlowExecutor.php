@@ -439,6 +439,35 @@ class LevelUpFlowExecutor
             $payload = ['selected' => (array) $selected];
         }
 
+        // Subclass choices may have variant_choices (e.g., Totem Warrior totem_spirit, Circle of the Land terrain)
+        if ($choiceType === 'subclass') {
+            $selectedSlug = $selected[0] ?? null;
+            $foundOption = null;
+            foreach ($options as $opt) {
+                if (($opt['slug'] ?? '') === $selectedSlug) {
+                    $foundOption = $opt;
+                    break;
+                }
+            }
+
+            if ($foundOption && ! empty($foundOption['variant_choices'])) {
+                $variantSelections = [];
+                foreach ($foundOption['variant_choices'] as $choiceGroup => $choiceData) {
+                    $variantOptions = $choiceData['options'] ?? [];
+                    if (! empty($variantOptions)) {
+                        $variantValues = array_column($variantOptions, 'value');
+                        $pickedVariant = $randomizer->pickRandom($variantValues, 1);
+                        if (! empty($pickedVariant)) {
+                            $variantSelections[$choiceGroup] = $pickedVariant[0];
+                        }
+                    }
+                }
+                if (! empty($variantSelections)) {
+                    $payload['variant_choices'] = $variantSelections;
+                }
+            }
+        }
+
         $response = $this->makeRequest('POST', "/api/v1/characters/{$characterId}/choices/{$choiceId}", $payload);
 
         if (isset($response['error'])) {

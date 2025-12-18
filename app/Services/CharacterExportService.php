@@ -126,6 +126,7 @@ class CharacterExportService
             'level' => $pivot->level,
             'is_primary' => $pivot->is_primary,
             'hit_dice_spent' => $pivot->hit_dice_spent,
+            'subclass_choices' => $pivot->subclass_choices,
         ])->toArray();
     }
 

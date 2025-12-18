@@ -33,12 +33,12 @@ class CharacterAbilityScoreMethodTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.ability_score_method', 'point_buy')
-            ->assertJsonPath('data.ability_scores.STR', 15)
-            ->assertJsonPath('data.ability_scores.DEX', 14)
-            ->assertJsonPath('data.ability_scores.CON', 13)
-            ->assertJsonPath('data.ability_scores.INT', 12)
-            ->assertJsonPath('data.ability_scores.WIS', 10)
-            ->assertJsonPath('data.ability_scores.CHA', 8);
+            ->assertJsonPath('data.ability_scores.STR.score', 15)
+            ->assertJsonPath('data.ability_scores.DEX.score', 14)
+            ->assertJsonPath('data.ability_scores.CON.score', 13)
+            ->assertJsonPath('data.ability_scores.INT.score', 12)
+            ->assertJsonPath('data.ability_scores.WIS.score', 10)
+            ->assertJsonPath('data.ability_scores.CHA.score', 8);
     }
 
     #[Test]
@@ -157,8 +157,8 @@ class CharacterAbilityScoreMethodTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.ability_score_method', 'standard_array')
-            ->assertJsonPath('data.ability_scores.STR', 8)
-            ->assertJsonPath('data.ability_scores.CHA', 15);
+            ->assertJsonPath('data.ability_scores.STR.score', 8)
+            ->assertJsonPath('data.ability_scores.CHA.score', 15);
     }
 
     #[Test]
@@ -230,7 +230,7 @@ class CharacterAbilityScoreMethodTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 18);
+            ->assertJsonPath('data.ability_scores.STR.score', 18);
     }
 
     #[Test]
@@ -249,8 +249,8 @@ class CharacterAbilityScoreMethodTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.ability_scores.STR', 3)
-            ->assertJsonPath('data.ability_scores.DEX', 20);
+            ->assertJsonPath('data.ability_scores.STR.score', 3)
+            ->assertJsonPath('data.ability_scores.DEX.score', 20);
     }
 
     #[Test]
@@ -353,7 +353,7 @@ class CharacterAbilityScoreMethodTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.ability_score_method', 'manual')
-            ->assertJsonPath('data.ability_scores.STR', 18);
+            ->assertJsonPath('data.ability_scores.STR.score', 18);
     }
 
     #[Test]
@@ -376,7 +376,7 @@ class CharacterAbilityScoreMethodTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.ability_score_method', 'point_buy')
-            ->assertJsonPath('data.ability_scores.STR', 15);
+            ->assertJsonPath('data.ability_scores.STR.score', 15);
     }
 
     // =====================

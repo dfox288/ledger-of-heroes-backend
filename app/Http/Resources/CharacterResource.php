@@ -56,9 +56,7 @@ class CharacterResource extends JsonResource
             'id' => $this->id,
             'public_id' => $this->public_id,
             'name' => $this->name,
-            /** @var int Character level (total across all classes) */
-            'level' => $this->total_level,
-            /** @var int Total character level */
+            /** @var int Total character level (across all classes) */
             'total_level' => $this->total_level,
             /** @var bool Whether character has multiple classes */
             'is_multiclass' => $this->is_multiclass,
@@ -71,7 +69,7 @@ class CharacterResource extends JsonResource
     }
 
     /**
-     * Get ability scores and modifiers.
+     * Get ability scores with nested score and modifier values.
      */
     private function getAbilityScoresData(): array
     {
@@ -79,19 +77,38 @@ class CharacterResource extends JsonResource
         $finalScores = $this->resource->getFinalAbilityScoresArray();
         // Use getAbilityScoresArray() for base scores (before any bonuses)
         $baseScores = $this->resource->getAbilityScoresArray();
-        $modifiers = $this->calculateModifiers($finalScores);
         $proficiencyBonus = $this->calculator->proficiencyBonus($this->total_level);
 
         return [
             'ability_score_method' => $this->ability_score_method?->value,
-            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} Final ability scores with racial bonuses applied */
-            'ability_scores' => $finalScores,
-            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} Base ability scores before any bonuses */
-            'base_ability_scores' => $baseScores,
-            /** @var array{STR: int|null, DEX: int|null, CON: int|null, INT: int|null, WIS: int|null, CHA: int|null} */
-            'modifiers' => $modifiers,
+            /** @var array<string, array{score: int|null, modifier: int|null}> Final ability scores with racial bonuses applied */
+            'ability_scores' => $this->formatAbilityScores($finalScores),
+            /** @var array<string, array{score: int|null, modifier: int|null}> Base ability scores before any bonuses */
+            'base_ability_scores' => $this->formatAbilityScores($baseScores),
             'proficiency_bonus' => $proficiencyBonus,
         ];
+    }
+
+    /**
+     * Format ability scores with nested score and modifier.
+     *
+     * @param  array<string, int|null>  $scores
+     * @return array<string, array{score: int|null, modifier: int|null}>
+     */
+    private function formatAbilityScores(array $scores): array
+    {
+        $formatted = [];
+
+        foreach ($scores as $code => $score) {
+            $formatted[$code] = [
+                'score' => $score,
+                'modifier' => $score !== null
+                    ? $this->calculator->abilityModifier($score)
+                    : null,
+            ];
+        }
+
+        return $formatted;
     }
 
     /**
@@ -202,13 +219,15 @@ class CharacterResource extends JsonResource
      * Get currency data from character's inventory.
      *
      * Currency is derived from equipment items with coin slugs.
+     * This is the authoritative calculated value - raw coin items are
+     * in CharacterEquipmentResource with is_currency: true.
      *
      * @return array{currency: array{pp: int, gp: int, ep: int, sp: int, cp: int}}
      */
     private function getCurrencyData(): array
     {
         return [
-            /** @var array{pp: int, gp: int, ep: int, sp: int, cp: int} Currency from inventory */
+            /** @var array{pp: int, gp: int, ep: int, sp: int, cp: int} Authoritative currency from inventory */
             'currency' => $this->currency,
         ];
     }
@@ -377,22 +396,6 @@ class CharacterResource extends JsonResource
         }
 
         return null;
-    }
-
-    /**
-     * Calculate modifiers for all ability scores.
-     */
-    private function calculateModifiers(array $scores): array
-    {
-        $modifiers = [];
-
-        foreach ($scores as $code => $score) {
-            $modifiers[$code] = $score !== null
-                ? $this->calculator->abilityModifier($score)
-                : null;
-        }
-
-        return $modifiers;
     }
 
     /**

@@ -18,7 +18,7 @@ class CharacterIndexRequest extends BaseIndexRequest
     {
         return [
             'status' => ['sometimes', 'string', Rule::in(['complete', 'draft'])],
-            'class' => ['sometimes', 'string', 'max:255'],
+            'class' => ['sometimes', 'string', 'exists:classes,slug'],
         ];
     }
 

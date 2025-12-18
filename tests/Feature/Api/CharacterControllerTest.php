@@ -251,12 +251,23 @@ class CharacterControllerTest extends TestCase
     public function it_returns_empty_results_when_no_characters_have_specified_class(): void
     {
         $fighter = CharacterClass::factory()->create(['slug' => 'phb:fighter']);
+        $wizard = CharacterClass::factory()->create(['slug' => 'phb:wizard']);
         Character::factory()->withClass($fighter)->create();
 
+        // Wizard class exists but no characters have it
         $response = $this->getJson('/api/v1/characters?class=phb:wizard');
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
+    }
+
+    #[Test]
+    public function it_rejects_invalid_class_filter_values(): void
+    {
+        $response = $this->getJson('/api/v1/characters?class=nonexistent:class');
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['class']);
     }
 
     #[Test]

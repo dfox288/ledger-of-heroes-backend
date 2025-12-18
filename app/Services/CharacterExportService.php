@@ -107,6 +107,14 @@ class CharacterExportService
             'equipment_mode' => $character->equipment_mode,
             'size_id' => $character->size_id,
             'asi_choices_remaining' => $character->asi_choices_remaining,
+            // Physical description fields
+            'age' => $character->age,
+            'height' => $character->height,
+            'weight' => $character->weight,
+            'eye_color' => $character->eye_color,
+            'hair_color' => $character->hair_color,
+            'skin_color' => $character->skin_color,
+            'deity' => $character->deity,
         ];
     }
 

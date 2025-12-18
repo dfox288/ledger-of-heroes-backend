@@ -77,6 +77,17 @@ class CharacterStoreRequest extends FormRequest
             // Alignment (optional, must be valid D&D alignment)
             'alignment' => ['sometimes', 'nullable', 'string', 'in:'.implode(',', Character::ALIGNMENTS)],
 
+            // Physical description fields (all optional strings)
+            'age' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'height' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'weight' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'eye_color' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'hair_color' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'skin_color' => ['sometimes', 'nullable', 'string', 'max:50'],
+
+            // Religious affiliation (optional)
+            'deity' => ['sometimes', 'nullable', 'string', 'max:150'],
+
             // Inspiration (optional, boolean)
             'has_inspiration' => ['sometimes', 'boolean'],
         ];

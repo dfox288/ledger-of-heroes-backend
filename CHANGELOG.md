@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Frontend can now display full spell descriptions on character sheets
   - `higher_levels` is nullable for spells without scaling effects
 
+- **Issue #758**: Add physical attributes and deity fields to Character
+  - New fields: `age`, `height`, `weight`, `eye_color`, `hair_color`, `skin_color`, `deity`
+  - All fields are optional nullable strings (50 char max for physical, 150 for deity)
+  - Fields included in CharacterResource API response
+  - Fields exported/imported for portable character data
+  - Standard D&D character sheet fields for physical description and religious affiliation
+
 ### Fixed
 
 - **Issue #701**: Subclasses that grant spellcasting (Eldritch Knight, Arcane Trickster) now receive spell slots

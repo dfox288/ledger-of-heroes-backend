@@ -120,6 +120,13 @@ class CharacterResource extends JsonResource
         return [
             'asi_choices_remaining' => $this->asi_choices_remaining ?? 0,
             'alignment' => $this->alignment,
+            'age' => $this->age,
+            'height' => $this->height,
+            'weight' => $this->weight,
+            'eye_color' => $this->eye_color,
+            'hair_color' => $this->hair_color,
+            'skin_color' => $this->skin_color,
+            'deity' => $this->deity,
             'has_inspiration' => $this->has_inspiration ?? false,
         ];
     }

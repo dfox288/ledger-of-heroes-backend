@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:06:39+00:00",
+    "exported_at": "2025-12-18T17:20:44+00:00",
     "character": {
-        "public_id": "dark-warden-v74i",
+        "public_id": "bold-warden-LtJg",
         "name": "Path of the Zealot L20",
         "race": "vgm:goliath-legacy",
         "background": "phb:urchin",
@@ -11,8 +11,8 @@
             "strength": 12,
             "dexterity": 15,
             "constitution": 14,
-            "intelligence": 13,
-            "wisdom": 8,
+            "intelligence": 17,
+            "wisdom": 10,
             "charisma": 10
         },
         "max_hit_points": 183,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,7 +55,8 @@
                 "subclass": "xge:barbarian-path-of-the-zealot",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],
@@ -388,6 +389,12 @@
                 "level_acquired": 7
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -421,6 +428,12 @@
                 "level_acquired": 11
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 12
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -441,6 +454,12 @@
                 },
                 "source": "class",
                 "level_acquired": 15
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 16
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

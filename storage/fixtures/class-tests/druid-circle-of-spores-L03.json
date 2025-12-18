@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:11:32+00:00",
+    "exported_at": "2025-12-18T17:26:55+00:00",
     "character": {
-        "public_id": "storm-arrow-XL94",
+        "public_id": "golden-oracle-i5Aa",
         "name": "Circle of Spores L3",
         "race": "vgm:tabaxi-legacy",
         "background": "phb:charlatan",
@@ -38,7 +38,8 @@
                 "subclass": "tce:druid-circle-of-spores",
                 "level": 3,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [

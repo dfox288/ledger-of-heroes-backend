@@ -333,6 +333,9 @@ class CharacterFeatureService
      * Called during level-up to grant spells from existing subclass features
      * that have level_requirement matching the new level.
      *
+     * Issue #752: Respects variant feature selections (terrain for Circle of the Land,
+     * totem animals for Path of the Totem Warrior, etc.)
+     *
      * @param  string  $classSlug  The base class slug to find the subclass
      */
     public function grantUnlockedSubclassSpells(Character $character, string $classSlug): void
@@ -361,6 +364,12 @@ class CharacterFeatureService
             ->filter(fn ($feature) => $feature->is_always_prepared);
 
         foreach ($features as $feature) {
+            // Issue #752: Handle variant features (terrain, totem animals, etc.)
+            // Skip variant features that don't match the character's selection
+            if (! $this->shouldIncludeVariantFeature($feature, $characterClass)) {
+                continue;
+            }
+
             $this->assignSpellsFromFeature($character, $feature, $characterLevel, $classSlug);
         }
 

@@ -1,19 +1,19 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:03:01+00:00",
+    "exported_at": "2025-12-18T17:17:02+00:00",
     "character": {
-        "public_id": "valiant-hawk-H4Sj",
+        "public_id": "valiant-oracle-vBYL",
         "name": "Path of the Berserker L20",
         "race": "dmg:aarakocra-dmg",
         "background": "phb:sailor",
         "alignment": "Neutral Good",
         "ability_scores": {
-            "strength": 8,
-            "dexterity": 15,
+            "strength": 9,
+            "dexterity": 17,
             "constitution": 14,
             "intelligence": 10,
-            "wisdom": 13,
-            "charisma": 12
+            "wisdom": 15,
+            "charisma": 14
         },
         "max_hit_points": 183,
         "current_hit_points": 183,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,10 +55,19 @@
                 "subclass": "phb:barbarian-path-of-the-berserker",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
-        "spells": [],
+        "spells": [
+            {
+                "spell": "phb:cure-wounds",
+                "source": "feat",
+                "preparation_status": "known",
+                "class_slug": null,
+                "level_acquired": null
+            }
+        ],
         "equipment": [
             {
                 "item": null,
@@ -342,6 +351,12 @@
                 "level_acquired": 7
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -395,6 +410,12 @@
                 },
                 "source": "class",
                 "level_acquired": 15
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 16
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

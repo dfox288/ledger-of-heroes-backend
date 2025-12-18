@@ -1,17 +1,17 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:11:54+00:00",
+    "exported_at": "2025-12-18T17:27:17+00:00",
     "character": {
-        "public_id": "mighty-mage-2sRW",
+        "public_id": "flame-phoenix-BTFL",
         "name": "Circle of Spores L10",
         "race": "phb:half-elf-aquatic-elf-ancestry",
         "background": "phb:guild-artisan",
         "alignment": "Lawful Evil",
         "ability_scores": {
-            "strength": 10,
+            "strength": 11,
             "dexterity": 12,
             "constitution": 13,
-            "intelligence": 15,
+            "intelligence": 16,
             "wisdom": 8,
             "charisma": 14
         },
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 2,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -45,7 +45,8 @@
                 "subclass": "tce:druid-circle-of-spores",
                 "level": 10,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [
@@ -120,18 +121,18 @@
                 "level_acquired": 1
             },
             {
-                "spell": "xge:infestation",
-                "source": "class",
-                "preparation_status": "known",
-                "class_slug": "phb:druid",
-                "level_acquired": 10
-            },
-            {
                 "spell": "xge:magic-stone",
                 "source": "class",
                 "preparation_status": "known",
                 "class_slug": "phb:druid",
                 "level_acquired": 1
+            },
+            {
+                "spell": "xge:primal-savagery",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:druid",
+                "level_acquired": 10
             },
             {
                 "spell": "xge:shape-water",
@@ -444,6 +445,12 @@
                 },
                 "source": "subclass",
                 "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
             }
         ],
         "counters": [

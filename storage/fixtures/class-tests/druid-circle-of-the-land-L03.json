@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:15:22+00:00",
+    "exported_at": "2025-12-18T17:23:18+00:00",
     "character": {
-        "public_id": "ancient-knight-t3Ww",
+        "public_id": "frost-shield-MEsd",
         "name": "Circle of the Land L3",
         "race": "dmg:aasimar-dmg",
         "background": "phb:entertainer",
@@ -38,52 +38,13 @@
                 "subclass": "phb:druid-circle-of-the-land",
                 "level": 3,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": {
+                    "terrain": "coast"
+                }
             }
         ],
         "spells": [
-            {
-                "spell": "phb:barkskin",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:blur",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:darkness",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:hold-person",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:invisibility",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:melfs-acid-arrow",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
             {
                 "spell": "phb:mirror-image",
                 "source": "subclass",
@@ -93,41 +54,6 @@
             },
             {
                 "spell": "phb:misty-step",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:pass-without-trace",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:silence",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:spider-climb",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:spike-growth",
-                "source": "subclass",
-                "preparation_status": "always_prepared",
-                "class_slug": "phb:druid",
-                "level_acquired": 3
-            },
-            {
-                "spell": "phb:web",
                 "source": "subclass",
                 "preparation_status": "always_prepared",
                 "class_slug": "phb:druid",

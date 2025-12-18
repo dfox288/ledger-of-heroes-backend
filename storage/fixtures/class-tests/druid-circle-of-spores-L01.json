@@ -1,8 +1,8 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-18T00:11:27+00:00",
+    "exported_at": "2025-12-18T17:26:50+00:00",
     "character": {
-        "public_id": "iron-knight-Guin",
+        "public_id": "frost-dragon-vofQ",
         "name": "Circle of Spores L1",
         "race": "dmg:troglodyte-dmg-npc",
         "background": "scag:far-traveler",
@@ -36,7 +36,8 @@
                 "subclass": null,
                 "level": 1,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [

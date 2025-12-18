@@ -1,22 +1,22 @@
 {
     "format_version": "1.3",
-    "exported_at": "2025-12-17T00:04:59+00:00",
+    "exported_at": "2025-12-18T17:19:07+00:00",
     "character": {
-        "public_id": "ancient-raven-52Wk",
+        "public_id": "silver-seeker-fXzq",
         "name": "Path of the Ancestral Guardian L20",
         "race": "dmg:hobgoblin-legacy",
         "background": "scag:knight-of-the-order",
         "alignment": "Chaotic Neutral",
         "ability_scores": {
             "strength": 15,
-            "dexterity": 10,
-            "constitution": 8,
-            "intelligence": 12,
-            "wisdom": 14,
-            "charisma": 13
+            "dexterity": 12,
+            "constitution": 10,
+            "intelligence": 13,
+            "wisdom": 15,
+            "charisma": 14
         },
-        "max_hit_points": 126,
-        "current_hit_points": 126,
+        "max_hit_points": 146,
+        "current_hit_points": 146,
         "temp_hit_points": 0,
         "death_save_successes": 0,
         "death_save_failures": 0,
@@ -25,7 +25,7 @@
         "ability_score_method": "standard_array",
         "equipment_mode": "gold",
         "size_id": null,
-        "asi_choices_remaining": 5,
+        "asi_choices_remaining": 0,
         "hp_levels_resolved": [
             1,
             2,
@@ -55,7 +55,8 @@
                 "subclass": "xge:barbarian-path-of-the-ancestral-guardian",
                 "level": 20,
                 "is_primary": true,
-                "hit_dice_spent": 0
+                "hit_dice_spent": 0,
+                "subclass_choices": null
             }
         ],
         "spells": [],
@@ -289,6 +290,12 @@
                 "level_acquired": 3
             },
             {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            },
+            {
                 "feature_type": "App\\Models\\ClassFeature",
                 "portable_id": {
                     "type": "class_feature",
@@ -331,6 +338,12 @@
                 },
                 "source": "class",
                 "level_acquired": 7
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
             },
             {
                 "feature_type": "App\\Models\\ClassFeature",

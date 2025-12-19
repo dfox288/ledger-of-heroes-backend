@@ -54,6 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fields exported/imported for portable character data
   - Standard D&D character sheet fields for physical description and religious affiliation
 
+- **Issue #785**: Add `scaled_effects` field to `CharacterSpellResource` for cantrip scaling
+  - Cantrips automatically scale damage at character levels 5, 11, and 17 per D&D 5e rules
+  - `scaled_effects`: Array of effects scaled to the character's current level
+  - Example: Level 5 character with Fire Bolt gets `[{effect_type: "damage", dice_formula: "2d10", damage_type: "Fire"}]`
+  - Filters to highest applicable tier based on character's `total_level`
+  - Returns empty array for spells without character_level scaling
+  - Frontend can display correct damage without manual tier calculation
+
 ### Fixed
 
 - **Issue #701**: Subclasses that grant spellcasting (Eldritch Knight, Arcane Trickster) now receive spell slots

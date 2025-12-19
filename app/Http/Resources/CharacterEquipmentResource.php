@@ -277,12 +277,15 @@ class CharacterEquipmentResource extends JsonResource
      * Format range data for ranged weapons.
      *
      * Returns object with normal/long distances, or null for melee weapons.
+     * In D&D 5e, ranged weapons always specify both normal and long range,
+     * so we require both values to be present.
      *
      * @return array{normal: int, long: int}|null
      */
     private function formatRange(Item $item): ?array
     {
-        if ($item->range_normal === null && $item->range_long === null) {
+        // Require both values - D&D ranged weapons always have both
+        if ($item->range_normal === null || $item->range_long === null) {
             return null;
         }
 

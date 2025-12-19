@@ -650,7 +650,11 @@ class CharacterEquipmentApiTest extends TestCase
             ->assertJsonPath('data.0.item.damage_type', 'Slashing')
             ->assertJsonPath('data.0.item.versatile_damage', '1d10')
             ->assertJsonPath('data.0.item.properties.0.code', 'V')
-            ->assertJsonPath('data.0.item.properties.0.name', 'Versatile');
+            ->assertJsonPath('data.0.item.properties.0.name', 'Versatile')
+            // Verify melee weapon has null range and armor fields
+            ->assertJsonPath('data.0.item.range', null)
+            ->assertJsonPath('data.0.item.armor_type', null)
+            ->assertJsonPath('data.0.item.max_dex_bonus', null);
     }
 
     #[Test]

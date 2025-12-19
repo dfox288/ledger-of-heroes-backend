@@ -1,0 +1,639 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:06:05+00:00",
+    "character": {
+        "public_id": "swift-dragon-RhC3",
+        "name": "Beast Master L20",
+        "race": "vrgtr:reborn",
+        "background": "vrgtr:haunted-one-van-richtens",
+        "alignment": "Lawful Neutral",
+        "ability_scores": {
+            "strength": 14,
+            "dexterity": 14,
+            "constitution": 12,
+            "intelligence": 15,
+            "wisdom": 9,
+            "charisma": 15
+        },
+        "max_hit_points": 143,
+        "current_hit_points": 143,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": 3,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:ranger",
+                "subclass": "phb:ranger-beast-master",
+                "level": 20,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:conjure-volley",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 19
+            },
+            {
+                "spell": "phb:cordon-of-arrows",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:cure-wounds",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 11
+            },
+            {
+                "spell": "phb:ensnaring-strike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:fog-cloud",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:hail-of-thorns",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:hunters-mark",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:plant-growth",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:silence",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:telekinesis",
+                "source": "feat",
+                "preparation_status": "known",
+                "class_slug": null,
+                "level_acquired": null
+            },
+            {
+                "spell": "xge:flame-arrows",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 13
+            },
+            {
+                "spell": "xge:zephyr-strike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:ranger",
+                "level_acquired": 2
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:chest",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:common-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "sp.",
+                "custom_description": "{\"source\":\"background\",\"description\":\"sp.\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 125,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:gnomish",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:investigation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:perception",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:nature",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": []
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "tce:blessed-warrior",
+                "class": "phb:ranger",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "feature_type": "fighting_style",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Ancestral Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Deathless Nature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:reborn",
+                    "trait_name": "Knowledge from a Past Life"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Favored Enemy",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Natural Explorer",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "vrgtr:haunted-one-van-richtens",
+                    "trait_name": "Feature: Heart of Darkness"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Spellcasting",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Fighting Style",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Primeval Awareness",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Ranger Archetype",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Ranger Archetype: Beast Master",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Ranger's Companion (Beast Master)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger-beast-master",
+                    "feature_name": "Primal Companion (Beast Master)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Martial Versatility",
+                    "level": 4
+                },
+                "source": "class",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Extra Attack",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Favored Enemy Improvement",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Natural Explorer Improvement",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Land's Stride",
+                    "level": 8
+                },
+                "source": "class",
+                "level_acquired": 8
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Martial Versatility",
+                    "level": 8
+                },
+                "source": "class",
+                "level_acquired": 8
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Hide in Plain Sight",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Natural Explorer Improvement",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Martial Versatility",
+                    "level": 12
+                },
+                "source": "class",
+                "level_acquired": 12
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 12
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Vanish",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Favored Enemy Improvement",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Martial Versatility",
+                    "level": 16
+                },
+                "source": "class",
+                "level_acquired": 16
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Feral Senses",
+                    "level": 18
+                },
+                "source": "class",
+                "level_acquired": 18
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Martial Versatility",
+                    "level": 19
+                },
+                "source": "class",
+                "level_acquired": 19
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:ranger",
+                    "feature_name": "Foe Slayer",
+                    "level": 20
+                },
+                "source": "class",
+                "level_acquired": 20
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:ranger",
+                "counter_name": "Fighting Styles Known",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:ranger",
+                "counter_name": "Nature's Veil",
+                "current_uses": null,
+                "max_uses": 6,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:ranger",
+                "counter_name": "Tireless",
+                "current_uses": null,
+                "max_uses": 6,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

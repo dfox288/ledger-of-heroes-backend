@@ -181,6 +181,37 @@ class Item extends BaseModel
     }
 
     /**
+     * Get the armor type (light/medium/heavy) based on item type code.
+     *
+     * Returns null for non-armor items.
+     */
+    public function getArmorTypeAttribute(): ?string
+    {
+        return match ($this->itemType?->code) {
+            'LA' => 'light',
+            'MA' => 'medium',
+            'HA' => 'heavy',
+            default => null,
+        };
+    }
+
+    /**
+     * Get the maximum DEX bonus allowed by this armor.
+     *
+     * Returns null for light armor (unlimited), 2 for medium, 0 for heavy.
+     * Returns null for non-armor items.
+     */
+    public function getMaxDexBonusAttribute(): ?int
+    {
+        return match ($this->itemType?->code) {
+            'LA' => null,   // Light: unlimited DEX bonus
+            'MA' => 2,      // Medium: capped at +2
+            'HA' => 0,      // Heavy: no DEX bonus
+            default => null,
+        };
+    }
+
+    /**
      * Get the magic bonus (+1/+2/+3) from modifiers.
      *
      * Checks weapon_attack modifier for weapons, ac_magic for armor/shields.

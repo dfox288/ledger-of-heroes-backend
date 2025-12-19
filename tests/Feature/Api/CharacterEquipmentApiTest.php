@@ -607,4 +607,245 @@ class CharacterEquipmentApiTest extends TestCase
         $response->assertNoContent();
         $this->assertDatabaseMissing('character_equipment', ['id' => $equipment->id]);
     }
+
+    // =============================
+    // Issue #757: Enhanced Item Fields
+    // =============================
+
+    #[Test]
+    public function it_returns_weapon_fields_for_equipped_weapon(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create a melee weapon with damage type and versatile damage
+        $meleeType = ItemType::where('code', 'M')->first();
+        $slashingType = \App\Models\DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
+
+        $longsword = Item::create([
+            'name' => 'Test Longsword',
+            'slug' => 'test:longsword-757',
+            'item_type_id' => $meleeType->id,
+            'damage_dice' => '1d8',
+            'versatile_damage' => '1d10',
+            'damage_type_id' => $slashingType->id,
+            'rarity' => 'common',
+            'description' => 'A versatile sword.',
+        ]);
+
+        // Attach properties (Versatile)
+        $versatileProperty = \App\Models\ItemProperty::firstOrCreate(
+            ['code' => 'V'],
+            ['name' => 'Versatile', 'description' => 'Can be used two-handed']
+        );
+        $longsword->properties()->attach($versatileProperty);
+
+        CharacterEquipment::factory()
+            ->withItem($longsword)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'main_hand']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.damage_type', 'Slashing')
+            ->assertJsonPath('data.0.item.versatile_damage', '1d10')
+            ->assertJsonPath('data.0.item.properties.0.code', 'V')
+            ->assertJsonPath('data.0.item.properties.0.name', 'Versatile')
+            // Verify melee weapon has null range and armor fields
+            ->assertJsonPath('data.0.item.range', null)
+            ->assertJsonPath('data.0.item.armor_type', null)
+            ->assertJsonPath('data.0.item.max_dex_bonus', null);
+    }
+
+    #[Test]
+    public function it_returns_range_object_for_ranged_weapon(): void
+    {
+        $character = Character::factory()->create();
+
+        $rangedType = ItemType::where('code', 'R')->first();
+        $piercingType = \App\Models\DamageType::firstOrCreate(['name' => 'Piercing'], ['slug' => 'piercing']);
+
+        $longbow = Item::create([
+            'name' => 'Test Longbow',
+            'slug' => 'test:longbow-757',
+            'item_type_id' => $rangedType->id,
+            'damage_dice' => '1d8',
+            'damage_type_id' => $piercingType->id,
+            'range_normal' => 150,
+            'range_long' => 600,
+            'rarity' => 'common',
+            'description' => 'A ranged weapon.',
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($longbow)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'main_hand']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.range.normal', 150)
+            ->assertJsonPath('data.0.item.range.long', 600);
+    }
+
+    #[Test]
+    public function it_returns_armor_fields_for_equipped_armor(): void
+    {
+        $character = Character::factory()->create();
+
+        // Create heavy armor
+        $heavyArmorType = ItemType::where('code', 'HA')->first();
+
+        $chainMail = Item::create([
+            'name' => 'Test Chain Mail',
+            'slug' => 'test:chain-mail-757',
+            'item_type_id' => $heavyArmorType->id,
+            'armor_class' => 16,
+            'strength_requirement' => 13,
+            'stealth_disadvantage' => true,
+            'rarity' => 'common',
+            'description' => 'Heavy armor.',
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($chainMail)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'armor']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.armor_type', 'heavy')
+            ->assertJsonPath('data.0.item.max_dex_bonus', 0)
+            ->assertJsonPath('data.0.item.stealth_disadvantage', true)
+            ->assertJsonPath('data.0.item.strength_requirement', 13);
+    }
+
+    #[Test]
+    public function it_returns_correct_max_dex_bonus_for_medium_armor(): void
+    {
+        $character = Character::factory()->create();
+
+        $mediumArmorType = ItemType::where('code', 'MA')->first();
+
+        $breastplate = Item::create([
+            'name' => 'Test Breastplate',
+            'slug' => 'test:breastplate-757',
+            'item_type_id' => $mediumArmorType->id,
+            'armor_class' => 14,
+            'rarity' => 'common',
+            'description' => 'Medium armor.',
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($breastplate)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'armor']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.armor_type', 'medium')
+            ->assertJsonPath('data.0.item.max_dex_bonus', 2);
+    }
+
+    #[Test]
+    public function it_returns_null_max_dex_bonus_for_light_armor(): void
+    {
+        $character = Character::factory()->create();
+
+        $lightArmorType = ItemType::where('code', 'LA')->first();
+
+        $leatherArmor = Item::create([
+            'name' => 'Test Leather',
+            'slug' => 'test:leather-757',
+            'item_type_id' => $lightArmorType->id,
+            'armor_class' => 11,
+            'rarity' => 'common',
+            'description' => 'Light armor.',
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($leatherArmor)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'armor']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.armor_type', 'light')
+            ->assertJsonPath('data.0.item.max_dex_bonus', null);
+    }
+
+    #[Test]
+    public function it_returns_magic_item_fields_for_magic_weapon(): void
+    {
+        $character = Character::factory()->create();
+
+        $meleeType = ItemType::where('code', 'M')->first();
+        $slashingType = \App\Models\DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
+
+        $magicSword = Item::create([
+            'name' => '+1 Longsword',
+            'slug' => 'test:plus-one-longsword-757',
+            'item_type_id' => $meleeType->id,
+            'damage_dice' => '1d8',
+            'damage_type_id' => $slashingType->id,
+            'rarity' => 'uncommon',
+            'is_magic' => true,
+            'requires_attunement' => false,
+            'description' => 'A magic longsword.',
+        ]);
+
+        // Add magic bonus via modifier
+        $magicSword->modifiers()->create([
+            'modifier_category' => 'weapon_attack',
+            'value' => 1,
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($magicSword)
+            ->equipped()
+            ->create(['character_id' => $character->id, 'location' => 'main_hand']);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.is_magic', true)
+            ->assertJsonPath('data.0.item.rarity', 'uncommon')
+            ->assertJsonPath('data.0.item.magic_bonus', 1);
+    }
+
+    #[Test]
+    public function it_returns_charge_capacity_for_charged_items(): void
+    {
+        $character = Character::factory()->create();
+
+        $wandType = ItemType::where('code', 'WD')->first();
+
+        $wand = Item::create([
+            'name' => 'Wand of Magic Missiles',
+            'slug' => 'test:wand-of-magic-missiles-757',
+            'item_type_id' => $wandType->id,
+            'rarity' => 'uncommon',
+            'is_magic' => true,
+            'requires_attunement' => false,
+            'description' => 'A wand that casts magic missile.',
+            'charges_max' => '7',
+            'recharge_formula' => '1d6+1',
+            'recharge_timing' => 'dawn',
+        ]);
+
+        CharacterEquipment::factory()
+            ->withItem($wand)
+            ->create(['character_id' => $character->id]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/equipment");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.item.charges_max', '7')
+            ->assertJsonPath('data.0.item.recharge_formula', '1d6+1')
+            ->assertJsonPath('data.0.item.recharge_timing', 'dawn');
+    }
 }

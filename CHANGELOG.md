@@ -28,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #757**: Enhanced `CharacterEquipmentResource` with weapon, armor, and magic item details
+  - **Weapon fields**: `damage_type`, `properties`, `range` (object with `normal`/`long`), `versatile_damage`
+  - **Armor fields**: `armor_type` (`light`/`medium`/`heavy`), `max_dex_bonus` (null/2/0), `stealth_disadvantage`, `strength_requirement`
+  - **Magic item fields**: `is_magic`, `rarity`, `magic_bonus`
+  - **Charge capacity fields**: `charges_max`, `recharge_formula`, `recharge_timing`
+  - Added `armor_type` and `max_dex_bonus` accessors to Item model
+  - All fields included in nested `item` object within equipment response
+
 - **Issue #756**: Add combat fields to `CharacterSpellResource` nested spell object
   - `damage_types`: Array of damage type names from spell effects (e.g., `["Fire"]`)
   - `saving_throw`: Ability code for the spell's saving throw (e.g., `"DEX"`) or null

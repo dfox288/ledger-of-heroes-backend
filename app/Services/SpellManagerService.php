@@ -23,6 +23,7 @@ class SpellManagerService
     public function getCharacterSpells(Character $character): Collection
     {
         return $character->spells()->with([
+            'character', // For scaled_effects based on character level
             'spell.spellSchool',
             'spell.effects.damageType',
             'spell.savingThrows',

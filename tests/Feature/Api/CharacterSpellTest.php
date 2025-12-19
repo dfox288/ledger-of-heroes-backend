@@ -1105,4 +1105,215 @@ class CharacterSpellTest extends TestCase
         ]);
         $response->assertUnprocessable();
     }
+
+    // =====================
+    // Scaled Cantrip Effects Tests (Issue #785)
+    // =====================
+
+    #[Test]
+    public function it_returns_scaled_effects_for_cantrip_at_level_3(): void
+    {
+        $character = Character::factory()->level(3)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Fire Bolt']);
+
+        // Create cantrip scaling tiers (like Fire Bolt)
+        $this->createCantripScalingEffects($cantrip, 'Fire');
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'spell' => ['id', 'name'],
+                        'scaled_effects',
+                    ],
+                ],
+            ]);
+
+        // Level 3 character should get tier 0 (1d10)
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertCount(1, $scaledEffects);
+        $this->assertEquals('1d10', $scaledEffects[0]['dice_formula']);
+        $this->assertEquals('Fire', $scaledEffects[0]['damage_type']);
+    }
+
+    #[Test]
+    public function it_returns_scaled_effects_for_cantrip_at_level_5(): void
+    {
+        $character = Character::factory()->level(5)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Fire Bolt']);
+
+        $this->createCantripScalingEffects($cantrip, 'Fire');
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+
+        // Level 5 character should get tier 5 (2d10)
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertCount(1, $scaledEffects);
+        $this->assertEquals('2d10', $scaledEffects[0]['dice_formula']);
+    }
+
+    #[Test]
+    public function it_returns_scaled_effects_for_cantrip_at_level_11(): void
+    {
+        $character = Character::factory()->level(11)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Fire Bolt']);
+
+        $this->createCantripScalingEffects($cantrip, 'Fire');
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+
+        // Level 11 character should get tier 11 (3d10)
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertCount(1, $scaledEffects);
+        $this->assertEquals('3d10', $scaledEffects[0]['dice_formula']);
+    }
+
+    #[Test]
+    public function it_returns_scaled_effects_for_cantrip_at_level_17(): void
+    {
+        $character = Character::factory()->level(17)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Fire Bolt']);
+
+        $this->createCantripScalingEffects($cantrip, 'Fire');
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+
+        // Level 17 character should get tier 17 (4d10)
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertCount(1, $scaledEffects);
+        $this->assertEquals('4d10', $scaledEffects[0]['dice_formula']);
+    }
+
+    #[Test]
+    public function it_returns_scaled_effects_at_boundary_level_10(): void
+    {
+        $character = Character::factory()->level(10)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Fire Bolt']);
+
+        $this->createCantripScalingEffects($cantrip, 'Fire');
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+
+        // Level 10 is still tier 5 (hasn't reached 11 yet)
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertCount(1, $scaledEffects);
+        $this->assertEquals('2d10', $scaledEffects[0]['dice_formula']);
+    }
+
+    #[Test]
+    public function it_returns_empty_scaled_effects_for_non_scaling_spell(): void
+    {
+        $character = Character::factory()->level(5)->create();
+        $spell = Spell::factory()->create(['name' => 'Shield', 'level' => 1]);
+
+        // No scaling effects for this spell
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $spell->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertEmpty($scaledEffects);
+    }
+
+    #[Test]
+    public function it_returns_scaled_effects_for_cantrip_without_damage_type(): void
+    {
+        $character = Character::factory()->level(5)->create();
+        $cantrip = Spell::factory()->cantrip()->create(['name' => 'Spare the Dying']);
+
+        // Cantrip with no damage type (like utility cantrips)
+        // Should return empty scaled_effects
+
+        CharacterSpell::create([
+            'character_id' => $character->id,
+            'spell_slug' => $cantrip->slug,
+            'preparation_status' => 'known',
+            'source' => 'class',
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/spells");
+
+        $response->assertOk();
+        $scaledEffects = $response->json('data.0.scaled_effects');
+        $this->assertEmpty($scaledEffects);
+    }
+
+    /**
+     * Create cantrip scaling effect tiers like Fire Bolt.
+     */
+    private function createCantripScalingEffects(Spell $spell, string $damageTypeName): void
+    {
+        $damageType = \App\Models\DamageType::where('name', $damageTypeName)->first();
+
+        $tiers = [
+            ['level' => 0, 'dice' => '1d10'],
+            ['level' => 5, 'dice' => '2d10'],
+            ['level' => 11, 'dice' => '3d10'],
+            ['level' => 17, 'dice' => '4d10'],
+        ];
+
+        foreach ($tiers as $tier) {
+            SpellEffect::create([
+                'spell_id' => $spell->id,
+                'effect_type' => 'damage',
+                'description' => "{$damageTypeName} Damage",
+                'dice_formula' => $tier['dice'],
+                'scaling_type' => 'character_level',
+                'min_character_level' => $tier['level'],
+                'damage_type_id' => $damageType->id,
+            ]);
+        }
+    }
 }

@@ -1,0 +1,460 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:29:29+00:00",
+    "character": {
+        "public_id": "silent-arrow-vbPv",
+        "name": "Shadow Magic L5",
+        "race": "vrgtr:dhampir",
+        "background": "scag:knight-of-the-order",
+        "alignment": "Chaotic Evil",
+        "ability_scores": {
+            "strength": 12,
+            "dexterity": 14,
+            "constitution": 15,
+            "intelligence": 15,
+            "wisdom": 10,
+            "charisma": 8
+        },
+        "max_hit_points": 31,
+        "current_hit_points": 31,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": 2,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:sorcerer",
+                "subclass": "xge:sorcerer-shadow-magic",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "ftod:nathairs-mischief",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:enhance-ability",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:false-life",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:light",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:poison-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:true-strike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:tashas-caustic-brew",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 4
+            },
+            {
+                "spell": "xge:absorb-elements",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 2
+            },
+            {
+                "spell": "xge:control-flames",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:mold-earth",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "banner",
+                "custom_description": "{\"source\":\"background\",\"description\":\"banner\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "or seal representing your place or rank in the order",
+                "custom_description": "{\"source\":\"background\",\"description\":\"or seal representing your place or rank in the order\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 75,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:gnoll",
+                "source": "background"
+            },
+            {
+                "language": "core:orc",
+                "source": "class"
+            },
+            {
+                "language": "core:worg",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:arcana",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:dice-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:subtle-spell",
+                "class": "phb:sorcerer",
+                "subclass_name": null,
+                "level_acquired": 3,
+                "feature_type": "metamagic",
+                "resource_type": "sorcery_points",
+                "resource_cost": 2,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:transmuted-spell",
+                "class": "phb:sorcerer",
+                "subclass_name": null,
+                "level_acquired": 3,
+                "feature_type": "metamagic",
+                "resource_type": "sorcery_points",
+                "resource_cost": 1,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Ancestral Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Deathless Nature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Spider Climb"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Vampiric Bite"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Sorcerous Origin",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:sorcerer-shadow-magic",
+                    "feature_name": "Sorcerous Origin: Shadow Magic",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:sorcerer-shadow-magic",
+                    "feature_name": "Eyes of the Dark (Shadow Magic)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "xge:sorcerer-shadow-magic",
+                    "feature_name": "Strength of the Grave (Shadow Magic)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:knight-of-the-order",
+                    "trait_name": "Feature: Knightly Regard"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Font of Magic",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Metamagic",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Magical Guidance",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:sorcerer",
+                "counter_name": "Metamagic Known",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:sorcerer",
+                "counter_name": "Sorcery Points",
+                "current_uses": null,
+                "max_uses": 5,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

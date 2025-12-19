@@ -1,0 +1,601 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T01:25:24+00:00",
+    "character": {
+        "public_id": "wise-wolf-cYtC",
+        "name": "Way of the Open Hand L15",
+        "race": "vrgtr:dhampir",
+        "background": "phb:noble",
+        "alignment": "Lawful Evil",
+        "ability_scores": {
+            "strength": 9,
+            "dexterity": 10,
+            "constitution": 14,
+            "intelligence": 12,
+            "wisdom": 13,
+            "charisma": 15
+        },
+        "max_hit_points": 106,
+        "current_hit_points": 106,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": 2,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:monk",
+                "subclass": "phb:monk-way-of-the-open-hand",
+                "level": 15,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [],
+        "equipment": [
+            {
+                "item": "phb:fine-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "scroll of pedigree",
+                "custom_description": "{\"source\":\"background\",\"description\":\"scroll of pedigree\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 25,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 12,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:giant",
+                "source": "background"
+            },
+            {
+                "language": "core:sahuagin",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:history",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:athletics",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                },
+                {
+                    "skill": "core:history",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_2"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:carpenters-tools",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                },
+                {
+                    "type": "core:playing-card-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Ancestral Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Deathless Nature"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Spider Climb"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:dhampir",
+                    "trait_name": "Vampiric Bite"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Defense",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Martial Arts",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:noble",
+                    "trait_name": "Feature: Position of Privilege"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Ki",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Flurry of Blows",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Patient Defense",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Step of the Wind",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Movement",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Dedicated Weapon",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Deflect Missiles",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Monastic Tradition",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Ki-Fueled Attack",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk-way-of-the-open-hand",
+                    "feature_name": "Monastic Tradition: Way of the Open Hand",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk-way-of-the-open-hand",
+                    "feature_name": "Open Hand Technique (Way of the Open Hand)",
+                    "level": 3
+                },
+                "source": "subclass",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Slow Fall",
+                    "level": 4
+                },
+                "source": "class",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Quickened Healing",
+                    "level": 4
+                },
+                "source": "class",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Extra Attack",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Stunning Strike",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Focused Aim",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Movement 2nd",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Ki-Empowered Strikes",
+                    "level": 6
+                },
+                "source": "class",
+                "level_acquired": 6
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Evasion",
+                    "level": 7
+                },
+                "source": "class",
+                "level_acquired": 7
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Stillness of Mind",
+                    "level": 7
+                },
+                "source": "class",
+                "level_acquired": 7
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 8
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Movement Improvement",
+                    "level": 9
+                },
+                "source": "class",
+                "level_acquired": 9
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Movement 3rd",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Purity of Body",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 12
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Tongue of the Sun and Moon",
+                    "level": 13
+                },
+                "source": "class",
+                "level_acquired": 13
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Unarmored Movement 4th",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Diamond Soul",
+                    "level": 14
+                },
+                "source": "class",
+                "level_acquired": 14
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:monk",
+                    "feature_name": "Timeless Body",
+                    "level": 15
+                },
+                "source": "class",
+                "level_acquired": 15
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:monk",
+                "counter_name": "Ki",
+                "current_uses": null,
+                "max_uses": 15,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:monk",
+                "counter_name": "Wholeness of Body",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

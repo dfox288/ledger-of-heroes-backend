@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\ItemGroup;
 use App\Enums\ItemTypeCode;
 use App\Http\Resources\Concerns\FormatsRelatedModels;
+use App\Models\Item;
 use App\Services\CharacterStatCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
@@ -27,16 +28,9 @@ class CharacterEquipmentResource extends JsonResource
         return [
             /** @var int Equipment entry ID */
             'id' => $this->id,
-            /** @var array{id: int, name: string, slug: string, armor_class: int|null, damage_dice: string|null, weight: float|null, requires_attunement: bool, equipment_slot: string|null, item_type: string|null}|null Item details (null for custom items) */
+            /** @var array|null Item details (null for custom items) */
             'item' => $this->when($this->item_slug !== null, fn () => $this->item
-                ? $this->formatEntityWith(
-                    $this->item,
-                    ['id', 'name', 'slug', 'armor_class', 'damage_dice', 'weight', 'requires_attunement'],
-                    [
-                        'item_type' => fn ($item) => $item->itemType?->name,
-                        'equipment_slot' => fn ($item) => $this->normalizeEquipmentSlot($item->equipment_slot),
-                    ]
-                )
+                ? $this->formatItemDetails($this->item)
                 : null  // Dangling reference - item_slug set but item doesn't exist
             ),
             /** @var string|null Item slug reference (null for custom items) */
@@ -225,5 +219,76 @@ class CharacterEquipmentResource extends JsonResource
             'ring' => 'ring_1',     // Rings default to first ring slot
             default => $slot,       // armor, belt, cloak, head, neck, etc. already match
         };
+    }
+
+    /**
+     * Format item details with enhanced weapon, armor, and magic item fields.
+     *
+     * Issue #757: Adds damage_type, properties, range, versatile_damage for weapons;
+     * armor_type, max_dex_bonus, stealth_disadvantage, strength_requirement for armor;
+     * is_magic, rarity, magic_bonus for magic items.
+     *
+     * @return array<string, mixed>
+     */
+    private function formatItemDetails(Item $item): array
+    {
+        // Eager load relationships needed for enhanced fields
+        $item->loadMissing(['itemType', 'damageType', 'properties', 'modifiers']);
+
+        return [
+            // Identity fields (existing)
+            'id' => $item->id,
+            'name' => $item->name,
+            'slug' => $item->slug,
+            'item_type' => $item->itemType?->name,
+            'equipment_slot' => $this->normalizeEquipmentSlot($item->equipment_slot),
+
+            // Physical attributes (existing)
+            'weight' => $item->weight,
+            'armor_class' => $item->armor_class,
+            'damage_dice' => $item->damage_dice,
+            'requires_attunement' => $item->requires_attunement,
+
+            // Weapon fields (Issue #757)
+            'damage_type' => $item->damageType?->name,
+            'versatile_damage' => $item->versatile_damage,
+            'properties' => ItemPropertyResource::collection($item->properties),
+            'range' => $this->formatRange($item),
+
+            // Armor fields (Issue #757)
+            'armor_type' => $item->armor_type,
+            'max_dex_bonus' => $item->max_dex_bonus,
+            'stealth_disadvantage' => $item->stealth_disadvantage,
+            'strength_requirement' => $item->strength_requirement,
+
+            // Magic item fields (Issue #757)
+            'is_magic' => $item->is_magic,
+            'rarity' => $item->rarity,
+            'magic_bonus' => $item->magic_bonus,
+
+            // Charge capacity fields (Issue #757)
+            'charges_max' => $item->charges_max,
+            'recharge_formula' => $item->recharge_formula,
+            'recharge_timing' => $item->recharge_timing,
+        ];
+    }
+
+    /**
+     * Format range data for ranged weapons.
+     *
+     * Returns object with normal/long distances, or null for melee weapons.
+     *
+     * @return array{normal: int, long: int}|null
+     */
+    private function formatRange(Item $item): ?array
+    {
+        if ($item->range_normal === null && $item->range_long === null) {
+            return null;
+        }
+
+        return [
+            'normal' => $item->range_normal,
+            'long' => $item->range_long,
+        ];
     }
 }

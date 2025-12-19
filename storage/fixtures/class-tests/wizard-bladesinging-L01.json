@@ -1,0 +1,347 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:53:51+00:00",
+    "character": {
+        "public_id": "brave-wolf-2b1U",
+        "name": "Bladesinging L1",
+        "race": "phb:half-orc-mark-of-finding",
+        "background": "phb:entertainer",
+        "alignment": "Chaotic Good",
+        "ability_scores": {
+            "strength": 15,
+            "dexterity": 10,
+            "constitution": 12,
+            "intelligence": 13,
+            "wisdom": 14,
+            "charisma": 8
+        },
+        "max_hit_points": 6,
+        "current_hit_points": 6,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:wizard",
+                "subclass": null,
+                "level": 1,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:alarm",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:dancing-lights",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:detect-magic",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:jump",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:mage-armor",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:protection-from-evil-and-good",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:ray-of-sickness",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:shocking-grasp",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:mind-sliver",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:costume-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 15,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 100,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:orc",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:intimidation",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:acrobatics",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:performance",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:medicine",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:dulcimer",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Menacing"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Relentless Endurance"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Savage Attacks"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-mark-of-finding",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-mark-of-finding",
+                    "trait_name": "Hunter's Intuition"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-mark-of-finding",
+                    "trait_name": "Finder's Magic"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-mark-of-finding",
+                    "trait_name": "Spells of the Mark"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Recovery",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:entertainer",
+                    "trait_name": "Feature: By Popular Demand"
+                },
+                "source": "background",
+                "level_acquired": 1
+            }
+        ],
+        "counters": [],
+        "portrait": null
+    }
+}

@@ -1,0 +1,654 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:53:27+00:00",
+    "character": {
+        "public_id": "wild-warrior-mJMo",
+        "name": "School of Transmutation L15",
+        "race": "vrgtr:hexblood",
+        "background": "twbtw:feylost",
+        "alignment": "Neutral Evil",
+        "ability_scores": {
+            "strength": 16,
+            "dexterity": 8,
+            "constitution": 14,
+            "intelligence": 13,
+            "wisdom": 15,
+            "charisma": 12
+        },
+        "max_hit_points": 91,
+        "current_hit_points": 91,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": 2,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:wizard",
+                "subclass": "phb:wizard-school-of-transmutation",
+                "level": 15,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "ftod:ashardalons-stride",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:animate-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 6
+            },
+            {
+                "spell": "phb:blade-ward",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:blight",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:charm-person",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 12
+            },
+            {
+                "spell": "phb:cloud-of-daggers",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:comprehend-languages",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:detect-thoughts",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 14
+            },
+            {
+                "spell": "phb:disguise-self",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:expeditious-retreat",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:fabricate",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:feather-fall",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:find-familiar",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:fireball",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 6
+            },
+            {
+                "spell": "phb:grease",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:hold-monster",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 12
+            },
+            {
+                "spell": "phb:magic-circle",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 11
+            },
+            {
+                "spell": "phb:magic-missile",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:misty-step",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:phantasmal-force",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:prismatic-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:protection-from-energy",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:remove-curse",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:see-invisibility",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:shield",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:speak-with-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:unseen-servant",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:wall-of-fire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 11
+            },
+            {
+                "spell": "tce:tashas-caustic-brew",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:catapult",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:create-bonfire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:dragons-breath",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:shape-water",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:snare",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:synaptic-static",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 14
+            },
+            {
+                "spell": "xge:thunderclap",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:toll-the-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:warding-wind",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 7
+            },
+            {
+                "spell": "xge:whirlwind",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 13
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:travelers-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:trinket",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 8,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 100,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:primordial",
+                "source": "background"
+            },
+            {
+                "language": "core:sylvan",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:deception",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:survival",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:investigation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:sleight-of-hand",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:medicine",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:shawm",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 6,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 7,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 8,
+                "max_slots": 1,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:hexblood",
+                    "trait_name": "Ancestral Legacy"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:hexblood",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:hexblood",
+                    "trait_name": "Becoming A Hag"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:hexblood",
+                    "trait_name": "Eerie Token"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vrgtr:hexblood",
+                    "trait_name": "Hex Magic"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Recovery",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "twbtw:feylost",
+                    "trait_name": "Feature: Feywild Connection"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Tradition",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-transmutation",
+                    "feature_name": "Arcane Tradition: School of Transmutation",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-transmutation",
+                    "feature_name": "Transmutation Savant (School of Transmutation)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard-school-of-transmutation",
+                    "feature_name": "Minor Alchemy (School of Transmutation)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Cantrip Formulas",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:wizard",
+                "counter_name": "Arcane Recovery",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

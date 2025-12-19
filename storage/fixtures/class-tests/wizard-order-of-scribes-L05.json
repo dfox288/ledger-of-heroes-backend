@@ -1,0 +1,469 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:54:49+00:00",
+    "character": {
+        "public_id": "shadow-knight-EQPu",
+        "name": "Order of Scribes L5",
+        "race": "dmg:troglodyte-dmg-npc",
+        "background": "phb:knight",
+        "alignment": "True Neutral",
+        "ability_scores": {
+            "strength": 12,
+            "dexterity": 10,
+            "constitution": 13,
+            "intelligence": 15,
+            "wisdom": 8,
+            "charisma": 14
+        },
+        "max_hit_points": 26,
+        "current_hit_points": 26,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:wizard",
+                "subclass": "tce:wizard-order-of-scribes",
+                "level": 5,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:chromatic-orb",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:color-spray",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:detect-magic",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:expeditious-retreat",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:false-life",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:feather-fall",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:grease",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:jump",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:ray-of-enfeeblement",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:rope-trick",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:tensers-floating-disk",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:summon-fey",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:gust",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:infestation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:maximilians-earthen-grasp",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            },
+            {
+                "spell": "xge:mold-earth",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:toll-the-dead",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:wizard",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:fine-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:signet-ring",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "scroll of pedigree",
+                "custom_description": "{\"source\":\"background\",\"description\":\"scroll of pedigree\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "banner or other token from a noble lord or lady to whom you have given your heart - in a chaste sort of devotion",
+                "custom_description": "{\"source\":\"background\",\"description\":\"banner or other token from a noble lord or lady to whom you have given your heart - in a chaste sort of devotion\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 25,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 100,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:supernal",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:history",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:arcana",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:religion",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:three-dragon-ante-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Chameleon Skin"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Stench"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Sunlight Sensitivity"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "dmg:troglodyte",
+                    "trait_name": "Natural Armor"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Recovery",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "phb:knight",
+                    "trait_name": "Feature: Retainers"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Arcane Tradition",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:wizard-order-of-scribes",
+                    "feature_name": "Arcane Tradition: Order of Scribes",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:wizard-order-of-scribes",
+                    "feature_name": "Wizardly Quill (Order of Scribes)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:wizard-order-of-scribes",
+                    "feature_name": "Awakened Spellbook (Order of Scribes)",
+                    "level": 2
+                },
+                "source": "subclass",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:wizard",
+                    "feature_name": "Cantrip Formulas",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:wizard",
+                "counter_name": "Arcane Recovery",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

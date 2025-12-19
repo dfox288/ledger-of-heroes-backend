@@ -1,0 +1,510 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:26:36+00:00",
+    "character": {
+        "public_id": "storm-oracle-4GSu",
+        "name": "Aberrant Mind L10",
+        "race": "vgm:firbolg-legacy",
+        "background": "scag:courtier",
+        "alignment": "Lawful Neutral",
+        "ability_scores": {
+            "strength": 8,
+            "dexterity": 11,
+            "constitution": 15,
+            "intelligence": 14,
+            "wisdom": 12,
+            "charisma": 15
+        },
+        "max_hit_points": 60,
+        "current_hit_points": 60,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "gold",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:sorcerer",
+                "subclass": "tce:sorcerer-aberrant-mind",
+                "level": 10,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:blight",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:blink",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 7
+            },
+            {
+                "spell": "phb:clairvoyance",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 5
+            },
+            {
+                "spell": "phb:disguise-self",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:flame-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 9
+            },
+            {
+                "spell": "phb:fog-cloud",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:mage-hand",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 4
+            },
+            {
+                "spell": "phb:thunderwave",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:witch-bolt",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "scag:booming-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "tce:booming-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:catapult",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 3
+            },
+            {
+                "spell": "xge:create-bonfire",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:mold-earth",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:shape-water",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:storm-sphere",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 10
+            },
+            {
+                "spell": "xge:thunder-step",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:sorcerer",
+                "level_acquired": 6
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:fine-clothes",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 5,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"starting_wealth\"}",
+                "quantity": 75,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:elvish",
+                "source": "race"
+            },
+            {
+                "language": "core:giant",
+                "source": "race"
+            },
+            {
+                "language": "core:orc",
+                "source": "class"
+            },
+            {
+                "language": "core:quori",
+                "source": "background"
+            },
+            {
+                "language": "core:sphinx",
+                "source": "background"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:insight",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:persuasion",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:insight",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:intimidation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": []
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:extended-spell",
+                "class": "phb:sorcerer",
+                "subclass_name": null,
+                "level_acquired": 10,
+                "feature_type": "metamagic",
+                "resource_type": "sorcery_points",
+                "resource_cost": 1,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:quickened-spell",
+                "class": "phb:sorcerer",
+                "subclass_name": null,
+                "level_acquired": 3,
+                "feature_type": "metamagic",
+                "resource_type": "sorcery_points",
+                "resource_cost": 2,
+                "cost_formula": null
+            },
+            {
+                "feature": "tce:seeking-spell",
+                "class": "phb:sorcerer",
+                "subclass_name": null,
+                "level_acquired": 3,
+                "feature_type": "metamagic",
+                "resource_type": "sorcery_points",
+                "resource_cost": 2,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 1,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 2,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 3,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 4,
+                "max_slots": 3,
+                "used_slots": 0,
+                "slot_type": "standard"
+            },
+            {
+                "spell_level": 5,
+                "max_slots": 2,
+                "used_slots": 0,
+                "slot_type": "standard"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:firbolg",
+                    "trait_name": "Firbolg Magic"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:firbolg",
+                    "trait_name": "Hidden Step"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:firbolg",
+                    "trait_name": "Powerful Build"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "vgm:firbolg",
+                    "trait_name": "Speech of Beast and Leaf"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Spellcasting",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Sorcerous Origin",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:sorcerer-aberrant-mind",
+                    "feature_name": "Sorcerous Origin: Aberrant Mind",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:sorcerer-aberrant-mind",
+                    "feature_name": "Psionic Spells (Aberrant Mind)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "tce:sorcerer-aberrant-mind",
+                    "feature_name": "Telepathic Speech (Aberrant Mind)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:courtier",
+                    "trait_name": "Feature: Court Functionary"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Font of Magic",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Metamagic",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Magical Guidance",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:sorcerer",
+                    "feature_name": "Metamagic (2nd)",
+                    "level": 10
+                },
+                "source": "class",
+                "level_acquired": 10
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:sorcerer",
+                "counter_name": "Metamagic Known",
+                "current_uses": null,
+                "max_uses": 3,
+                "reset_timing": null
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:sorcerer",
+                "counter_name": "Sorcery Points",
+                "current_uses": null,
+                "max_uses": 10,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

@@ -28,6 +28,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Issue #760**: Add unified combat and character sheet endpoints
+  - `GET /characters/{id}/combat`: Combat-focused aggregate returning all battle data in one response
+    - Character identity, combat stats (AC, HP, initiative, speed), saving throws
+    - Equipped weapons with attack/damage bonuses, spell slots, prepared spells
+    - Class resources (Action Surge, Rage, etc.), active conditions, death saves
+    - Defenses (resistances, immunities, vulnerabilities), per-class spellcasting
+  - `GET /characters/{id}/sheet`: Complete character sheet aggregate
+    - Full CharacterResource, CharacterStatsResource, all spells, all equipment
+    - All features, notes (grouped by category), proficiencies, languages
+  - Reduces frontend round-trips from 4+ API calls to single request
+
 - **Issue #757**: Enhanced `CharacterEquipmentResource` with weapon, armor, and magic item details
   - **Weapon fields**: `damage_type`, `properties`, `range` (object with `normal`/`long`), `versatile_damage`
   - **Armor fields**: `armor_type` (`light`/`medium`/`heavy`), `max_dex_bonus` (null/2/0), `stealth_disadvantage`, `strength_requirement`

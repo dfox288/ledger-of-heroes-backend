@@ -1,0 +1,806 @@
+{
+    "format_version": "1.3",
+    "exported_at": "2025-12-19T08:32:39+00:00",
+    "character": {
+        "public_id": "swift-phoenix-Axgp",
+        "name": "The Fiend L20",
+        "race": "phb:half-orc-wgte",
+        "background": "scag:urban-bounty-hunter",
+        "alignment": "True Neutral",
+        "ability_scores": {
+            "strength": 15,
+            "dexterity": 15,
+            "constitution": 13,
+            "intelligence": 8,
+            "wisdom": 11,
+            "charisma": 17
+        },
+        "max_hit_points": 162,
+        "current_hit_points": 162,
+        "temp_hit_points": 0,
+        "death_save_successes": 0,
+        "death_save_failures": 0,
+        "experience_points": 0,
+        "has_inspiration": false,
+        "ability_score_method": "standard_array",
+        "equipment_mode": "equipment",
+        "size_id": null,
+        "asi_choices_remaining": 0,
+        "age": null,
+        "height": null,
+        "weight": null,
+        "eye_color": null,
+        "hair_color": null,
+        "skin_color": null,
+        "deity": null,
+        "hp_levels_resolved": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+        ],
+        "hp_calculation_method": "calculated",
+        "classes": [
+            {
+                "class": "phb:warlock",
+                "subclass": "phb:warlock-the-fiend",
+                "level": 20,
+                "is_primary": true,
+                "hit_dice_spent": 0,
+                "subclass_choices": null
+            }
+        ],
+        "spells": [
+            {
+                "spell": "phb:banishment",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 11
+            },
+            {
+                "spell": "phb:charm-person",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 13
+            },
+            {
+                "spell": "phb:comprehend-languages",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:dispel-magic",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 15
+            },
+            {
+                "spell": "phb:eldritch-blast",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 10
+            },
+            {
+                "spell": "phb:hallucinatory-terrain",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 19
+            },
+            {
+                "spell": "phb:hold-person",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 3
+            },
+            {
+                "spell": "phb:illusory-script",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 2
+            },
+            {
+                "spell": "phb:mirror-image",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 8
+            },
+            {
+                "spell": "phb:protection-from-evil-and-good",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 1
+            },
+            {
+                "spell": "phb:ray-of-enfeeblement",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 6
+            },
+            {
+                "spell": "phb:tongues",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 17
+            },
+            {
+                "spell": "phb:witch-bolt",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 7
+            },
+            {
+                "spell": "tce:green-flame-blade",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:charm-monster",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 9
+            },
+            {
+                "spell": "xge:enemies-abound",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 5
+            },
+            {
+                "spell": "xge:infestation",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 4
+            },
+            {
+                "spell": "xge:magic-stone",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 1
+            },
+            {
+                "spell": "xge:mind-spike",
+                "source": "class",
+                "preparation_status": "known",
+                "class_slug": "phb:warlock",
+                "level_acquired": 4
+            }
+        ],
+        "equipment": [
+            {
+                "item": "phb:pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:gold-gp",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"background\"}",
+                "quantity": 20,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:silvered-greatclub",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_1\",\"selected_option\":\"b\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:component-pouch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_2\",\"selected_option\":\"a\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:backpack",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:crowbar",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:hammer",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:piton",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:torch",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:tinderbox",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:rations-1-day",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 10,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:waterskin",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:hempen-rope-50-feet",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\",\"choice_group\":\"choice_3\",\"selected_option\":\"b\",\"from_pack\":\"phb:dungeoneers-pack\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:leather-armor",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": null,
+                "custom_name": "any simple weapon",
+                "custom_description": "{\"source\":\"class\",\"description\":\"any simple weapon\"}",
+                "quantity": 1,
+                "equipped": false,
+                "location": "backpack"
+            },
+            {
+                "item": "phb:dagger",
+                "custom_name": null,
+                "custom_description": "{\"source\":\"class\"}",
+                "quantity": 2,
+                "equipped": false,
+                "location": "backpack"
+            }
+        ],
+        "languages": [
+            {
+                "language": "core:common",
+                "source": "race"
+            },
+            {
+                "language": "core:orc",
+                "source": "race"
+            }
+        ],
+        "proficiencies": {
+            "skills": [
+                {
+                    "skill": "core:intimidation",
+                    "source": "race",
+                    "expertise": false,
+                    "choice_group": null
+                },
+                {
+                    "skill": "core:intimidation",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                },
+                {
+                    "skill": "core:deception",
+                    "source": "class",
+                    "expertise": false,
+                    "choice_group": "skill_choice_1"
+                }
+            ],
+            "types": [
+                {
+                    "type": "core:dragonchess-set",
+                    "source": "background",
+                    "expertise": false,
+                    "choice_group": "tool_choice_1"
+                }
+            ]
+        },
+        "conditions": [],
+        "feature_selections": [
+            {
+                "feature": "phb:beast-speech",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 18,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:devils-sight",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 7,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:mask-of-many-faces",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 15,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:misty-visions",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 5,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:repelling-blast",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:sign-of-ill-omen",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 9,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:thief-of-five-fates",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 2,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            },
+            {
+                "feature": "phb:thirsting-blade",
+                "class": "phb:warlock",
+                "subclass_name": null,
+                "level_acquired": 12,
+                "feature_type": "eldritch_invocation",
+                "resource_type": null,
+                "resource_cost": null,
+                "cost_formula": null
+            }
+        ],
+        "notes": [],
+        "ability_score_choices": [],
+        "spell_slots": [
+            {
+                "spell_level": 5,
+                "max_slots": 4,
+                "used_slots": 0,
+                "slot_type": "pact_magic"
+            }
+        ],
+        "features": [
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Menacing"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Relentless Endurance"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc",
+                    "trait_name": "Savage Attacks"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-wgte",
+                    "trait_name": "Darkvision"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-wgte",
+                    "trait_name": "Hunter's Intuition"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-wgte",
+                    "trait_name": "Imprint Prey"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "race",
+                    "entity_slug": "phb:half-orc-wgte",
+                    "trait_name": "Nature's Voice"
+                },
+                "source": "race",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Pact Magic",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Otherworldly Patron",
+                    "level": 1
+                },
+                "source": "class",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock-the-fiend",
+                    "feature_name": "Otherworldly Patron: The Fiend",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock-the-fiend",
+                    "feature_name": "Expanded Spell List (The Fiend)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock-the-fiend",
+                    "feature_name": "Dark One's Blessing (The Fiend)",
+                    "level": 1
+                },
+                "source": "subclass",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\CharacterTrait",
+                "portable_id": {
+                    "type": "character_trait",
+                    "entity_type": "background",
+                    "entity_slug": "scag:urban-bounty-hunter",
+                    "trait_name": "Feature: Ear to the Ground"
+                },
+                "source": "background",
+                "level_acquired": 1
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Eldritch Invocations",
+                    "level": 2
+                },
+                "source": "class",
+                "level_acquired": 2
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Pact Boon",
+                    "level": 3
+                },
+                "source": "class",
+                "level_acquired": 3
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 4
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 5
+                },
+                "source": "class",
+                "level_acquired": 5
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 7
+                },
+                "source": "class",
+                "level_acquired": 7
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 9
+                },
+                "source": "class",
+                "level_acquired": 9
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Mystic Arcanum (6th level)",
+                    "level": 11
+                },
+                "source": "class",
+                "level_acquired": 11
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 12
+                },
+                "source": "class",
+                "level_acquired": 12
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Mystic Arcanum (7th level)",
+                    "level": 13
+                },
+                "source": "class",
+                "level_acquired": 13
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 15
+                },
+                "source": "class",
+                "level_acquired": 15
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Mystic Arcanum (8th level)",
+                    "level": 15
+                },
+                "source": "class",
+                "level_acquired": 15
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Mystic Arcanum (9th level)",
+                    "level": 17
+                },
+                "source": "class",
+                "level_acquired": 17
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Additional Invocation",
+                    "level": 18
+                },
+                "source": "class",
+                "level_acquired": 18
+            },
+            {
+                "feature_type": "App\\Models\\Feat",
+                "portable_id": null,
+                "source": "feat",
+                "level_acquired": 19
+            },
+            {
+                "feature_type": "App\\Models\\ClassFeature",
+                "portable_id": {
+                    "type": "class_feature",
+                    "class_slug": "phb:warlock",
+                    "feature_name": "Eldritch Master",
+                    "level": 20
+                },
+                "source": "class",
+                "level_acquired": 20
+            }
+        ],
+        "counters": [
+            {
+                "source_type": "class",
+                "source_slug": "phb:warlock",
+                "counter_name": "Eldritch Invocations",
+                "current_uses": null,
+                "max_uses": 8,
+                "reset_timing": "L"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:warlock",
+                "counter_name": "Eldritch Invocations Known",
+                "current_uses": null,
+                "max_uses": 2,
+                "reset_timing": "S"
+            },
+            {
+                "source_type": "class",
+                "source_slug": "phb:warlock",
+                "counter_name": "Eldritch Master",
+                "current_uses": null,
+                "max_uses": 1,
+                "reset_timing": "L"
+            }
+        ],
+        "portrait": null
+    }
+}

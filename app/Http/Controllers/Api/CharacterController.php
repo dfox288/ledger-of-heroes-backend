@@ -9,8 +9,10 @@ use App\Http\Requests\Character\CharacterIndexRequest;
 use App\Http\Requests\Character\CharacterStoreRequest;
 use App\Http\Requests\Character\CharacterUpdateRequest;
 use App\Http\Resources\AbilityBonusCollectionResource;
+use App\Http\Resources\CharacterCombatResource;
 use App\Http\Resources\CharacterListResource;
 use App\Http\Resources\CharacterResource;
+use App\Http\Resources\CharacterSheetResource;
 use App\Http\Resources\CharacterStatsResource;
 use App\Http\Resources\CharacterSummaryResource;
 use App\Models\Character;
@@ -394,6 +396,112 @@ class CharacterController extends Controller
         );
 
         return new CharacterStatsResource($stats);
+    }
+
+    /**
+     * Get combat-focused character data
+     *
+     * Returns all combat-relevant data in a single response for battle interfaces.
+     * This aggregates data that would otherwise require multiple API calls.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/combat
+     * ```
+     *
+     * **Response includes:**
+     * - Character identity (id, name, level)
+     * - Combat stats (AC, HP, initiative, speed)
+     * - Saving throws
+     * - Equipped weapons with attack/damage bonuses
+     * - Spell slots and prepared spells
+     * - Class resources (Action Surge, Rage, etc.)
+     * - Active conditions
+     * - Death saves state
+     * - Defenses (resistances, immunities, vulnerabilities)
+     * - Spellcasting info (per-class for multiclass)
+     */
+    public function combat(Character $character): CharacterCombatResource
+    {
+        $character->load([
+            'characterClasses.characterClass.parentClass',
+            'characterClasses.characterClass.spellcastingAbility',
+            'characterClasses.subclass',
+            'race.modifiers.damageType',
+            'race.conditions.condition',
+            'features.feature',
+            'equipment.item',
+            'spells.spell.spellSchool',
+            'spells.spell.effects.damageType',
+            'conditions.condition',
+            'counters',
+        ]);
+
+        $stats = CharacterStatsDTO::fromCharacter(
+            $character,
+            $this->statCalculator,
+            $this->spellManagerService
+        );
+
+        return new CharacterCombatResource($character, $stats);
+    }
+
+    /**
+     * Get complete character sheet data
+     *
+     * Returns all character data in a single response for full character sheet displays.
+     * This aggregates data that would otherwise require multiple API calls.
+     *
+     * **Examples:**
+     * ```
+     * GET /api/v1/characters/1/sheet
+     * ```
+     *
+     * **Response includes:**
+     * - Full CharacterResource data
+     * - Computed stats (CharacterStatsResource)
+     * - All spells (not just prepared)
+     * - All equipment
+     * - All features
+     * - Notes grouped by category
+     * - Proficiencies
+     * - Languages
+     */
+    public function sheet(Character $character): CharacterSheetResource
+    {
+        $character->load([
+            // Relationships for CharacterResource
+            'race.senses.sense',
+            'background',
+            'characterClasses.characterClass.parentClass',
+            'characterClasses.characterClass.spellcastingAbility',
+            'characterClasses.characterClass.levelProgression',
+            'characterClasses.characterClass.equipment.item',
+            'characterClasses.subclass',
+            'media',
+            // Relationships for stats
+            'race.modifiers.damageType',
+            'race.conditions.condition',
+            'features.feature',
+            // Additional collections
+            'equipment.item',
+            'spells.spell.spellSchool',
+            'spells.spell.effects.damageType',
+            'proficiencies.proficiencyType',
+            'languages.language',
+            'conditions.condition',
+            'notes',
+            'counters',
+            'featureSelections.optionalFeature',
+        ]);
+
+        $stats = CharacterStatsDTO::fromCharacter(
+            $character,
+            $this->statCalculator,
+            $this->spellManagerService
+        );
+
+        return new CharacterSheetResource($character, $stats);
     }
 
     /**

@@ -66,13 +66,17 @@ class CharacterSpellResource extends JsonResource
      */
     private function getScaledEffects(): array
     {
-        // No spell or no effects
-        if (! $this->spell || ! $this->relationLoaded('spell') || ! $this->spell->relationLoaded('effects')) {
+        // Requires spell with effects and character relationships to be loaded
+        if (! $this->relationLoaded('spell') || ! $this->spell?->relationLoaded('effects')) {
             return [];
         }
 
-        // Get character level from loaded relationship
-        $characterLevel = $this->character?->total_level ?? 1;
+        // Character must be loaded to determine scaling tier
+        if (! $this->relationLoaded('character') || ! $this->character) {
+            return [];
+        }
+
+        $characterLevel = $this->character->total_level;
 
         // Filter to character_level scaling effects only
         $scalingEffects = $this->spell->effects

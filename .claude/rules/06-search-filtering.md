@@ -26,3 +26,14 @@ When adding new filterable fields:
 2. Add to `searchableOptions()` → `filterableAttributes`
 3. Re-index: `just scout-import ModelName`
 4. Document in Controller PHPDoc
+
+## Service Layer Architecture
+
+Search services should extend `AbstractSearchService` for consistent behavior.
+
+**Gold standard:** `SpellSearchService`
+
+See `../wrapper/docs/backend/reference/SEARCH-SERVICE-ARCHITECTURE.md` for:
+- When to extend AbstractSearchService
+- Required methods to implement
+- How to add a new searchable entity

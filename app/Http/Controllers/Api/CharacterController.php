@@ -36,17 +36,11 @@ use Illuminate\Support\Facades\DB;
 
 class CharacterController extends Controller
 {
+    /**
+     * Constructor with only mutation-related services.
+     * Other services use method injection for explicit dependencies.
+     */
     public function __construct(
-        private CharacterStatCalculator $statCalculator,
-        private CharacterProficiencyService $proficiencyService,
-        private CharacterLanguageService $languageService,
-        private SpellSlotService $spellSlotService,
-        private SpellManagerService $spellManagerService,
-        private HitDiceService $hitDiceService,
-        private FeatChoiceService $featChoiceService,
-        private AbilityBonusService $abilityBonusService,
-        private CounterService $counterService,
-        private CharacterChoiceService $choiceService,
         private CharacterClassAssignmentService $classAssignmentService,
         private CharacterRaceAssignmentService $raceAssignmentService,
         private CharacterBackgroundAssignmentService $backgroundAssignmentService,
@@ -379,8 +373,11 @@ class CharacterController extends Controller
      * - Spell slots by level
      * - Preparation limit and count
      */
-    public function stats(Character $character): CharacterStatsResource
-    {
+    public function stats(
+        Character $character,
+        CharacterStatCalculator $statCalculator,
+        SpellManagerService $spellManagerService
+    ): CharacterStatsResource {
         $character->load([
             'characterClasses.characterClass.parentClass',
             'characterClasses.characterClass.spellcastingAbility',
@@ -392,7 +389,7 @@ class CharacterController extends Controller
         $stats = Cache::remember(
             "character:{$character->id}:stats",
             now()->addMinutes(15),
-            fn () => CharacterStatsDTO::fromCharacter($character, $this->statCalculator, $this->spellManagerService)
+            fn () => CharacterStatsDTO::fromCharacter($character, $statCalculator, $spellManagerService)
         );
 
         return new CharacterStatsResource($stats);
@@ -421,8 +418,11 @@ class CharacterController extends Controller
      * - Defenses (resistances, immunities, vulnerabilities)
      * - Spellcasting info (per-class for multiclass)
      */
-    public function combat(Character $character): CharacterCombatResource
-    {
+    public function combat(
+        Character $character,
+        CharacterStatCalculator $statCalculator,
+        SpellManagerService $spellManagerService
+    ): CharacterCombatResource {
         $character->load([
             'characterClasses.characterClass.parentClass',
             'characterClasses.characterClass.spellcastingAbility',
@@ -439,8 +439,8 @@ class CharacterController extends Controller
 
         $stats = CharacterStatsDTO::fromCharacter(
             $character,
-            $this->statCalculator,
-            $this->spellManagerService
+            $statCalculator,
+            $spellManagerService
         );
 
         return new CharacterCombatResource($character, $stats);
@@ -467,8 +467,11 @@ class CharacterController extends Controller
      * - Proficiencies
      * - Languages
      */
-    public function sheet(Character $character): CharacterSheetResource
-    {
+    public function sheet(
+        Character $character,
+        CharacterStatCalculator $statCalculator,
+        SpellManagerService $spellManagerService
+    ): CharacterSheetResource {
         $character->load([
             // Relationships for CharacterResource
             'race.senses.sense',
@@ -497,8 +500,8 @@ class CharacterController extends Controller
 
         $stats = CharacterStatsDTO::fromCharacter(
             $character,
-            $this->statCalculator,
-            $this->spellManagerService
+            $statCalculator,
+            $spellManagerService
         );
 
         return new CharacterSheetResource($character, $stats);
@@ -524,17 +527,25 @@ class CharacterController extends Controller
      * - Combat state (conditions, death saves, consciousness)
      * - Creation status (complete/incomplete, missing requirements)
      */
-    public function summary(Character $character): CharacterSummaryResource
-    {
+    public function summary(
+        Character $character,
+        CharacterProficiencyService $proficiencyService,
+        CharacterLanguageService $languageService,
+        SpellSlotService $spellSlotService,
+        HitDiceService $hitDiceService,
+        FeatChoiceService $featChoiceService,
+        CounterService $counterService,
+        CharacterChoiceService $choiceService
+    ): CharacterSummaryResource {
         $summary = CharacterSummaryDTO::fromCharacter(
             $character,
-            $this->proficiencyService,
-            $this->languageService,
-            $this->spellSlotService,
-            $this->hitDiceService,
-            $this->featChoiceService,
-            $this->counterService,
-            $this->choiceService
+            $proficiencyService,
+            $languageService,
+            $spellSlotService,
+            $hitDiceService,
+            $featChoiceService,
+            $counterService,
+            $choiceService
         );
 
         return new CharacterSummaryResource($summary);
@@ -567,12 +578,14 @@ class CharacterController extends Controller
      *   - Whether bonus can be changed
      *   - Entity ID for tracking
      */
-    public function abilityBonuses(Character $character): AbilityBonusCollectionResource
-    {
+    public function abilityBonuses(
+        Character $character,
+        AbilityBonusService $abilityBonusService
+    ): AbilityBonusCollectionResource {
         // Eager-load race and parent race to avoid N+1 queries in service
         $character->loadMissing(['race.parent', 'race.modifiers.abilityScore', 'race.parent.modifiers.abilityScore']);
 
-        $result = $this->abilityBonusService->getBonuses($character);
+        $result = $abilityBonusService->getBonuses($character);
 
         return new AbilityBonusCollectionResource($result);
     }

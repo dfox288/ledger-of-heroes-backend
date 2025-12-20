@@ -96,4 +96,31 @@ class SpellManagementException extends Exception
             422
         );
     }
+
+    public static function alreadyKnownBySlug(string $spellSlug): self
+    {
+        return new self(
+            'Character already knows this spell.',
+            'spell',
+            422
+        );
+    }
+
+    public static function characterSpellNotFound(int $characterSpellId): self
+    {
+        return new self(
+            'Character spell not found.',
+            null,
+            404
+        );
+    }
+
+    public static function cannotPrepareDanglingReference(string $spellSlug): self
+    {
+        return new self(
+            'Cannot prepare a dangling spell reference.',
+            null,
+            422
+        );
+    }
 }

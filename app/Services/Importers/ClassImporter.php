@@ -70,19 +70,9 @@ class ClassImporter extends BaseImporter
         // stores source references within trait elements rather than at the class level.
         // However, some classes (e.g., Sidekick classes) have no traits but DO have
         // features with source info - fall back to features in that case.
-        $sources = [];
-        foreach ($data['traits'] ?? [] as $trait) {
-            if (! empty($trait['sources'])) {
-                $sources = array_merge($sources, $trait['sources']);
-            }
-        }
-        // Fall back to features if no sources found in traits
+        $sources = $this->extractAndDeduplicateSources($data['traits'] ?? []);
         if (empty($sources)) {
-            foreach ($data['features'] ?? [] as $feature) {
-                if (! empty($feature['sources'])) {
-                    $sources = array_merge($sources, $feature['sources']);
-                }
-            }
+            $sources = $this->extractAndDeduplicateSources($data['features'] ?? []);
         }
 
         // Generate source-prefixed slug if not set by strategy
@@ -144,39 +134,13 @@ class ClassImporter extends BaseImporter
             }
 
             // Extract and import sources from traits
-            $sources = [];
-            foreach ($data['traits'] as $trait) {
-                if (! empty($trait['sources'])) {
-                    $sources = array_merge($sources, $trait['sources']);
-                }
-            }
-
-            // Remove duplicates based on code
-            $uniqueSources = [];
-            foreach ($sources as $source) {
-                $uniqueSources[$source['code']] = $source;
-            }
-            $sources = array_values($uniqueSources);
-
+            $sources = $this->extractAndDeduplicateSources($data['traits']);
             if (! empty($sources)) {
                 $this->importEntitySources($class, $sources);
             }
         } elseif (! empty($data['features'])) {
             // For classes without traits (e.g., Sidekick classes), extract sources from features
-            $sources = [];
-            foreach ($data['features'] as $feature) {
-                if (! empty($feature['sources'])) {
-                    $sources = array_merge($sources, $feature['sources']);
-                }
-            }
-
-            // Remove duplicates based on code
-            $uniqueSources = [];
-            foreach ($sources as $source) {
-                $uniqueSources[$source['code']] = $source;
-            }
-            $sources = array_values($uniqueSources);
-
+            $sources = $this->extractAndDeduplicateSources($data['features']);
             if (! empty($sources)) {
                 $this->importEntitySources($class, $sources, deduplicate: true);
             }
@@ -269,6 +233,50 @@ class ClassImporter extends BaseImporter
     }
 
     /**
+     * Extract sources from an array of items (traits or features).
+     *
+     * @param  array  $items  Array of traits or features, each potentially containing a 'sources' key
+     * @param  bool  $deduplicate  If true, deduplicate by source code (default: true)
+     *                             Set to false when passing to importEntitySources with deduplicate: true,
+     *                             as that method handles smart page merging.
+     * @return array Sources array (optionally deduplicated)
+     */
+    private function extractSources(array $items, bool $deduplicate = true): array
+    {
+        $sources = [];
+        foreach ($items as $item) {
+            if (! empty($item['sources'])) {
+                $sources = array_merge($sources, $item['sources']);
+            }
+        }
+
+        if (! $deduplicate) {
+            return $sources;
+        }
+
+        // Deduplicate by source code
+        $uniqueSources = [];
+        foreach ($sources as $source) {
+            $uniqueSources[$source['code']] = $source;
+        }
+
+        return array_values($uniqueSources);
+    }
+
+    /**
+     * Extract sources from an array of items and deduplicate by code.
+     *
+     * Convenience wrapper for extractSources($items, deduplicate: true).
+     *
+     * @param  array  $items  Array of traits or features, each potentially containing a 'sources' key
+     * @return array Deduplicated sources array
+     */
+    private function extractAndDeduplicateSources(array $items): array
+    {
+        return $this->extractSources($items, deduplicate: true);
+    }
+
+    /**
      * Log strategy application to import-strategy channel.
      */
     private function logStrategyApplication($strategy, array $data): void
@@ -289,13 +297,8 @@ class ClassImporter extends BaseImporter
      */
     public function importSubclass(CharacterClass $parentClass, array $subclassData): CharacterClass
     {
-        // 1. Extract sources from features for slug generation
-        $sources = [];
-        foreach ($subclassData['features'] ?? [] as $feature) {
-            if (! empty($feature['sources'])) {
-                $sources = array_merge($sources, $feature['sources']);
-            }
-        }
+        // 1. Extract sources from features (without deduplication for page merging later)
+        $sources = $this->extractSources($subclassData['features'] ?? [], deduplicate: false);
 
         // 2. Generate hierarchical source-prefixed slug: "phb:fighter-battle-master"
         $slug = $this->generateSlug($subclassData['name'], $sources, $parentClass->slug);
@@ -457,18 +460,9 @@ class ClassImporter extends BaseImporter
         }
 
         // Extract sources for slug generation (same logic as importEntity)
-        $sources = [];
-        foreach ($data['traits'] ?? [] as $trait) {
-            if (! empty($trait['sources'])) {
-                $sources = array_merge($sources, $trait['sources']);
-            }
-        }
+        $sources = $this->extractAndDeduplicateSources($data['traits'] ?? []);
         if (empty($sources)) {
-            foreach ($data['features'] ?? [] as $feature) {
-                if (! empty($feature['sources'])) {
-                    $sources = array_merge($sources, $feature['sources']);
-                }
-            }
+            $sources = $this->extractAndDeduplicateSources($data['features'] ?? []);
         }
 
         $slug = $this->generateSlug($data['name'], $sources);
@@ -668,20 +662,7 @@ class ClassImporter extends BaseImporter
             }
 
             // Extract and import sources from traits
-            $sources = [];
-            foreach ($supplementData['traits'] as $trait) {
-                if (! empty($trait['sources'])) {
-                    $sources = array_merge($sources, $trait['sources']);
-                }
-            }
-
-            // Remove duplicates based on code
-            $uniqueSources = [];
-            foreach ($sources as $source) {
-                $uniqueSources[$source['code']] = $source;
-            }
-            $sources = array_values($uniqueSources);
-
+            $sources = $this->extractAndDeduplicateSources($supplementData['traits']);
             if (! empty($sources)) {
                 $this->importEntitySources($existingClass, $sources);
             }

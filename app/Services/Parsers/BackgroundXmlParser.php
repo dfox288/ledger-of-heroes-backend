@@ -148,6 +148,12 @@ class BackgroundXmlParser
      * - "Common" → specific fixed language
      * - "Dwarvish, or one other of your choice if you already speak Dwarvish" → Dwarvish + 1 conditional choice
      * - "One of your choice of Elvish, Gnomish, Goblin, or Sylvan" → restricted choice from list
+     *
+     * NOTE: This method catches generic \Exception in several places. This is intentional
+     * to support unit testing without a database connection. When the database is unavailable
+     * (e.g., during pure unit tests), methods like matchLanguage() will throw exceptions.
+     * The catch blocks return valid structures with null IDs, allowing parsing logic to be
+     * tested independently of database state. The importer layer handles ID resolution.
      */
     private function parseLanguagesFromTraitText(string $text): array
     {

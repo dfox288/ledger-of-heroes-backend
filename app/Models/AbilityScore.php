@@ -18,11 +18,6 @@ class AbilityScore extends BaseModel
         return $this->hasMany(Skill::class);
     }
 
-    public function abilityScoreBonuses(): HasMany
-    {
-        return $this->hasMany(AbilityScoreBonus::class);
-    }
-
     public function entitiesRequiringSave(): MorphToMany
     {
         return $this->morphedByMany(

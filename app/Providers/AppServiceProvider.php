@@ -10,15 +10,22 @@ use App\Models\AbilityScore;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterEquipment;
+use App\Models\CharacterNote;
 use App\Models\Condition;
 use App\Models\DamageType;
+use App\Models\EncounterMonster;
+use App\Models\EncounterPreset;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Language;
 use App\Models\Monster;
+use App\Models\Party;
 use App\Models\ProficiencyType;
 use App\Models\Race;
+use App\Models\Size;
 use App\Models\Skill;
+use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Observers\CharacterObserver;
@@ -234,6 +241,52 @@ class AppServiceProvider extends ServiceProvider
 
             // Try slug (e.g., "acrobatics", "animal-handling", "sleight-of-hand")
             return Skill::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('size', function ($value) {
+            if (is_numeric($value)) {
+                return Size::findOrFail($value);
+            }
+
+            // Try code first (T/S/M/L/H/G), then name (case-insensitive)
+            $size = Size::where('code', $value)->first();
+            if ($size) {
+                return $size;
+            }
+
+            return Size::whereRaw('LOWER(name) = ?', [strtolower($value)])->firstOrFail();
+        });
+
+        Route::bind('source', function ($value) {
+            if (is_numeric($value)) {
+                return Source::findOrFail($value);
+            }
+
+            // Try code first (PHB, DMG, etc.)
+            return Source::where('code', $value)->firstOrFail();
+        });
+
+        // Party - by ID only (ownership check done in controller when auth is added)
+        Route::bind('party', function ($value) {
+            return Party::findOrFail($value);
+        });
+
+        // Nested character resources - by ID (scoping to character done in controller)
+        Route::bind('note', function ($value) {
+            return CharacterNote::findOrFail($value);
+        });
+
+        Route::bind('equipment', function ($value) {
+            return CharacterEquipment::findOrFail($value);
+        });
+
+        // Nested party resources - by ID (scoping to party done in controller)
+        Route::bind('encounterMonster', function ($value) {
+            return EncounterMonster::findOrFail($value);
+        });
+
+        Route::bind('encounterPreset', function ($value) {
+            return EncounterPreset::findOrFail($value);
         });
     }
 }

@@ -2,29 +2,28 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ClassFeature;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin ClassFeature
+ */
 class ClassFeatureResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'level' => $this->level,
+            'id' => (int) $this->id,
+            'level' => (int) $this->level,
             'feature_name' => $this->feature_name,
             'description' => $this->description,
-            'is_optional' => $this->is_optional,
-            'is_multiclass_only' => $this->is_multiclass_only,
-            'is_choice_option' => $this->is_choice_option,
-            'is_always_prepared' => $this->is_always_prepared,
-            'parent_feature_id' => $this->parent_feature_id,
-            'sort_order' => $this->sort_order,
+            'is_optional' => (bool) $this->is_optional,
+            'is_multiclass_only' => (bool) $this->is_multiclass_only,
+            'is_choice_option' => (bool) $this->is_choice_option,
+            'is_always_prepared' => (bool) $this->is_always_prepared,
+            'parent_feature_id' => $this->parent_feature_id ? (int) $this->parent_feature_id : null,
+            'sort_order' => (int) $this->sort_order,
             'resets_on' => $this->resets_on?->value,
             'resets_on_label' => $this->resets_on?->label(),
             'action_cost' => $this->action_cost?->value,

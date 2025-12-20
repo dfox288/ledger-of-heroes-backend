@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Skill extends BaseModel
 {
@@ -24,10 +23,5 @@ class Skill extends BaseModel
     public function abilityScore(): BelongsTo
     {
         return $this->belongsTo(AbilityScore::class);
-    }
-
-    public function skillProficiencies(): HasMany
-    {
-        return $this->hasMany(SkillProficiency::class);
     }
 }

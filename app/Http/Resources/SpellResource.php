@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Spell;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Spell
+ */
 class SpellResource extends JsonResource
 {
     public function toArray(Request $request): array

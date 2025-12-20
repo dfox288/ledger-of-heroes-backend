@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\MonsterAction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin MonsterAction
+ */
 class MonsterActionResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -12,14 +16,14 @@ class MonsterActionResource extends JsonResource
         $parsed = $this->parseAttackData($this->attack_data);
 
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'action_type' => $this->action_type,
             'name' => $this->name,
             'description' => $this->description,
             'attack_bonus' => $parsed['attack_bonus'],
             'damage' => $parsed['damage'],
             'recharge' => $this->recharge,
-            'sort_order' => $this->sort_order,
+            'sort_order' => (int) $this->sort_order,
         ];
     }
 

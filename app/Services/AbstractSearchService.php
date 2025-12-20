@@ -9,10 +9,62 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
 /**
- * Base class for search services using Meilisearch
+ * Base class for entity search services using Meilisearch.
  *
- * Provides common searchWithMeilisearch() implementation and relationship management.
- * Subclasses must define their model class and relationships.
+ * ## When to Extend This Class
+ *
+ * Extend AbstractSearchService when creating a search service for any entity that:
+ * - Uses Laravel Scout with Meilisearch for full-text search
+ * - Needs consistent pagination, filtering, and sorting behavior
+ * - Returns Eloquent models with eager-loaded relationships
+ *
+ * ## Required Methods to Implement
+ *
+ * 1. `getModelClass(): string` - Return the fully qualified model class name
+ * 2. `getIndexRelationships(): array` - Relationships for list/index endpoints (lightweight)
+ * 3. `getShowRelationships(): array` - Relationships for show/detail endpoints (comprehensive)
+ *
+ * ## Available Methods (Inherited)
+ *
+ * - `searchWithMeilisearch(object $dto, Client $client)` - Main search with Meilisearch
+ * - `buildDatabaseQuery(object $dto)` - Eloquent query for non-search pagination
+ * - `buildScoutQuery(object $dto)` - Scout search builder (override if needed)
+ * - `applySorting(Builder $query, object $dto)` - Apply sorting to Eloquent query
+ * - `getDefaultRelationships()` - Alias for getIndexRelationships()
+ *
+ * ## Example Implementation
+ *
+ * ```php
+ * final class SpellSearchService extends AbstractSearchService
+ * {
+ *     private const INDEX_RELATIONSHIPS = ['spellSchool', 'sources.source', 'classes'];
+ *     private const SHOW_RELATIONSHIPS = [...self::INDEX_RELATIONSHIPS, 'tags', 'monsters'];
+ *
+ *     protected function getModelClass(): string
+ *     {
+ *         return Spell::class;
+ *     }
+ *
+ *     public function getIndexRelationships(): array
+ *     {
+ *         return self::INDEX_RELATIONSHIPS;
+ *     }
+ *
+ *     public function getShowRelationships(): array
+ *     {
+ *         return self::SHOW_RELATIONSHIPS;
+ *     }
+ * }
+ * ```
+ *
+ * ## When NOT to Extend
+ *
+ * - Cross-entity search (see GlobalSearchService)
+ * - Services with fundamentally different search behavior
+ * - Non-Meilisearch search implementations
+ *
+ * @see \App\Services\SpellSearchService Gold standard implementation
+ * @see ../wrapper/docs/backend/reference/SEARCH-SERVICE-ARCHITECTURE.md Full documentation
  */
 abstract class AbstractSearchService
 {

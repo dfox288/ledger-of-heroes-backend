@@ -42,6 +42,24 @@ SpellIndexRequest      // GET /api/v1/spells
 SpellShowRequest       // GET /api/v1/spells/{id}
 ```
 
+## Search Service Pattern
+
+All entity search services should extend `AbstractSearchService`:
+
+```php
+final class SpellSearchService extends AbstractSearchService
+{
+    private const INDEX_RELATIONSHIPS = ['spellSchool', 'sources.source'];
+    private const SHOW_RELATIONSHIPS = [...self::INDEX_RELATIONSHIPS, 'tags'];
+
+    protected function getModelClass(): string { return Spell::class; }
+    public function getIndexRelationships(): array { return self::INDEX_RELATIONSHIPS; }
+    public function getShowRelationships(): array { return self::SHOW_RELATIONSHIPS; }
+}
+```
+
+See `../wrapper/docs/backend/reference/SEARCH-SERVICE-ARCHITECTURE.md` for full documentation.
+
 ---
 
 ## Anti-Patterns (DO NOT USE)

@@ -561,51 +561,9 @@ class ClassController extends Controller
      * filtering options as the main spell list (level, school, concentration, ritual).
      * Useful for building spell lists for spellcasting classes.
      */
-    public function spells(CharacterClass $class, ClassSpellListRequest $request)
+    public function spells(CharacterClass $class, ClassSpellListRequest $request, ClassSearchService $service): AnonymousResourceCollection
     {
-        $validated = $request->validated();
-
-        $query = $class->spells()
-            ->with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
-
-        // Apply same filters as SpellController
-        if (isset($validated['search'])) {
-            $query->where(function ($q) use ($validated) {
-                $q->where('spells.name', 'LIKE', "%{$validated['search']}%")
-                    ->orWhere('spells.description', 'LIKE', "%{$validated['search']}%");
-            });
-        }
-
-        if (isset($validated['level'])) {
-            $query->where('spells.level', $validated['level']);
-        }
-
-        if (isset($validated['school'])) {
-            $query->where('spells.spell_school_id', $validated['school']);
-        }
-
-        if (isset($validated['concentration'])) {
-            $query->where('spells.needs_concentration', $validated['concentration']);
-        }
-
-        if (isset($validated['ritual'])) {
-            $query->where('spells.is_ritual', $validated['ritual']);
-        }
-
-        // Sorting
-        $sortBy = $validated['sort_by'] ?? 'name';
-        $sortDirection = $validated['sort_direction'] ?? 'asc';
-
-        // Ensure we prefix with table name for pivot queries
-        if (! str_contains($sortBy, '.')) {
-            $sortBy = 'spells.'.$sortBy;
-        }
-
-        $query->orderBy($sortBy, $sortDirection);
-
-        // Paginate
-        $perPage = $validated['per_page'] ?? 15;
-        $spells = $query->paginate($perPage);
+        $spells = $service->getClassSpells($class, $request->validated());
 
         return SpellResource::collection($spells);
     }

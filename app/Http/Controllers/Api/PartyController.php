@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Party\PartyAddCharacterRequest;
+use App\Http\Requests\Party\PartyIndexRequest;
+use App\Http\Requests\Party\PartyShowRequest;
+use App\Http\Requests\Party\PartyStatsRequest;
 use App\Http\Requests\Party\PartyStoreRequest;
 use App\Http\Requests\Party\PartyUpdateRequest;
 use App\Http\Resources\PartyResource;
@@ -11,7 +14,6 @@ use App\Http\Resources\PartyStatsResource;
 use App\Models\Character;
 use App\Models\Party;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -22,7 +24,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add user scoping when auth is implemented.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(PartyIndexRequest $request): AnonymousResourceCollection
     {
         $parties = Party::withCount('characters')
             ->orderBy('updated_at', 'desc')
@@ -54,7 +56,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function show(Request $request, Party $party): PartyResource|JsonResponse
+    public function show(PartyShowRequest $request, Party $party): PartyResource
     {
         $party->load([
             'characters.characterClasses.characterClass',
@@ -69,7 +71,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function update(PartyUpdateRequest $request, Party $party): PartyResource|JsonResponse
+    public function update(PartyUpdateRequest $request, Party $party): PartyResource
     {
         $party->update($request->validated());
 
@@ -81,7 +83,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function destroy(Request $request, Party $party): Response
+    public function destroy(Party $party): Response
     {
         $party->delete();
 
@@ -93,7 +95,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function addCharacter(PartyAddCharacterRequest $request, Party $party): PartyResource|JsonResponse
+    public function addCharacter(PartyAddCharacterRequest $request, Party $party): JsonResponse
     {
         $party->characters()->attach($request->validated('character_id'), [
             'joined_at' => now(),
@@ -114,7 +116,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function removeCharacter(Request $request, Party $party, Character $character): Response
+    public function removeCharacter(Party $party, Character $character): Response
     {
         // Check if character is in party
         if (! $party->characters()->where('character_id', $character->id)->exists()) {
@@ -131,7 +133,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
-    public function stats(Request $request, Party $party): PartyStatsResource|JsonResponse
+    public function stats(PartyStatsRequest $request, Party $party): PartyStatsResource
     {
         // Load characters with relationships needed for stats
         $party->load([

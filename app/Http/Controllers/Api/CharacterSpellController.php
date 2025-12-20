@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\SpellManagementException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AvailableSpellsRequest;
 use App\Http\Requests\Character\CharacterSpellStoreRequest;
@@ -139,10 +140,7 @@ class CharacterSpellController extends Controller
 
         // Check for duplicates (works with or without spell entity)
         if ($character->spells()->where('spell_slug', $spellSlug)->exists()) {
-            return response()->json([
-                'message' => 'Character already knows this spell.',
-                'errors' => ['spell' => ['Character already knows this spell.']],
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw SpellManagementException::alreadyKnownBySlug($spellSlug);
         }
 
         if ($spell) {
@@ -189,7 +187,7 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  int  $characterSpellId  The CharacterSpell ID
      */
-    public function update(CharacterSpellUpdateRequest $request, Character $character, int $characterSpellId): CharacterSpellResource|JsonResponse
+    public function update(CharacterSpellUpdateRequest $request, Character $character, int $characterSpellId): CharacterSpellResource
     {
         // Find the character spell and verify ownership
         $characterSpell = CharacterSpell::where('character_id', $character->id)
@@ -197,9 +195,7 @@ class CharacterSpellController extends Controller
             ->first();
 
         if (! $characterSpell) {
-            return response()->json([
-                'message' => 'Character spell not found.',
-            ], Response::HTTP_NOT_FOUND);
+            throw SpellManagementException::characterSpellNotFound($characterSpellId);
         }
 
         $isPrepared = $request->boolean('is_prepared');
@@ -213,9 +209,7 @@ class CharacterSpellController extends Controller
             // Prepare the spell
             if (! $characterSpell->spell) {
                 // Dangling reference - can't validate level
-                return response()->json([
-                    'message' => 'Cannot prepare a dangling spell reference.',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                throw SpellManagementException::cannotPrepareDanglingReference($characterSpell->spell_slug);
             }
 
             // Already prepared - idempotent success
@@ -224,13 +218,8 @@ class CharacterSpellController extends Controller
             }
 
             // Use the service for validation (cantrip check, prep limit)
-            try {
-                $this->spellManager->prepareSpell($character, $characterSpell->spell);
-            } catch (\App\Exceptions\SpellManagementException $e) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
+            // SpellManagementException has render() method - let it bubble up
+            $this->spellManager->prepareSpell($character, $characterSpell->spell);
 
             // Reload to get the updated status
             $characterSpell->refresh();
@@ -239,9 +228,11 @@ class CharacterSpellController extends Controller
 
             // Cannot unprepare always-prepared spells
             if ($characterSpell->isAlwaysPrepared()) {
-                return response()->json([
-                    'message' => 'Cannot unprepare an always-prepared spell.',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                $spell = $characterSpell->spell;
+                if ($spell) {
+                    throw SpellManagementException::cannotUnprepareAlwaysPrepared($spell);
+                }
+                throw new SpellManagementException('Cannot unprepare an always-prepared spell.');
             }
 
             // Already known (not prepared) - idempotent success

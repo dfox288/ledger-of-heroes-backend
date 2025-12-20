@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\ClassSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\CharacterClass;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator as PaginatorContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
@@ -205,5 +206,61 @@ final class ClassSearchService
             $dto->page ?? 1,
             ['path' => request()->url(), 'query' => request()->query()]
         );
+    }
+
+    /**
+     * Get spells for a class with optional filtering.
+     *
+     * @param  array{search?: string, level?: int, school?: int, concentration?: bool, ritual?: bool, sort_by?: string, sort_direction?: string, per_page?: int}  $filters
+     */
+    public function getClassSpells(CharacterClass $class, array $filters = []): PaginatorContract
+    {
+        $query = $class->spells()
+            ->with(['spellSchool', 'sources.source', 'effects.damageType', 'classes']);
+
+        // Text search on name and description
+        if (isset($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('spells.name', 'LIKE', "%{$search}%")
+                    ->orWhere('spells.description', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter by spell level
+        if (isset($filters['level'])) {
+            $query->where('spells.level', $filters['level']);
+        }
+
+        // Filter by school
+        if (isset($filters['school'])) {
+            $query->where('spells.spell_school_id', $filters['school']);
+        }
+
+        // Filter by concentration
+        if (isset($filters['concentration'])) {
+            $query->where('spells.needs_concentration', $filters['concentration']);
+        }
+
+        // Filter by ritual
+        if (isset($filters['ritual'])) {
+            $query->where('spells.is_ritual', $filters['ritual']);
+        }
+
+        // Apply sorting
+        $sortBy = $filters['sort_by'] ?? 'name';
+        $sortDirection = $filters['sort_direction'] ?? 'asc';
+
+        // Prefix with table name for pivot queries
+        if (! str_contains($sortBy, '.')) {
+            $sortBy = 'spells.'.$sortBy;
+        }
+
+        $query->orderBy($sortBy, $sortDirection);
+
+        // Paginate
+        $perPage = $filters['per_page'] ?? 15;
+
+        return $query->paginate($perPage);
     }
 }

@@ -302,4 +302,64 @@ class CharacterFeatureApiTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    // =============================
+    // Feature Mechanics (action_type, recharge)
+    // =============================
+
+    #[Test]
+    public function it_includes_action_type_and_recharge_for_class_features(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // Create a feature with action_cost and resets_on
+        $actionSurge = ClassFeature::create([
+            'class_id' => $this->fighterClass->id,
+            'level' => 2,
+            'feature_name' => 'Action Surge',
+            'description' => 'You can push yourself beyond normal limits.',
+            'is_optional' => false,
+            'action_cost' => 'free',
+            'resets_on' => 'short_rest',
+        ]);
+
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $actionSurge->id,
+            'source' => 'class',
+            'level_acquired' => 2,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/features");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.feature.action_type', 'free')
+            ->assertJsonPath('data.0.feature.recharge', 'short_rest');
+    }
+
+    #[Test]
+    public function it_returns_null_action_type_and_recharge_when_not_set(): void
+    {
+        $character = Character::factory()
+            ->withClass($this->fighterClass)
+            ->create();
+
+        // secondWind was created without action_cost and resets_on
+        CharacterFeature::create([
+            'character_id' => $character->id,
+            'feature_type' => ClassFeature::class,
+            'feature_id' => $this->secondWind->id,
+            'source' => 'class',
+            'level_acquired' => 1,
+        ]);
+
+        $response = $this->getJson("/api/v1/characters/{$character->id}/features");
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.feature.action_type', null)
+            ->assertJsonPath('data.0.feature.recharge', null);
+    }
 }

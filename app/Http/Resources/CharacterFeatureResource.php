@@ -63,6 +63,8 @@ class CharacterFeatureResource extends JsonResource
             $data['description'] = $feature->description;
             $data['level'] = $feature->level;
             $data['is_optional'] = $feature->is_optional;
+            $data['action_type'] = $feature->action_cost?->value;
+            $data['recharge'] = $feature->resets_on?->value;
         } elseif ($feature instanceof CharacterTrait) {
             $data['name'] = $feature->name;
             $data['description'] = $feature->description;

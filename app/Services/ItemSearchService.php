@@ -144,13 +144,7 @@ final class ItemSearchService
         $itemIds = collect($results->getHits())->pluck('id')->all();
 
         // Fetch full items from database in correct order
-        $items = Item::with([
-            'itemType',
-            'damageType',
-            'properties',
-            'sources.source',
-            'prerequisites.prerequisite',
-        ])
+        $items = Item::with(self::INDEX_RELATIONSHIPS)
             ->whereIn('id', $itemIds)
             ->get()
             ->sortBy(function ($item) use ($itemIds) {

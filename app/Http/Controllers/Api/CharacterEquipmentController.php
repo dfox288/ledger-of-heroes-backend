@@ -10,6 +10,7 @@ use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Services\EquipmentManagerService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -114,6 +115,7 @@ class CharacterEquipmentController extends Controller
      * - `equipped`: false
      * - `location`: "backpack"
      */
+    #[ApiResponse(201, type: CharacterEquipmentResource::class)]
     public function store(CharacterEquipmentStoreRequest $request, Character $character): JsonResponse
     {
         if ($request->item_slug) {

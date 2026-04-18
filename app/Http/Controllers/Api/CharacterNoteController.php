@@ -9,6 +9,7 @@ use App\Http\Resources\CharacterNoteResource;
 use App\Http\Resources\CharacterNotesGroupedResource;
 use App\Models\Character;
 use App\Models\CharacterNote;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -94,6 +95,7 @@ class CharacterNoteController extends Controller
      * - `backstory` and `custom` categories require a `title` field
      * - Other categories (`personality_trait`, `ideal`, `bond`, `flaw`) should not include title
      */
+    #[ApiResponse(201, type: CharacterNoteResource::class)]
     public function store(CharacterNoteStoreRequest $request, Character $character): JsonResponse
     {
         $validated = $request->validated();

@@ -15,6 +15,7 @@ use App\Models\Character;
 use App\Models\CharacterSpell;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -125,9 +126,8 @@ class CharacterSpellController extends Controller
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
      * - Dangling references allowed per #288
-     *
-     * @response CharacterSpellResource
      */
+    #[ApiResponse(201, type: CharacterSpellResource::class)]
     public function store(CharacterSpellStoreRequest $request, Character $character): JsonResponse
     {
         $validated = $request->validated();
@@ -302,6 +302,7 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
+    #[ApiResponse(200, type: CharacterSpellResource::class)]
     public function prepare(Request $request, Character $character, string $spellIdOrSlug): JsonResponse
     {
         $spell = is_numeric($spellIdOrSlug)

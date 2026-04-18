@@ -20,6 +20,7 @@ use App\Services\AddClassService;
 use App\Services\CharacterFeatureService;
 use App\Services\LevelUpService;
 use App\Services\ReplaceClassService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response as HttpResponse;
@@ -98,9 +99,8 @@ class CharacterClassController extends Controller
      * - Character cannot have the same class twice (use levelUp instead)
      * - Character's total level cannot exceed 20
      * - Must meet multiclass prerequisites (unless force=true)
-     *
-     * @response CharacterClassPivotResource
      */
+    #[ApiResponse(201, type: CharacterClassPivotResource::class)]
     public function store(CharacterClassAddRequest $request, Character $character): JsonResponse
     {
         $classSlug = $request->validated('class_slug');
@@ -235,8 +235,8 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     * @return JsonResponse<LevelUpResource>
      */
+    #[ApiResponse(200, type: LevelUpResource::class)]
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)
@@ -318,8 +318,8 @@ class CharacterClassController extends Controller
      * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
-     * @return JsonResponse<CharacterClassPivotResource>
      */
+    #[ApiResponse(200, type: CharacterClassPivotResource::class)]
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)
@@ -397,11 +397,11 @@ class CharacterClassController extends Controller
      * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classSlugOrFullSlug  Class slug
-     * @return JsonResponse<CharacterClassPivotResource>
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement
      */
+    #[ApiResponse(200, type: CharacterClassPivotResource::class)]
     public function setSubclass(CharacterSubclassSetRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
         // Accept either slug (phb:fighter) or simple slug (fighter)

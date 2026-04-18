@@ -10,6 +10,7 @@ use App\Models\Character;
 use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -176,6 +177,7 @@ class FeatureSelectionController extends Controller
      * - 422 if level too low: "This feature requires level {N}. Character is level {M}."
      * - 422 if class ineligible: "This character does not have the required class or subclass for this feature."
      */
+    #[ApiResponse(201, type: FeatureSelectionResource::class)]
     public function store(StoreFeatureSelectionRequest $request, Character $character): JsonResponse
     {
         $validated = $request->validated();

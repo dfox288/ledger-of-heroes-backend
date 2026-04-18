@@ -186,6 +186,30 @@ public function levelUp(Character $character): JsonResponse
 }
 ```
 
+### Escape Hatch: Preserving Non-200 Status Codes
+
+Store/create endpoints use **201 Created** as part of the standardized HTTP status-code convention (see Dec 2025 refactor). Since `JsonResource::response()->setStatusCode(201)` returns `JsonResponse` — which breaks inference — use Scramble's `#[Response]` attribute to declare the schema while keeping the status code at runtime:
+
+```php
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
+
+// ✅ CORRECT - schema inferred from attribute, 201 preserved at runtime
+#[ApiResponse(201, type: CharacterResource::class)]
+public function store(CharacterStoreRequest $request): JsonResponse
+{
+    $character = $this->service->create($request->validated());
+
+    return (new CharacterResource($character))
+        ->response()
+        ->setStatusCode(201);
+}
+```
+
+- Import the attribute as `Response as ApiResponse` to avoid collisions with `Illuminate\Http\Response` / `Symfony\Component\HttpFoundation\Response` (which controllers often reference for the `HTTP_CREATED` constant).
+- For collection responses: `#[ApiResponse(201, type: 'AnonymousResourceCollection<EncounterMonsterResource>')]`. The type parameter is a PHPDoc-style string; short class names resolve via the file's `use` statements.
+- Drop any redundant `@response XResource` PHPDoc tags once the attribute is in place — the attribute is the single source of truth.
+- **Default case still applies:** for 200 OK, prefer the Resource return type (no attribute needed). The attribute is only for when Scramble inference would otherwise lose the status code.
+
 Use `abort()` for errors instead of returning JsonResponse:
 
 ```php

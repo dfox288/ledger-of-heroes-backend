@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Character\Equipment\CharacterEquipmentIndexRequest;
 use App\Http\Requests\Character\Equipment\CharacterEquipmentStoreRequest;
 use App\Http\Requests\Character\Equipment\CharacterEquipmentUpdateRequest;
 use App\Http\Resources\CharacterEquipmentResource;
@@ -10,8 +11,8 @@ use App\Models\Character;
 use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Services\EquipmentManagerService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -59,7 +60,7 @@ class CharacterEquipmentController extends Controller
      *
      * @queryParam exclude_currency boolean Exclude currency items (Gold, Silver, etc). Example: 1
      */
-    public function index(Request $request, Character $character): AnonymousResourceCollection
+    public function index(CharacterEquipmentIndexRequest $request, Character $character): AnonymousResourceCollection
     {
         $query = $character->equipment()->with('item.itemType');
 
@@ -114,6 +115,7 @@ class CharacterEquipmentController extends Controller
      * - `equipped`: false
      * - `location`: "backpack"
      */
+    #[ApiResponse(201, type: CharacterEquipmentResource::class)]
     public function store(CharacterEquipmentStoreRequest $request, Character $character): JsonResponse
     {
         if ($request->item_slug) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\SpellManagementException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Character\AvailableSpellsRequest;
+use App\Http\Requests\Character\CharacterSpellPrepareRequest;
 use App\Http\Requests\Character\CharacterSpellStoreRequest;
 use App\Http\Requests\Character\CharacterSpellUpdateRequest;
 use App\Http\Resources\CharacterSpellResource;
@@ -15,8 +16,8 @@ use App\Models\Character;
 use App\Models\CharacterSpell;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -125,9 +126,8 @@ class CharacterSpellController extends Controller
      * - Spell level must be accessible at character's level
      * - Spell must not already be known by character
      * - Dangling references allowed per #288
-     *
-     * @response CharacterSpellResource
      */
+    #[ApiResponse(201, type: CharacterSpellResource::class)]
     public function store(CharacterSpellStoreRequest $request, Character $character): JsonResponse
     {
         $validated = $request->validated();
@@ -302,14 +302,15 @@ class CharacterSpellController extends Controller
      * @param  Character  $character  The character
      * @param  string  $spellIdOrSlug  Spell ID or slug
      */
-    public function prepare(Request $request, Character $character, string $spellIdOrSlug): JsonResponse
+    #[ApiResponse(200, type: CharacterSpellResource::class)]
+    public function prepare(CharacterSpellPrepareRequest $request, Character $character, string $spellIdOrSlug): JsonResponse
     {
         $spell = is_numeric($spellIdOrSlug)
             ? Spell::findOrFail($spellIdOrSlug)
             : Spell::where('slug', $spellIdOrSlug)->firstOrFail();
 
         // Issue #731: Support multiclass by passing class_slug
-        $classSlug = $request->input('class_slug');
+        $classSlug = $request->validated('class_slug');
 
         $characterSpell = $this->spellManager->prepareSpell($character, $spell, $classSlug);
         $characterSpell->load([

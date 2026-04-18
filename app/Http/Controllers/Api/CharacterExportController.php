@@ -9,6 +9,7 @@ use App\Http\Resources\CharacterImportResultResource;
 use App\Models\Character;
 use App\Services\CharacterExportService;
 use App\Services\CharacterImportService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -47,9 +48,8 @@ class CharacterExportController extends Controller
      * reported as warnings.
      *
      * @operationId importCharacter
-     *
-     * @response CharacterImportResultResource
      */
+    #[ApiResponse(201, type: CharacterImportResultResource::class)]
     public function import(CharacterImportRequest $request): JsonResponse
     {
         $result = $this->importService->import($request->validated());

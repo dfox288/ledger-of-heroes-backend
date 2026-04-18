@@ -10,6 +10,7 @@ use App\Http\Resources\EncounterPresetResource;
 use App\Models\EncounterMonster;
 use App\Models\EncounterPreset;
 use App\Models\Party;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -33,6 +34,7 @@ class PartyEncounterPresetController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
+    #[ApiResponse(201, type: EncounterPresetResource::class)]
     public function store(EncounterPresetStoreRequest $request, Party $party): JsonResponse
     {
         $preset = $party->encounterPresets()->create([
@@ -92,6 +94,7 @@ class PartyEncounterPresetController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
+    #[ApiResponse(201, type: 'AnonymousResourceCollection<EncounterMonsterResource>')]
     public function load(Party $party, EncounterPreset $encounterPreset): JsonResponse
     {
         if ($encounterPreset->party_id !== $party->id) {

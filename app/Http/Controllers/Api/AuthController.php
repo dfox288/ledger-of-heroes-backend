@@ -10,6 +10,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\AuthResource;
 use App\Http\Resources\MessageResource;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -103,6 +104,7 @@ class AuthController extends Controller
      *
      * @param  RegisterRequest  $request  Validated registration data
      */
+    #[ApiResponse(201, type: AuthResource::class)]
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([

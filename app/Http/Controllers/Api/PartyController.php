@@ -13,6 +13,7 @@ use App\Http\Resources\PartyResource;
 use App\Http\Resources\PartyStatsResource;
 use App\Models\Character;
 use App\Models\Party;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -38,6 +39,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add user_id from auth when auth is implemented.
      */
+    #[ApiResponse(201, type: PartyResource::class)]
     public function store(PartyStoreRequest $request): JsonResponse
     {
         $party = Party::create([
@@ -95,6 +97,7 @@ class PartyController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
+    #[ApiResponse(201, type: PartyResource::class)]
     public function addCharacter(PartyAddCharacterRequest $request, Party $party): JsonResponse
     {
         $party->characters()->attach($request->validated('character_id'), [

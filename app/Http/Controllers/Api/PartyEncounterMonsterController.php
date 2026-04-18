@@ -9,6 +9,7 @@ use App\Http\Resources\EncounterMonsterResource;
 use App\Models\EncounterMonster;
 use App\Models\Monster;
 use App\Models\Party;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -37,6 +38,7 @@ class PartyEncounterMonsterController extends Controller
      *
      * TODO: Re-add ownership check when auth is implemented.
      */
+    #[ApiResponse(201, type: 'AnonymousResourceCollection<EncounterMonsterResource>')]
     public function store(PartyAddMonsterRequest $request, Party $party): JsonResponse
     {
         // Monster model needed for name and hit_points_average

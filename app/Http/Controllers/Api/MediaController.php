@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Media\MediaUploadRequest;
 use App\Http\Resources\MediaResource;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Spatie\MediaLibrary\HasMedia;
@@ -30,7 +29,7 @@ class MediaController extends Controller
      * GET /api/v1/characters/5/media/portrait
      * ```
      */
-    public function index(Request $request, string $modelType, int $modelId, string $collection): AnonymousResourceCollection
+    public function index(string $modelType, int $modelId, string $collection): AnonymousResourceCollection
     {
         $model = $this->resolveModel($modelType, $modelId);
         $this->validateCollection($modelType, $collection);
@@ -80,7 +79,7 @@ class MediaController extends Controller
      * DELETE /api/v1/characters/5/media/portrait/123       # Delete specific media
      * ```
      */
-    public function destroy(Request $request, string $modelType, int $modelId, string $collection, ?int $mediaId = null)
+    public function destroy(string $modelType, int $modelId, string $collection, ?int $mediaId = null)
     {
         $model = $this->resolveModel($modelType, $modelId);
         $this->validateCollection($modelType, $collection);

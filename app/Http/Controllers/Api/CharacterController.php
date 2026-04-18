@@ -29,6 +29,7 @@ use App\Services\FeatChoiceService;
 use App\Services\HitDiceService;
 use App\Services\SpellManagerService;
 use App\Services\SpellSlotService;
+use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -127,6 +128,7 @@ class CharacterController extends Controller
      * - `race_slug`, `class_slug`, `background_slug`: Dangling references allowed per #288
      * - Ability scores (STR, DEX, etc.): Must be 3-20 if provided
      */
+    #[ApiResponse(201, type: CharacterResource::class)]
     public function store(CharacterStoreRequest $request): JsonResponse
     {
         $validated = $request->validated();

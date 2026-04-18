@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Character\CharacterChoiceIndexRequest;
 use App\Http\Requests\Character\CharacterChoiceResolveRequest;
 use App\Http\Resources\ChoiceResultResource;
 use App\Http\Resources\PendingChoiceResource;
 use App\Http\Resources\PendingChoicesResource;
 use App\Models\Character;
 use App\Services\CharacterChoiceService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class CharacterChoiceController extends Controller
@@ -25,9 +25,9 @@ class CharacterChoiceController extends Controller
      *
      * @queryParam type string Filter by choice type. Example: proficiency
      */
-    public function index(Request $request, Character $character): PendingChoicesResource
+    public function index(CharacterChoiceIndexRequest $request, Character $character): PendingChoicesResource
     {
-        $type = $request->query('type');
+        $type = $request->validated('type');
         $choices = $this->choiceService->getPendingChoices($character, $type);
         $summary = $this->choiceService->getSummary($character);
 

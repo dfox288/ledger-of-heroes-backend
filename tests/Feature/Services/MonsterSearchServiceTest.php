@@ -51,7 +51,7 @@ class MonsterSearchServiceTest extends TestCase
 
         $this->assertIsArray($relationships);
         $this->assertContains('size', $relationships);
-        $this->assertContains('traits', $relationships);
+        $this->assertContains('entityTraits', $relationships);
         $this->assertContains('actions', $relationships);
         $this->assertContains('legendaryActions', $relationships);
         $this->assertContains('spells', $relationships);

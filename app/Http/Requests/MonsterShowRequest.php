@@ -11,7 +11,7 @@ class MonsterShowRequest extends BaseShowRequest
     {
         return [
             'size',
-            'traits',
+            'entityTraits',
             'actions',
             'legendaryActions',
             'spellcasting',

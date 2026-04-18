@@ -226,8 +226,12 @@ class ClassApiTest extends TestCase
     }
 
     #[Test]
-    public function it_exposes_proficiency_choice_metadata_in_api()
+    public function it_exposes_fixed_proficiencies_in_api()
     {
+        // Choice semantics (is_choice, quantity, choice_group) were moved out of
+        // entity_proficiencies into entity_choices (migration
+        // 2025_01_01_000021_drop_choice_columns_from_entity_tables). The
+        // proficiencies array now represents only fixed grants.
         $fighter = CharacterClass::where('slug', 'fighter')->firstOrFail();
 
         $response = $this->getJson("/api/v1/classes/{$fighter->id}");
@@ -236,7 +240,7 @@ class ClassApiTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     'proficiencies' => [
-                        '*' => ['id', 'proficiency_type', 'proficiency_name', 'is_choice', 'quantity', 'grants'],
+                        '*' => ['id', 'proficiency_type', 'proficiency_name', 'grants'],
                     ],
                 ],
             ]);

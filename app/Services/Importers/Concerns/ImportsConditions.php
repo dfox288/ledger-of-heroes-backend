@@ -37,10 +37,14 @@ trait ImportsConditions
             $conditionId = null;
             $description = $conditionData['description'] ?? null;
 
-            // If condition_name is provided, look up the condition
+            // If condition_name is provided, look up the condition.
+            // ConditionSeeder stores slugs in canonical 'core:' form (e.g. 'core:poisoned'),
+            // but parsers and legacy callers may pass bare names; try both.
             if (! empty($conditionData['condition_name'])) {
                 $conditionSlug = Str::slug($conditionData['condition_name']);
-                $condition = Condition::where('slug', $conditionSlug)->first();
+                $condition = Condition::where('slug', 'core:'.$conditionSlug)
+                    ->orWhere('slug', $conditionSlug)
+                    ->first();
 
                 if ($condition) {
                     $conditionId = $condition->id;

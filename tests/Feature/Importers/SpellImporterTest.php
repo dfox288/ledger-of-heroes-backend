@@ -11,10 +11,11 @@ use App\Models\SpellSchool;
 use App\Services\Importers\SpellImporter;
 use App\Services\Parsers\SpellXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class SpellImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -40,6 +41,8 @@ class SpellImporterTest extends TestCase
             'range' => '150 feet',
             'components' => 'V, S, M',
             'material_components' => 'a tiny ball of bat guano and sulfur',
+            'material_cost_gp' => null,
+            'material_consumed' => false,
             'duration' => 'Instantaneous',
             'needs_concentration' => false,
             'is_ritual' => false,
@@ -123,7 +126,7 @@ class SpellImporterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_damage_type_from_effect_description(): void
     {
         // Seed required data
@@ -142,6 +145,8 @@ class SpellImporterTest extends TestCase
             'range' => '60 feet',
             'components' => 'V, S',
             'material_components' => null,
+            'material_cost_gp' => null,
+            'material_consumed' => false,
             'duration' => 'Instantaneous',
             'needs_concentration' => false,
             'is_ritual' => false,
@@ -181,7 +186,7 @@ class SpellImporterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_acid_splash_from_xml(): void
     {
         // Seed base classes
@@ -258,7 +263,7 @@ XML;
             'Should use subclasses when specified: Eldritch Knight (not Fighter), Arcane Trickster (not Rogue)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_base_class_when_no_subclass_specified(): void
     {
         // Seed base classes
@@ -300,7 +305,7 @@ XML;
             'Should use base classes when no parentheses present');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_sleep_spell_with_archfey_and_higher_levels(): void
     {
         // Seed base classes
@@ -371,7 +376,7 @@ XML;
         $this->assertContains('Wizard', $classNames);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_maps_druid_coast_to_circle_of_the_land(): void
     {
         // Seed base classes
@@ -440,7 +445,7 @@ XML;
         $this->assertContains('Wizard', $classNames);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_tags_from_classes_field(): void
     {
         // Seed base class
@@ -485,7 +490,7 @@ XML;
         $this->assertEquals('Touch Spells', $spell->tags->first()->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_scaling_increment_for_fireball(): void
     {
         // Create required base classes

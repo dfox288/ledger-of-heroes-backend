@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Importers suite pre-existing failures** (6 tests, all test-side drift; no production code changes):
+  - `SpellImporterTest::imports_spell_from_parsed_data` and `it_parses_damage_type_from_effect_description`: `$spellData` arrays predate the parser adding `material_cost_gp` / `material_consumed` keys. Added the missing keys so the importer's direct array access succeeds.
+  - `MonsterImporterTest::it_imports_monster_senses` and `it_handles_duplicate_senses_in_xml_gracefully`: assertions looked up `sense.slug === 'darkvision'` / `'blindsight'`, but the parser and `SenseSeeder` canonicalize these as `core:darkvision` / `core:blindsight`. Updated assertions and the stale `firstOrCreate(['slug' => 'darkvision'])` setup helpers.
+  - `RaceImporterTest::it_imports_darkvision_from_traits` and `it_imports_superior_darkvision_with_120_ft_range`: same `core:`-prefix drift. Updated assertions and `firstOrCreate` slugs (6 occurrences repo-wide in this file).
+
 ### Changed
 
 - **Upgraded `laravel/scout` to v11.1.0** (`^10.22` → `^11.1`). Scout 11's two breaking changes don't apply here (we don't touch `Builder::$wheres` directly, and we use the Meilisearch engine not Algolia). Bonus: v11.1 fixes Meilisearch `IS NOT NULL` filtering. Upgrade guide: https://github.com/laravel/scout/blob/11.x/UPGRADE.md. All five test suites match baseline pass counts.

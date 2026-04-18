@@ -3,11 +3,17 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\Monster;
+use App\Models\Sense;
+use App\Models\Size;
+use App\Models\Source;
 use App\Services\Importers\MonsterImporter;
+use Database\Seeders\CreatureTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class MonsterImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -22,14 +28,14 @@ class MonsterImporterTest extends TestCase
         MonsterImporter::clearSenseCache();
 
         // Create required lookup data
-        \App\Models\Size::firstOrCreate(['code' => 'L'], ['name' => 'Large']);
-        \App\Models\Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
-        \App\Models\Size::firstOrCreate(['code' => 'S'], ['name' => 'Small']);
+        Size::firstOrCreate(['code' => 'L'], ['name' => 'Large']);
+        Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        Size::firstOrCreate(['code' => 'S'], ['name' => 'Small']);
 
         $this->importer = new MonsterImporter;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monsters_from_xml_file(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -43,7 +49,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(3, $result['total']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_dragon_monster_with_correct_attributes(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -73,7 +79,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(5900, $dragon->experience_points);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_spellcaster_monster_with_correct_attributes(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -92,7 +98,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(50, $acolyte->experience_points);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monster_traits(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -107,7 +113,7 @@ class MonsterImporterTest extends TestCase
         $this->assertStringContainsString('saving throw', $traits->first()->description);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monster_actions(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -124,7 +130,7 @@ class MonsterImporterTest extends TestCase
         $this->assertNotNull($bite->attack_data);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monster_reactions(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -138,7 +144,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals('Parry', $reactions[0]->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_legendary_actions(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -157,7 +163,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(2, $wingAttack->action_cost);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monster_modifiers_from_saves_and_skills(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -181,7 +187,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals('8', $perception->value);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_damage_immunities_as_modifiers(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -197,7 +203,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals('fire', $immunities[0]->condition);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_selects_dragon_strategy_for_dragon_type(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -208,7 +214,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(1, $result['strategy_stats']['DragonStrategy']['count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_selects_spellcaster_strategy_for_monsters_with_spells(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -219,7 +225,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(1, $result['strategy_stats']['SpellcasterStrategy']['count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_selects_default_strategy_for_basic_monsters(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -230,7 +236,7 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(1, $result['strategy_stats']['DefaultStrategy']['count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_updates_existing_monsters_instead_of_creating_duplicates(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -245,12 +251,12 @@ class MonsterImporterTest extends TestCase
         $this->assertEquals(3, Monster::count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monster_senses(): void
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
-        \App\Models\Sense::firstOrCreate(['slug' => 'blindsight'], ['name' => 'Blindsight']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:blindsight'], ['name' => 'Blindsight']);
 
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
@@ -262,21 +268,21 @@ class MonsterImporterTest extends TestCase
         // Dragon has: blindsight 30 ft., darkvision 120 ft.
         $this->assertCount(2, $senses);
 
-        $blindsight = $senses->firstWhere('sense.slug', 'blindsight');
+        $blindsight = $senses->firstWhere('sense.slug', 'core:blindsight');
         $this->assertNotNull($blindsight);
         $this->assertEquals(30, $blindsight->range_feet);
 
-        $darkvision = $senses->firstWhere('sense.slug', 'darkvision');
+        $darkvision = $senses->firstWhere('sense.slug', 'core:darkvision');
         $this->assertNotNull($darkvision);
         $this->assertEquals(120, $darkvision->range_feet);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_clears_existing_senses_on_reimport(): void
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
-        \App\Models\Sense::firstOrCreate(['slug' => 'blindsight'], ['name' => 'Blindsight']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:blindsight'], ['name' => 'Blindsight']);
 
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
@@ -291,11 +297,11 @@ class MonsterImporterTest extends TestCase
         $this->assertCount(2, $senses);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_duplicate_senses_in_xml_gracefully(): void
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         $xmlPath = base_path('tests/Fixtures/xml/monsters/monster-duplicate-senses.xml');
 
@@ -310,16 +316,16 @@ class MonsterImporterTest extends TestCase
         // Should have exactly 1 darkvision, not 2
         $this->assertCount(1, $senses);
 
-        $darkvision = $senses->firstWhere('sense.slug', 'darkvision');
+        $darkvision = $senses->firstWhere('sense.slug', 'core:darkvision');
         $this->assertNotNull($darkvision);
         $this->assertEquals(60, $darkvision->range_feet);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_populates_slug_when_source_is_present(): void
     {
         // Create a test source
-        \App\Models\Source::firstOrCreate(
+        Source::firstOrCreate(
             ['code' => 'MM'],
             ['name' => 'Monster Manual', 'publication_date' => '2014-09-19']
         );
@@ -360,13 +366,13 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $goblin = \App\Models\Monster::where('slug', 'mm:test-goblin')->first();
+        $goblin = Monster::where('slug', 'mm:test-goblin')->first();
 
         $this->assertNotNull($goblin);
         $this->assertEquals('mm:test-goblin', $goblin->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_falls_back_to_default_source_when_no_source_in_description(): void
     {
         // Import monster without source citation in description
@@ -404,22 +410,22 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $creature = \App\Models\Monster::where('slug', 'phb:sourceless-creature')->first();
+        $creature = Monster::where('slug', 'phb:sourceless-creature')->first();
 
         $this->assertNotNull($creature);
         // Falls back to PHB when no source citation is found in description
         $this->assertEquals('phb:sourceless-creature', $creature->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_first_source_for_slug_when_multiple_sources_present(): void
     {
         // Create test sources
-        \App\Models\Source::firstOrCreate(
+        Source::firstOrCreate(
             ['code' => 'PHB'],
             ['name' => 'Players Handbook', 'publication_date' => '2014-08-19']
         );
-        \App\Models\Source::firstOrCreate(
+        Source::firstOrCreate(
             ['code' => 'DMG'],
             ['name' => 'Dungeon Masters Guide', 'publication_date' => '2014-12-09']
         );
@@ -461,22 +467,22 @@ XML;
 
         $this->importer->import($monsters[0]);
 
-        $beast = \App\Models\Monster::where('slug', 'phb:multi-source-beast')->first();
+        $beast = Monster::where('slug', 'phb:multi-source-beast')->first();
 
         $this->assertNotNull($beast);
         // Should use PHB as it appears first in the source citation
         $this->assertEquals('phb:multi-source-beast', $beast->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_separate_monsters_when_importing_same_name_from_different_sources(): void
     {
         // Create test sources
-        \App\Models\Source::firstOrCreate(
+        Source::firstOrCreate(
             ['code' => 'PHB'],
             ['name' => 'Players Handbook', 'publication_date' => '2014-08-19']
         );
-        \App\Models\Source::firstOrCreate(
+        Source::firstOrCreate(
             ['code' => 'XGE'],
             ['name' => 'Xanathars Guide to Everything', 'publication_date' => '2017-11-21']
         );
@@ -516,10 +522,10 @@ XML;
         $monsters = $parser->parse($xmlV1);
         $this->importer->import($monsters[0]);
 
-        $phbMonster = \App\Models\Monster::where('slug', 'phb:reimport-test-monster')->first();
+        $phbMonster = Monster::where('slug', 'phb:reimport-test-monster')->first();
         $this->assertNotNull($phbMonster);
         $this->assertEquals('phb:reimport-test-monster', $phbMonster->slug);
-        $this->assertEquals(1, \App\Models\Monster::where('name', 'Reimport Test Monster')->count());
+        $this->assertEquals(1, Monster::where('name', 'Reimport Test Monster')->count());
 
         // Import with XGE source - creates a separate monster (not updating PHB one)
         $xmlV2 = <<<'XML'
@@ -556,23 +562,23 @@ XML;
         $this->importer->import($monsters[0]);
 
         // With source-prefixed slugs, same-name monsters from different sources create separate entities
-        $xgeMonster = \App\Models\Monster::where('slug', 'xge:reimport-test-monster')->first();
+        $xgeMonster = Monster::where('slug', 'xge:reimport-test-monster')->first();
         $this->assertNotNull($xgeMonster);
         $this->assertEquals('xge:reimport-test-monster', $xgeMonster->slug);
 
         // Both monsters should exist
-        $this->assertEquals(2, \App\Models\Monster::where('name', 'Reimport Test Monster')->count());
+        $this->assertEquals(2, Monster::where('name', 'Reimport Test Monster')->count());
 
         // Original PHB monster should be unchanged
         $phbMonster->refresh();
         $this->assertEquals('phb:reimport-test-monster', $phbMonster->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_links_monster_to_creature_type_based_on_type_string(): void
     {
         // Ensure creature types are seeded
-        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+        $this->seed(CreatureTypeSeeder::class);
 
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
 
@@ -589,10 +595,10 @@ XML;
         $this->assertEquals('core:dragon', $dragon->creatureType->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_swarm_type_correctly(): void
     {
-        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+        $this->seed(CreatureTypeSeeder::class);
 
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -631,10 +637,10 @@ XML;
         $this->assertEquals('core:swarm', $swarm->creatureType->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_base_type_from_parenthetical_type_string(): void
     {
-        $this->seed(\Database\Seeders\CreatureTypeSeeder::class);
+        $this->seed(CreatureTypeSeeder::class);
 
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>

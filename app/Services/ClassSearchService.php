@@ -10,7 +10,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
-final class ClassSearchService
+/**
+ * Service for searching and filtering D&D classes/subclasses
+ *
+ * Overrides buildDatabaseQuery and searchWithMeilisearch from
+ * AbstractSearchService to add withCount('spells') to every query,
+ * which is required by ClassResource for spell count exposure.
+ */
+final class ClassSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
@@ -82,46 +89,13 @@ final class ClassSearchService
     ];
 
     /**
-     * Backward compatibility alias
-     */
-    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
-
-    /**
-     * Build Scout search query for full-text search
+     * Get the fully qualified model class name
      *
-     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
-     *
-     * Examples:
-     * - ?filter=is_subclass = false
-     * - ?filter=hit_die = 12
-     * - ?filter=spellcasting_ability = INT
-     * - ?filter=tag_slugs IN [spellcaster]
-     * - ?filter=is_subclass = false AND hit_die >= 10
+     * @return class-string<\Illuminate\Database\Eloquent\Model>
      */
-    public function buildScoutQuery(string $searchQuery): \Laravel\Scout\Builder
+    protected function getModelClass(): string
     {
-        return CharacterClass::search($searchQuery);
-    }
-
-    /**
-     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
-     */
-    public function buildDatabaseQuery(ClassSearchDTO $dto): Builder
-    {
-        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS)
-            ->withCount('spells');
-
-        $this->applySorting($query, $dto);
-
-        return $query;
-    }
-
-    /**
-     * Get default relationships for eager loading (index endpoints)
-     */
-    public function getDefaultRelationships(): array
-    {
-        return self::INDEX_RELATIONSHIPS;
+        return CharacterClass::class;
     }
 
     /**
@@ -140,36 +114,67 @@ final class ClassSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applySorting(Builder $query, ClassSearchDTO $dto): void
+    /**
+     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
+     *
+     * Overrides the base to add withCount('spells') for the spells_count attribute
+     * exposed by ClassResource.
+     */
+    public function buildDatabaseQuery(object $dto): Builder
     {
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
+        $query = CharacterClass::with(self::INDEX_RELATIONSHIPS)
+            ->withCount('spells');
+
+        $this->applySorting($query, $dto);
+
+        return $query;
+    }
+
+    /**
+     * Build Scout search query for full-text search.
+     *
+     * NOTE: Historically accepted a raw string instead of a DTO. Tests still
+     * pass a string (see ClassSearchServiceTest::it_builds_scout_query), so
+     * accept either form.
+     *
+     * Examples:
+     * - ?filter=is_subclass = false
+     * - ?filter=hit_die = 12
+     * - ?filter=spellcasting_ability = INT
+     * - ?filter=tag_slugs IN [spellcaster]
+     * - ?filter=is_subclass = false AND hit_die >= 10
+     *
+     * @param  string|object  $dto  ClassSearchDTO or a raw search string
+     */
+    public function buildScoutQuery(string|object $dto): \Laravel\Scout\Builder
+    {
+        $searchQuery = is_string($dto) ? $dto : ($dto->searchQuery ?? '');
+
+        return CharacterClass::search($searchQuery);
     }
 
     /**
      * Search using Meilisearch with optional filter and sort.
      *
+     * Overrides the base to add withCount('spells') to hydration.
      * Supports filter-only queries (no search term required).
      */
-    public function searchWithMeilisearch(ClassSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function searchWithMeilisearch(object $dto, Client $client): LengthAwarePaginator
     {
         $searchParams = [
             'limit' => $dto->perPage,
             'offset' => ($dto->page - 1) * $dto->perPage,
         ];
 
-        // Add filter if provided
         if ($dto->meilisearchFilter) {
             $searchParams['filter'] = $dto->meilisearchFilter;
         }
 
-        // Add sort if needed
         if ($dto->sortBy && $dto->sortDirection) {
             $searchParams['sort'] = ["{$dto->sortBy}:{$dto->sortDirection}"];
         }
 
-        // Execute search
         try {
-            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
             $indexName = (new CharacterClass)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
@@ -180,10 +185,7 @@ final class ClassSearchService
             );
         }
 
-        // Convert SearchResult object to array
         $resultsArray = $results->toArray();
-
-        // Hydrate Eloquent models to use with API Resources
         $classIds = collect($resultsArray['hits'])->pluck('id');
 
         if ($classIds->isEmpty()) {

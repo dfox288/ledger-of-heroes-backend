@@ -5,11 +5,13 @@ namespace App\Services;
 use App\DTOs\ItemSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Item;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
-final class ItemSearchService
+/**
+ * Service for searching and filtering D&D items
+ */
+final class ItemSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
@@ -45,46 +47,13 @@ final class ItemSearchService
     ];
 
     /**
-     * Backward compatibility alias
-     */
-    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
-
-    /**
-     * Build Scout search query for full-text search
+     * Get the fully qualified model class name
      *
-     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
-     *
-     * Examples:
-     * - ?filter=rarity IN [rare, legendary]
-     * - ?filter=type_code = WD
-     * - ?filter=requires_attunement = true
-     * - ?filter=spell_slugs IN [fireball]
-     * - ?filter=spell_slugs IN [fireball] AND rarity = rare
-     * - ?filter=has_charges = true AND type_code IN [WD, ST]
+     * @return class-string<\Illuminate\Database\Eloquent\Model>
      */
-    public function buildScoutQuery(ItemSearchDTO $dto): \Laravel\Scout\Builder
+    protected function getModelClass(): string
     {
-        return Item::search($dto->searchQuery);
-    }
-
-    /**
-     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
-     */
-    public function buildDatabaseQuery(ItemSearchDTO $dto): Builder
-    {
-        $query = Item::with(self::INDEX_RELATIONSHIPS);
-
-        $this->applySorting($query, $dto);
-
-        return $query;
-    }
-
-    /**
-     * Get default relationships for eager loading (index endpoints)
-     */
-    public function getDefaultRelationships(): array
-    {
-        return self::INDEX_RELATIONSHIPS;
+        return Item::class;
     }
 
     /**
@@ -103,62 +72,76 @@ final class ItemSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applySorting(Builder $query, ItemSearchDTO $dto): void
-    {
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
-    }
-
     /**
-     * Search using Meilisearch with custom filter expressions
+     * Search using Meilisearch with custom filter expressions.
+     *
+     * NOTE: ItemSearchService intentionally does NOT pass sort parameters
+     * to Meilisearch — results are returned in Meilisearch's default relevance
+     * order. Sorting via the DTO is applied at the Eloquent query level only
+     * (see buildDatabaseQuery). This preserves existing behavior documented
+     * in ItemSearchServiceTest::it_returns_results_in_meilisearch_relevance_order.
+     *
+     * Examples:
+     * - ?filter=rarity IN [rare, legendary]
+     * - ?filter=type_code = WD
+     * - ?filter=requires_attunement = true
+     * - ?filter=spell_slugs IN [fireball]
+     * - ?filter=spell_slugs IN [fireball] AND rarity = rare
+     * - ?filter=has_charges = true AND type_code IN [WD, ST]
      */
-    public function searchWithMeilisearch(ItemSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function searchWithMeilisearch(object $dto, Client $client): LengthAwarePaginator
     {
         $searchParams = [
             'limit' => $dto->perPage,
             'offset' => ($dto->page - 1) * $dto->perPage,
         ];
 
-        // Add filter if provided
         if ($dto->meilisearchFilter) {
-            try {
-                $searchParams['filter'] = $dto->meilisearchFilter;
-            } catch (\Exception $e) {
-                throw new InvalidFilterSyntaxException($dto->meilisearchFilter, $e->getMessage());
-            }
+            $searchParams['filter'] = $dto->meilisearchFilter;
         }
 
-        // Execute search
         try {
-            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
             $indexName = (new Item)->searchableAs();
-            $index = $client->index($indexName);
-            $results = $index->search($dto->searchQuery ?? '', $searchParams);
+            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
             throw new InvalidFilterSyntaxException(
-                $dto->meilisearchFilter ?? '',
-                $e->getMessage()
+                filter: $dto->meilisearchFilter ?? 'unknown',
+                meilisearchMessage: $e->getMessage(),
+                previous: $e
             );
         }
 
-        // Get item IDs from results
-        $itemIds = collect($results->getHits())->pluck('id')->all();
+        $resultsArray = $results->toArray();
+        $itemIds = collect($resultsArray['hits'])->pluck('id');
 
-        // Fetch full items from database in correct order
+        if ($itemIds->isEmpty()) {
+            return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
+        }
+
         $items = Item::with(self::INDEX_RELATIONSHIPS)
-            ->whereIn('id', $itemIds)
-            ->get()
-            ->sortBy(function ($item) use ($itemIds) {
-                return array_search($item->id, $itemIds);
-            })
-            ->values();
+            ->findMany($itemIds);
 
-        // Create paginator
+        // Preserve Meilisearch result order
+        $orderedItems = $itemIds->map(function ($id) use ($items) {
+            return $items->firstWhere('id', $id);
+        })->filter();
+
         return new LengthAwarePaginator(
-            $items,
-            $results->getEstimatedTotalHits(),
+            $orderedItems,
+            $resultsArray['estimatedTotalHits'] ?? 0,
             $dto->perPage,
-            $dto->page,
+            $dto->page ?? 1,
             ['path' => request()->url(), 'query' => request()->query()]
         );
+    }
+
+    /**
+     * Build Scout search query for full-text search.
+     *
+     * @param  ItemSearchDTO|object  $dto
+     */
+    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    {
+        return Item::search($dto->searchQuery ?? '');
     }
 }

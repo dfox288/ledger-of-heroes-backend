@@ -5,14 +5,13 @@ namespace App\Services;
 use App\DTOs\MonsterSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Monster;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
 /**
  * Service for searching and filtering D&D monsters
  */
-final class MonsterSearchService
+final class MonsterSearchService extends AbstractSearchService
 {
     /**
      * Relationships for index/list endpoints (lightweight)
@@ -47,44 +46,13 @@ final class MonsterSearchService
     ];
 
     /**
-     * Backward compatibility alias
-     */
-    private const DEFAULT_RELATIONSHIPS = self::INDEX_RELATIONSHIPS;
-
-    /**
-     * Build Scout search query for full-text search
+     * Get the fully qualified model class name
      *
-     * NOTE: MySQL filtering has been removed. Use Meilisearch ?filter= parameter instead.
-     *
-     * Examples:
-     * - ?filter=spell_slugs IN [fireball]
-     * - ?filter=challenge_rating >= 5
-     * - ?filter=type = dragon AND challenge_rating >= 10
-     * - ?filter=tag_slugs IN [undead] AND hit_points_average > 100
+     * @return class-string<\Illuminate\Database\Eloquent\Model>
      */
-    public function buildScoutQuery(MonsterSearchDTO $dto): \Laravel\Scout\Builder
+    protected function getModelClass(): string
     {
-        return Monster::search($dto->searchQuery);
-    }
-
-    /**
-     * Build Eloquent database query for pagination (no filters - use Meilisearch for filtering)
-     */
-    public function buildDatabaseQuery(MonsterSearchDTO $dto): Builder
-    {
-        $query = Monster::with(self::INDEX_RELATIONSHIPS);
-
-        $this->applySorting($query, $dto);
-
-        return $query;
-    }
-
-    /**
-     * Get default relationships for eager loading (index endpoints)
-     */
-    public function getDefaultRelationships(): array
-    {
-        return self::INDEX_RELATIONSHIPS;
+        return Monster::class;
     }
 
     /**
@@ -103,63 +71,74 @@ final class MonsterSearchService
         return self::SHOW_RELATIONSHIPS;
     }
 
-    private function applySorting(Builder $query, MonsterSearchDTO $dto): void
-    {
-        $query->orderBy($dto->sortBy, $dto->sortDirection);
-    }
-
     /**
-     * Search using Meilisearch with custom filter expressions
+     * Search using Meilisearch with custom filter expressions.
+     *
+     * NOTE: MonsterSearchService intentionally does NOT pass sort parameters
+     * to Meilisearch — results are returned in Meilisearch's default relevance
+     * order. Sorting via the DTO is applied at the Eloquent query level only
+     * (see buildDatabaseQuery). This preserves existing behavior documented
+     * in MonsterSearchServiceTest::it_returns_results_in_meilisearch_relevance_order.
+     *
+     * Examples:
+     * - ?filter=spell_slugs IN [fireball]
+     * - ?filter=challenge_rating >= 5
+     * - ?filter=type = dragon AND challenge_rating >= 10
+     * - ?filter=tag_slugs IN [undead] AND hit_points_average > 100
      */
-    public function searchWithMeilisearch(MonsterSearchDTO $dto, Client $client): LengthAwarePaginator
+    public function searchWithMeilisearch(object $dto, Client $client): LengthAwarePaginator
     {
         $searchParams = [
             'limit' => $dto->perPage,
             'offset' => ($dto->page - 1) * $dto->perPage,
         ];
 
-        // Add filter if provided
         if ($dto->meilisearchFilter) {
-            // Validate filter syntax
-            try {
-                $searchParams['filter'] = $dto->meilisearchFilter;
-            } catch (\Exception $e) {
-                throw new InvalidFilterSyntaxException($dto->meilisearchFilter, $e->getMessage());
-            }
+            $searchParams['filter'] = $dto->meilisearchFilter;
         }
 
-        // Execute search
         try {
-            // Use model's searchableAs() to respect Scout prefix (test_ for testing, none for production)
             $indexName = (new Monster)->searchableAs();
-            $index = $client->index($indexName);
-            $results = $index->search($dto->searchQuery ?? '', $searchParams);
+            $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
         } catch (\MeiliSearch\Exceptions\ApiException $e) {
             throw new InvalidFilterSyntaxException(
-                $dto->meilisearchFilter ?? '',
-                $e->getMessage()
+                filter: $dto->meilisearchFilter ?? 'unknown',
+                meilisearchMessage: $e->getMessage(),
+                previous: $e
             );
         }
 
-        // Get monster IDs from results
-        $monsterIds = collect($results->getHits())->pluck('id')->all();
+        $resultsArray = $results->toArray();
+        $monsterIds = collect($resultsArray['hits'])->pluck('id');
 
-        // Fetch full monsters from database in correct order
+        if ($monsterIds->isEmpty()) {
+            return new LengthAwarePaginator([], 0, $dto->perPage, $dto->page);
+        }
+
         $monsters = Monster::with(self::INDEX_RELATIONSHIPS)
-            ->whereIn('id', $monsterIds)
-            ->get()
-            ->sortBy(function ($monster) use ($monsterIds) {
-                return array_search($monster->id, $monsterIds);
-            })
-            ->values();
+            ->findMany($monsterIds);
 
-        // Create paginator
+        // Preserve Meilisearch result order
+        $orderedMonsters = $monsterIds->map(function ($id) use ($monsters) {
+            return $monsters->firstWhere('id', $id);
+        })->filter();
+
         return new LengthAwarePaginator(
-            $monsters,
-            $results->getEstimatedTotalHits(),
+            $orderedMonsters,
+            $resultsArray['estimatedTotalHits'] ?? 0,
             $dto->perPage,
-            $dto->page,
+            $dto->page ?? 1,
             ['path' => request()->url(), 'query' => request()->query()]
         );
+    }
+
+    /**
+     * Build Scout search query for full-text search.
+     *
+     * @param  MonsterSearchDTO|object  $dto
+     */
+    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    {
+        return Monster::search($dto->searchQuery ?? '');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\ClassSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\CharacterClass;
+use App\Services\Search\MeilisearchFilterCompiler;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as PaginatorContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -167,7 +168,7 @@ final class ClassSearchService extends AbstractSearchService
         ];
 
         if ($dto->meilisearchFilter) {
-            $searchParams['filter'] = $dto->meilisearchFilter;
+            $searchParams['filter'] = MeilisearchFilterCompiler::compile($dto->meilisearchFilter);
         }
 
         if ($dto->sortBy && $dto->sortDirection) {

@@ -15,6 +15,7 @@
             <directory>tests/Unit/Parsers</directory>
             <directory>tests/Unit/Services/Parsers</directory>
             <file>tests/Unit/Services/CharacterStatCalculatorTest.php</file>
+            <file>tests/Unit/Services/Search/MeilisearchFilterCompilerTest.php</file>
             <exclude>tests/Unit/Parsers/ClassXmlParserTest.php</exclude>
             <exclude>tests/Unit/Parsers/ClassXmlParserEquipmentTest.php</exclude>
             <exclude>tests/Unit/Parsers/FeatXmlParserPrerequisitesTest.php</exclude>

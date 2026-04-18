@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\Search\InvalidFilterSyntaxException;
+use App\Services\Search\MeilisearchFilterCompiler;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -117,9 +118,10 @@ abstract class AbstractSearchService
             'offset' => ($dto->page - 1) * $dto->perPage,
         ];
 
-        // Add filter if provided
+        // Add filter if provided. User-supplied filters are compiled to
+        // Meilisearch-safe syntax (e.g. values containing `:` get quoted).
         if ($dto->meilisearchFilter) {
-            $searchParams['filter'] = $dto->meilisearchFilter;
+            $searchParams['filter'] = MeilisearchFilterCompiler::compile($dto->meilisearchFilter);
         }
 
         // Add sort if needed

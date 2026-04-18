@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\ItemSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Item;
+use App\Services\Search\MeilisearchFilterCompiler;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
 
@@ -97,7 +98,7 @@ final class ItemSearchService extends AbstractSearchService
         ];
 
         if ($dto->meilisearchFilter) {
-            $searchParams['filter'] = $dto->meilisearchFilter;
+            $searchParams['filter'] = MeilisearchFilterCompiler::compile($dto->meilisearchFilter);
         }
 
         try {

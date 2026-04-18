@@ -10,6 +10,7 @@ use App\Models\CharacterLanguage;
 use App\Models\CharacterSpell;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -331,11 +332,11 @@ describe('Bulk Character Validation', function () {
         ]);
 
         // Enable query logging
-        \Illuminate\Support\Facades\DB::enableQueryLog();
+        DB::enableQueryLog();
 
         $response = $this->getJson('/api/v1/characters/validate-all');
 
-        $queryCount = count(\Illuminate\Support\Facades\DB::getQueryLog());
+        $queryCount = count(DB::getQueryLog());
 
         $response->assertOk()
             ->assertJsonPath('data.total', 50)

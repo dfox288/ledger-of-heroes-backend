@@ -2,12 +2,14 @@
 
 namespace Tests\Unit\Parsers;
 
+use App\Services\Parsers\Concerns\ParsesScalingIncrement;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 // Create a test class that uses the trait
 class ParsesScalingIncrementTestClass
 {
-    use \App\Services\Parsers\Concerns\ParsesScalingIncrement;
+    use ParsesScalingIncrement;
 
     public function parse(?string $text): ?string
     {
@@ -15,7 +17,7 @@ class ParsesScalingIncrementTestClass
     }
 }
 
-class ParsesScalingIncrementTest extends \Tests\TestCase
+class ParsesScalingIncrementTest extends TestCase
 {
     private ParsesScalingIncrementTestClass $parser;
 

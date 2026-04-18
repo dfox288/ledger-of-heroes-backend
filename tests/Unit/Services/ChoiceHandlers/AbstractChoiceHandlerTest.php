@@ -2,7 +2,11 @@
 
 namespace Tests\Unit\Services\ChoiceHandlers;
 
+use App\DTOs\PendingChoice;
+use App\Exceptions\InvalidChoiceException;
+use App\Models\Character;
 use App\Services\ChoiceHandlers\AbstractChoiceHandler;
+use Illuminate\Support\Collection;
 
 describe('AbstractChoiceHandler', function () {
     beforeEach(function () {
@@ -14,22 +18,22 @@ describe('AbstractChoiceHandler', function () {
                 return 'test';
             }
 
-            public function getChoices(\App\Models\Character $character): \Illuminate\Support\Collection
+            public function getChoices(Character $character): Collection
             {
                 return collect();
             }
 
-            public function resolve(\App\Models\Character $character, \App\DTOs\PendingChoice $choice, array $selection): void
+            public function resolve(Character $character, PendingChoice $choice, array $selection): void
             {
                 // No-op for testing
             }
 
-            public function canUndo(\App\Models\Character $character, \App\DTOs\PendingChoice $choice): bool
+            public function canUndo(Character $character, PendingChoice $choice): bool
             {
                 return false;
             }
 
-            public function undo(\App\Models\Character $character, \App\DTOs\PendingChoice $choice): void
+            public function undo(Character $character, PendingChoice $choice): void
             {
                 // No-op for testing
             }
@@ -138,22 +142,22 @@ describe('AbstractChoiceHandler', function () {
 
         it('throws exception for incomplete choice IDs', function () {
             expect(fn () => $this->handler->testParseChoiceId('proficiency|class'))
-                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+                ->toThrow(InvalidChoiceException::class);
         });
 
         it('throws exception for empty string', function () {
             expect(fn () => $this->handler->testParseChoiceId(''))
-                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+                ->toThrow(InvalidChoiceException::class);
         });
 
         it('throws exception for choice ID with wrong segment count', function () {
             // Too few segments
             expect(fn () => $this->handler->testParseChoiceId('a|b|c'))
-                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+                ->toThrow(InvalidChoiceException::class);
 
             // Too many segments
             expect(fn () => $this->handler->testParseChoiceId('a|b|c|d|e|f'))
-                ->toThrow(\App\Exceptions\InvalidChoiceException::class);
+                ->toThrow(InvalidChoiceException::class);
         });
     });
 

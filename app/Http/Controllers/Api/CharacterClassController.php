@@ -235,7 +235,7 @@ class CharacterClassController extends Controller
      *
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  Class ID or slug
-     * @return \Illuminate\Http\JsonResponse<LevelUpResource>
+     * @return JsonResponse<LevelUpResource>
      */
     public function levelUp(Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -318,7 +318,7 @@ class CharacterClassController extends Controller
      * @param  CharacterClassAddRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classIdOrSlug  The class ID or slug to replace
-     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
+     * @return JsonResponse<CharacterClassPivotResource>
      */
     public function replace(CharacterClassAddRequest $request, Character $character, string $classSlugOrFullSlug): JsonResponse
     {
@@ -397,7 +397,7 @@ class CharacterClassController extends Controller
      * @param  CharacterSubclassSetRequest  $request  The validated request
      * @param  Character  $character  The character
      * @param  string  $classSlugOrFullSlug  Class slug
-     * @return \Illuminate\Http\JsonResponse<CharacterClassPivotResource>
+     * @return JsonResponse<CharacterClassPivotResource>
      *
      * @throws InvalidSubclassException If subclass doesn't belong to the class
      * @throws SubclassLevelRequirementException If character level is below requirement

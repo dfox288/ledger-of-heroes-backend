@@ -8,10 +8,11 @@ use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class FeatModelTest extends TestCase
 {
     use RefreshDatabase;

@@ -7,14 +7,16 @@ use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\Proficiency;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class MulticlassRequirementResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_multiclass_requirement_with_ability_score(): void
     {
         $class = CharacterClass::factory()->create();
@@ -41,7 +43,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertFalse($array['is_alternative']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_excludes_ability_when_relationship_not_loaded(): void
     {
         $class = CharacterClass::factory()->create();
@@ -67,7 +69,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertFalse($array['is_alternative']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_marks_is_alternative_true_when_subcategory_is_or(): void
     {
         $class = CharacterClass::factory()->create();
@@ -88,7 +90,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertTrue($array['is_alternative']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_none_type_for_empty_collection(): void
     {
         $requirements = collect([]);
@@ -99,7 +101,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertEmpty($result['requirements']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_single_type_for_one_requirement(): void
     {
         $class = CharacterClass::factory()->create();
@@ -122,7 +124,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertCount(1, $result['requirements']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_and_type_for_multiple_requirements_all_required(): void
     {
         $class = CharacterClass::factory()->create();
@@ -155,7 +157,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertCount(2, $result['requirements']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_or_type_when_any_requirement_has_or_subcategory(): void
     {
         $class = CharacterClass::factory()->create();
@@ -188,7 +190,7 @@ class MulticlassRequirementResourceTest extends TestCase
         $this->assertCount(2, $result['requirements']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_requirements_in_collection(): void
     {
         $class = CharacterClass::factory()->create();

@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\FiendStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class FiendStrategyTest extends TestCase
 {
@@ -18,7 +20,7 @@ class FiendStrategyTest extends TestCase
         $this->strategy = new FiendStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_fiend_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'fiend (demon)']));
@@ -27,7 +29,7 @@ class FiendStrategyTest extends TestCase
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Fiend']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_fiend_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'dragon']));
@@ -35,7 +37,7 @@ class FiendStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'celestial']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_fire_immunity(): void
     {
         $monsterData = [
@@ -52,7 +54,7 @@ class FiendStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['fire_immune_count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_poison_immunity(): void
     {
         $monsterData = [
@@ -69,7 +71,7 @@ class FiendStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['poison_immune_count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_magic_resistance_trait(): void
     {
         $traits = [
@@ -93,7 +95,7 @@ class FiendStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['magic_resistance_count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_fiend_enhancement_metrics(): void
     {
         $monsterData = [
@@ -110,7 +112,7 @@ class FiendStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['fiends_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

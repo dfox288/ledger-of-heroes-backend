@@ -3,13 +3,15 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\CharacterClass;
+use App\Models\EntityChoice;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ClassImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -277,7 +279,7 @@ class ClassImporterTest extends TestCase
         $this->assertGreaterThan(0, $proficiencies->count());
 
         // Get skill choices from EntityChoice table
-        $skillChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+        $skillChoices = EntityChoice::where('reference_type', CharacterClass::class)
             ->where('reference_id', $fighter->id)
             ->where('choice_type', 'proficiency')
             ->where('proficiency_type', 'skill')
@@ -334,7 +336,7 @@ class ClassImporterTest extends TestCase
         $this->assertGreaterThan(0, $barbarian->equipment()->count(), 'Barbarian should have equipment');
 
         // Assert: verify equipment choices in EntityChoice table
-        $equipmentChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+        $equipmentChoices = EntityChoice::where('reference_type', CharacterClass::class)
             ->where('reference_id', $barbarian->id)
             ->where('choice_type', 'equipment')
             ->get();
@@ -573,7 +575,7 @@ XML;
         $class = $this->importer->import($classData);
 
         // Get all equipment choices for this class
-        $equipmentChoices = \App\Models\EntityChoice::where('reference_type', \App\Models\CharacterClass::class)
+        $equipmentChoices = EntityChoice::where('reference_type', CharacterClass::class)
             ->where('reference_id', $class->id)
             ->where('choice_type', 'equipment')
             ->orderBy('choice_group')

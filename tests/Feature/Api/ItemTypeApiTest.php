@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use Database\Seeders\ItemTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ItemTypeApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -14,7 +16,7 @@ class ItemTypeApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\ItemTypeSeeder::class);
+        $this->seed(ItemTypeSeeder::class);
     }
 
     #[Test]

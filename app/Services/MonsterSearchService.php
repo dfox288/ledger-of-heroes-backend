@@ -5,8 +5,11 @@ namespace App\Services;
 use App\DTOs\MonsterSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Monster;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Scout\Builder;
 use MeiliSearch\Client;
+use MeiliSearch\Exceptions\ApiException;
 
 /**
  * Service for searching and filtering D&D monsters
@@ -48,7 +51,7 @@ final class MonsterSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -100,7 +103,7 @@ final class MonsterSearchService extends AbstractSearchService
         try {
             $indexName = (new Monster)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        } catch (ApiException $e) {
             throw new InvalidFilterSyntaxException(
                 filter: $dto->meilisearchFilter ?? 'unknown',
                 meilisearchMessage: $e->getMessage(),
@@ -137,7 +140,7 @@ final class MonsterSearchService extends AbstractSearchService
      *
      * @param  MonsterSearchDTO|object  $dto
      */
-    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    public function buildScoutQuery(object $dto): Builder
     {
         return Monster::search($dto->searchQuery ?? '');
     }

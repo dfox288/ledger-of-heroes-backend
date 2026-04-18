@@ -3,6 +3,9 @@
 namespace App\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
+use App\Exceptions\ChoiceNotUndoableException;
+use App\Exceptions\InvalidChoiceException;
+use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use Illuminate\Support\Collection;
 
@@ -27,8 +30,8 @@ interface ChoiceTypeHandler
      *
      * @param  array  $selection  The user's selection (format varies by type)
      *
-     * @throws \App\Exceptions\InvalidChoiceException
-     * @throws \App\Exceptions\InvalidSelectionException
+     * @throws InvalidChoiceException
+     * @throws InvalidSelectionException
      */
     public function resolve(Character $character, PendingChoice $choice, array $selection): void;
 
@@ -40,7 +43,7 @@ interface ChoiceTypeHandler
     /**
      * Undo a previously resolved choice.
      *
-     * @throws \App\Exceptions\ChoiceNotUndoableException
+     * @throws ChoiceNotUndoableException
      */
     public function undo(Character $character, PendingChoice $choice): void;
 }

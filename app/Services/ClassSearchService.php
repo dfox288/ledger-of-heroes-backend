@@ -8,8 +8,10 @@ use App\Models\CharacterClass;
 use App\Services\Search\MeilisearchFilterCompiler;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as PaginatorContract;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
+use MeiliSearch\Exceptions\ApiException;
 
 /**
  * Service for searching and filtering D&D classes/subclasses
@@ -92,7 +94,7 @@ final class ClassSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -178,7 +180,7 @@ final class ClassSearchService extends AbstractSearchService
         try {
             $indexName = (new CharacterClass)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        } catch (ApiException $e) {
             throw new InvalidFilterSyntaxException(
                 filter: $dto->meilisearchFilter ?? 'unknown',
                 meilisearchMessage: $e->getMessage(),

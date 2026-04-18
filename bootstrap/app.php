@@ -1,8 +1,11 @@
 <?php
 
+use App\Exceptions\ApiException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,12 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
+            HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Handle validation exceptions for API routes
-        $exceptions->renderable(function (\Illuminate\Validation\ValidationException $e, $request) {
+        $exceptions->renderable(function (ValidationException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => $e->getMessage(),
@@ -28,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Handle custom API exceptions
-        $exceptions->renderable(function (\App\Exceptions\ApiException $e, $request) {
+        $exceptions->renderable(function (ApiException $e, $request) {
             return $e->render($request);
         });
     })->create();

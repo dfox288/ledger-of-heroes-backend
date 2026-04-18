@@ -7,6 +7,7 @@ use App\Http\Requests\ItemTypeIndexRequest;
 use App\Http\Resources\ItemTypeResource;
 use App\Models\ItemType;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ItemTypeController extends Controller
 {
@@ -45,7 +46,7 @@ class ItemTypeController extends Controller
      * - **Character Equipment:** Find all weapons or armor available
      * - **Magic Item Shopping:** Browse wondrous items, rings, or wands
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search item types by name', example: 'weapon')]
     public function index(ItemTypeIndexRequest $request)

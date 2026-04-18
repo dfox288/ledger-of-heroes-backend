@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\ParsesFeatureChoiceProgressions;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesFeatureChoiceProgressionsTest extends TestCase
 {
     use ParsesFeatureChoiceProgressions;

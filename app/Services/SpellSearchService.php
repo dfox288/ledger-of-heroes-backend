@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Spell;
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Builder;
 
 /**
  * Service for searching and filtering D&D spells
@@ -38,7 +40,7 @@ final class SpellSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -72,7 +74,7 @@ final class SpellSearchService extends AbstractSearchService
      * - ?filter=concentration = true
      * - ?filter=level <= 3 AND school = EV
      */
-    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    public function buildScoutQuery(object $dto): Builder
     {
         return parent::buildScoutQuery($dto);
     }

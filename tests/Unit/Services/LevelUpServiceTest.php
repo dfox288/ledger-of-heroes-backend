@@ -9,6 +9,8 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
 use App\Models\ClassFeature;
+use App\Models\FeatureSelection;
+use App\Models\OptionalFeature;
 use App\Models\Race;
 use App\Services\LevelUpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -219,7 +221,7 @@ class LevelUpServiceTest extends TestCase
         $race = Race::factory()->create();
 
         // Create a fighting style optional feature for the handler to check against
-        $fightingStyle = \App\Models\OptionalFeature::factory()->create([
+        $fightingStyle = OptionalFeature::factory()->create([
             'feature_type' => 'fighting_style',
             'name' => 'Defense',
         ]);
@@ -234,7 +236,7 @@ class LevelUpServiceTest extends TestCase
             ]);
 
         // Resolve the required fighting style choice
-        \App\Models\FeatureSelection::create([
+        FeatureSelection::create([
             'character_id' => $character->id,
             'class_slug' => $class->slug,
             'feature_type' => 'fighting_style',

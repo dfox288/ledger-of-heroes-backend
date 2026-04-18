@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Race;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -14,14 +17,14 @@ use Tests\TestCase;
  * Uses real imported race data from PHB for realistic testing.
  * All tests share the same indexed data for efficiency.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class RaceFilterOperatorTest extends TestCase
 {
     use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -59,7 +62,7 @@ class RaceFilterOperatorTest extends TestCase
     // Integer Operators (ability_str_bonus field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_equals(): void
     {
         // Act: Filter by ability_str_bonus = 2 (PHB has races with +2 STR)
@@ -76,7 +79,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_not_equals(): void
     {
         // Act: Filter by ability_str_bonus != 2 (should return all races except those with +2 STR)
@@ -100,7 +103,7 @@ class RaceFilterOperatorTest extends TestCase
         $this->assertNotContains(2, $strBonuses, 'STR bonus of 2 should be excluded');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_greater_than(): void
     {
         // Act: Filter by ability_str_bonus > 0 (should return races with positive STR bonuses)
@@ -127,7 +130,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_greater_than_or_equal(): void
     {
         // Act: Filter by ability_str_bonus >= 2 (should return races with STR bonus 2 or higher)
@@ -154,7 +157,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_less_than(): void
     {
         // Act: Filter by ability_str_bonus < 2 (should return races with STR bonus 0 or 1)
@@ -182,7 +185,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_less_than_or_equal(): void
     {
         // Act: Filter by ability_str_bonus <= 1 (should return races with STR bonus 1 or lower)
@@ -210,7 +213,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ability_str_bonus_with_to_range(): void
     {
         // Act: Filter by ability_str_bonus 1 TO 2 (inclusive range - should return bonuses 1, 2)
@@ -247,7 +250,7 @@ class RaceFilterOperatorTest extends TestCase
     // String Operators (size_code field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_size_code_with_equals(): void
     {
         // Act: Filter by size_code = M (Medium races) - use per_page to get more results
@@ -270,7 +273,7 @@ class RaceFilterOperatorTest extends TestCase
         $this->assertContains('Human', $raceNames, 'Human is a well-known Medium race');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_size_code_with_not_equals(): void
     {
         // Act: Filter by size_code != M (all races except Medium)
@@ -299,7 +302,7 @@ class RaceFilterOperatorTest extends TestCase
     // Using has_innate_spells instead as it's an actual boolean field.
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_equals_true(): void
     {
         // Act: Filter by has_innate_spells = true (races with innate spellcasting)
@@ -318,7 +321,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_equals_false(): void
     {
         // Act: Filter by has_innate_spells = false (races without innate spellcasting)
@@ -336,7 +339,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_not_equals_true(): void
     {
         // Act: Filter by has_innate_spells != true (races that are false or null)
@@ -354,7 +357,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_not_equals_false(): void
     {
         // Act: Filter by has_innate_spells != false (races that are true or null)
@@ -372,7 +375,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_is_null(): void
     {
         // Act: Filter by has_innate_spells IS NULL (races with no innate spell data)
@@ -392,7 +395,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_is_not_null(): void
     {
         // Act: Filter by has_innate_spells IS NOT NULL (races with innate spell data defined)
@@ -408,7 +411,7 @@ class RaceFilterOperatorTest extends TestCase
         $this->assertGreaterThan(0, $response->json('meta.total'), 'IS NOT NULL should return races');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_darkvision_with_not_equals(): void
     {
         // Act: Filter using generic != operator for boolean
@@ -430,7 +433,7 @@ class RaceFilterOperatorTest extends TestCase
     // Array Operators (spell_slugs field) - 3 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_spell_slugs_with_in(): void
     {
         // Act: Filter by spell_slugs IN [light, dancing-lights] (races with these innate spells)
@@ -451,7 +454,7 @@ class RaceFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_spell_slugs_with_not_in(): void
     {
         // Act: Filter by spell_slugs NOT IN [light] (exclude all races with light spell)
@@ -474,7 +477,7 @@ class RaceFilterOperatorTest extends TestCase
         $this->assertGreaterThan(0, $response->json('meta.total'), 'Should have races without light spell');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_spell_slugs_with_is_empty(): void
     {
         // Act: Filter by spell_slugs IS EMPTY (races with no innate spells)

@@ -3,9 +3,11 @@
 namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\SwarmStrategy;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class SwarmStrategyTest extends TestCase
 {
@@ -17,7 +19,7 @@ class SwarmStrategyTest extends TestCase
         $this->strategy = new SwarmStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_swarm_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'swarm of medium beasts']));
@@ -25,7 +27,7 @@ class SwarmStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'beast']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_individual_creature_size_from_type(): void
     {
         $monsterData = [
@@ -39,7 +41,7 @@ class SwarmStrategyTest extends TestCase
         $this->assertEquals('M', $metadata['swarm_size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_swarm_without_size_in_type(): void
     {
         $monsterData = [

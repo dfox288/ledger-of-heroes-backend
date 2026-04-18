@@ -6,11 +6,13 @@ use App\Models\AbilityScore;
 use App\Models\EntitySpell;
 use App\Models\Race;
 use App\Models\Spell;
+use Database\Seeders\AbilityScoreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class EntitySpellModelTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,7 +22,7 @@ class EntitySpellModelTest extends TestCase
         parent::setUp();
         // Only seed if ability scores don't exist
         if (AbilityScore::count() === 0) {
-            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+            $this->seed(AbilityScoreSeeder::class);
         }
     }
 

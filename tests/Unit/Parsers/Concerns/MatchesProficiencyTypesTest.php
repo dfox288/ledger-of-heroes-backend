@@ -4,10 +4,11 @@ namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class MatchesProficiencyTypesTest extends TestCase
 {
     use MatchesProficiencyTypes, RefreshDatabase;

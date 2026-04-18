@@ -5,6 +5,7 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\FeatureSelection;
 use App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 beforeEach(function () {
     $this->handler = new OptionalFeatureChoiceHandler;
@@ -140,7 +141,7 @@ it('undoes choice by deleting FeatureSelection record', function () {
     );
 
     // Mock featureSelections relationship
-    $featureSelectionsQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $featureSelectionsQuery = Mockery::mock(HasMany::class);
     $featureSelectionsQuery->shouldReceive('where')
         ->with('optional_feature_slug', 'phb2014:agonizing-blast')
         ->andReturnSelf();
@@ -162,7 +163,7 @@ it('undoes choice by deleting FeatureSelection record', function () {
 
 it('returns empty collection when character has no classes', function () {
     // Mock character classes relationship
-    $characterClassesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $characterClassesQuery = Mockery::mock(HasMany::class);
     $characterClassesQuery->shouldReceive('with')
         ->with(['characterClass.counters', 'subclass.counters'])
         ->andReturnSelf();
@@ -189,7 +190,7 @@ it('skips counter when level requirement not met', function () {
     ];
 
     // Mock character classes relationship
-    $characterClassesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $characterClassesQuery = Mockery::mock(HasMany::class);
     $characterClassesQuery->shouldReceive('with')
         ->with(['characterClass.counters', 'subclass.counters'])
         ->andReturnSelf();

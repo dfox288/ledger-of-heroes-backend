@@ -7,10 +7,11 @@ use App\Models\EntityDataTable;
 use App\Models\Race;
 use App\Services\Importers\Concerns\ImportsDataTables;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class ImportsDataTablesTest extends TestCase
 {

@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Item;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\ClearsMeilisearchIndex;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -15,15 +18,15 @@ use Tests\TestCase;
  *
  * Run: docker compose exec php php artisan test --testsuite=Feature-Search-Isolated
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class ItemFilterOperatorTest extends TestCase
 {
     use ClearsMeilisearchIndex;
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     private static bool $indexed = false;
 
@@ -49,11 +52,11 @@ class ItemFilterOperatorTest extends TestCase
     // Integer Operators (charges_max field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_equals(): void
     {
         // Find an item with charges_max from the database
-        $itemWithCharges = \App\Models\Item::whereNotNull('charges_max')->first();
+        $itemWithCharges = Item::whereNotNull('charges_max')->first();
 
         if (! $itemWithCharges) {
             $this->markTestSkipped('No items with charges_max in fixtures');
@@ -70,7 +73,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_not_equals(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max != "7"');
@@ -82,7 +85,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_greater_than(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max > "5"&per_page=100');
@@ -97,7 +100,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_greater_than_or_equal(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max >= "7"&per_page=100');
@@ -112,7 +115,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_less_than(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max < "5"&per_page=100');
@@ -127,7 +130,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_less_than_or_equal(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max <= "3"&per_page=100');
@@ -142,7 +145,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_charges_max_with_to_range(): void
     {
         $response = $this->getJson('/api/v1/items?filter=charges_max "3" TO "7"&per_page=100');
@@ -163,7 +166,7 @@ class ItemFilterOperatorTest extends TestCase
     // String Operators (rarity field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_rarity_with_equals(): void
     {
         $response = $this->getJson('/api/v1/items?filter=rarity = rare&per_page=100');
@@ -176,7 +179,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_rarity_with_not_equals(): void
     {
         $response = $this->getJson('/api/v1/items?filter=rarity != rare');
@@ -196,7 +199,7 @@ class ItemFilterOperatorTest extends TestCase
     // Boolean Operators (is_magic field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_equals_true(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic = true&per_page=100');
@@ -209,7 +212,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_equals_false(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic = false&per_page=100');
@@ -221,7 +224,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_not_equals_true(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic != true');
@@ -233,7 +236,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_not_equals_false(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic != false');
@@ -246,7 +249,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_is_null(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic IS NULL');
@@ -260,7 +263,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_is_not_null(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic IS NOT NULL');
@@ -274,7 +277,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_magic_with_not_equals(): void
     {
         $response = $this->getJson('/api/v1/items?filter=is_magic != true');
@@ -290,7 +293,7 @@ class ItemFilterOperatorTest extends TestCase
     // Array Operators (property_codes field) - 3 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_property_codes_with_in(): void
     {
         $response = $this->getJson('/api/v1/items?filter=property_codes IN [V, L]&per_page=100');
@@ -308,7 +311,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_property_codes_with_not_in(): void
     {
         $response = $this->getJson('/api/v1/items?filter=property_codes NOT IN [H]&per_page=100');
@@ -324,7 +327,7 @@ class ItemFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_property_codes_with_is_empty(): void
     {
         $response = $this->getJson('/api/v1/items?filter=property_codes IS EMPTY&per_page=100');

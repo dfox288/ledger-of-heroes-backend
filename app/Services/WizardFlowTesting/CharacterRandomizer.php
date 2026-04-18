@@ -7,6 +7,7 @@ namespace App\Services\WizardFlowTesting;
 use App\Models\Background;
 use App\Models\CharacterClass;
 use App\Models\Race;
+use Illuminate\Support\Str;
 
 /**
  * Picks random valid entities from the database for wizard flow testing.
@@ -175,7 +176,7 @@ class CharacterRandomizer
         // Use random_int() (non-seeded) for guaranteed uniqueness
         $adjective = $adjectives[random_int(0, count($adjectives) - 1)];
         $noun = $nouns[random_int(0, count($nouns) - 1)];
-        $suffix = \Illuminate\Support\Str::random(4);
+        $suffix = Str::random(4);
 
         return "{$adjective}-{$noun}-{$suffix}";
     }

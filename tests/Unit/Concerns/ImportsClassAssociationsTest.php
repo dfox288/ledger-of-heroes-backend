@@ -6,9 +6,11 @@ use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Services\Importers\Concerns\ImportsClassAssociations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ImportsClassAssociationsTest extends TestCase
 {
     use RefreshDatabase;
@@ -21,7 +23,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->importer = new TestImporter;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_subclass_with_exact_match(): void
     {
         $fighter = CharacterClass::factory()->create(['slug' => 'fighter', 'name' => 'Fighter']);
@@ -39,7 +41,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals($eldritchKnight->slug, $spell->classes()->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_subclass_with_fuzzy_match(): void
     {
         $warlock = CharacterClass::factory()->create(['slug' => 'warlock', 'name' => 'Warlock']);
@@ -58,7 +60,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals($archfey->slug, $spell->classes()->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_subclass_with_alias_mapping(): void
     {
         $druid = CharacterClass::factory()->create(['slug' => 'druid', 'name' => 'Druid']);
@@ -77,7 +79,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals($circleOfLand->slug, $spell->classes()->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_base_class_only(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -99,7 +101,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals($wizard->slug, $spell->classes()->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_multiple_base_classes(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -114,7 +116,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals([$sorcerer->slug, $wizard->slug], $classSlugs);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function sync_replaces_existing_associations(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -136,7 +138,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertNotContains($wizard->slug, $classSlugs);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function add_merges_with_existing_associations(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -158,7 +160,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals([$sorcerer->slug, $warlock->slug, $wizard->slug], $classSlugs);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function add_handles_duplicate_classes_correctly(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -177,7 +179,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals(2, $spell->classes()->count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_unresolved_classes(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -192,7 +194,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals($wizard->slug, $spell->classes()->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_class_array(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
@@ -206,7 +208,7 @@ class ImportsClassAssociationsTest extends TestCase
         $this->assertEquals(0, $spell->classes()->count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_mixed_base_and_subclass_names(): void
     {
         $wizard = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);

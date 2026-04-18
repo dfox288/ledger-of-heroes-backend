@@ -4,11 +4,12 @@ namespace Tests\Unit\Services\Parsers\Strategies;
 
 use App\Services\Parsers\Strategies\ChargedItemStrategy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 
 class ChargedItemStrategyTest extends TestCase
 {

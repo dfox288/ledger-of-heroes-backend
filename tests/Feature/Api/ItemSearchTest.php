@@ -4,17 +4,20 @@ namespace Tests\Feature\Api;
 
 use App\Models\Item;
 use App\Models\ItemType;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class ItemSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -22,7 +25,7 @@ class ItemSearchTest extends TestCase
         $this->artisan('search:configure-indexes');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_items_using_scout(): void
     {
         $type = ItemType::factory()->create(['name' => 'Weapon']);
@@ -40,7 +43,7 @@ class ItemSearchTest extends TestCase
             ->assertJsonPath('data.0.name', 'Longsword');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_query_minimum_length(): void
     {
         $response = $this->getJson('/api/v1/items?q=a');
@@ -49,7 +52,7 @@ class ItemSearchTest extends TestCase
             ->assertJsonValidationErrors(['q']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_search_gracefully(): void
     {
         Item::factory()->count(3)->create();

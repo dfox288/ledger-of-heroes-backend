@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\ConstructStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class ConstructStrategyTest extends TestCase
 {
@@ -18,14 +20,14 @@ class ConstructStrategyTest extends TestCase
         $this->strategy = new ConstructStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_construct_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'construct']));
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Construct']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_construct_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'fiend']));
@@ -33,7 +35,7 @@ class ConstructStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'celestial']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_poison_immunity(): void
     {
         $monsterData = [
@@ -50,7 +52,7 @@ class ConstructStrategyTest extends TestCase
         $this->assertContains('poison_immune', $tags);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_condition_immunities(): void
     {
         $monsterData = [
@@ -73,7 +75,7 @@ class ConstructStrategyTest extends TestCase
         )));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_constructed_nature_trait(): void
     {
         $traits = [
@@ -99,7 +101,7 @@ class ConstructStrategyTest extends TestCase
         $this->assertContains('constructed_nature', $metadata['metrics']['tags_applied']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_construct_enhancement_metrics(): void
     {
         $monsterData = [
@@ -115,7 +117,7 @@ class ConstructStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['constructs_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

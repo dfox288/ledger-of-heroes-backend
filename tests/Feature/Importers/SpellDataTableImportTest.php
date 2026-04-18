@@ -5,12 +5,15 @@ namespace Tests\Feature\Importers;
 use App\Models\EntityDataTable;
 use App\Models\EntityDataTableEntry;
 use App\Models\Spell;
+use App\Models\SpellSchool;
 use App\Services\Importers\SpellImporter;
+use Database\Seeders\SpellSchoolSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class SpellDataTableImportTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,8 +23,8 @@ class SpellDataTableImportTest extends TestCase
         parent::setUp();
 
         // Only seed if not already seeded (prevents duplicate key errors)
-        if (\App\Models\SpellSchool::count() === 0) {
-            $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+        if (SpellSchool::count() === 0) {
+            $this->seed(SpellSchoolSeeder::class);
         }
     }
 

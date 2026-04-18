@@ -9,14 +9,16 @@ use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Models\Modifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_proficiency_category_in_response(): void
     {
         $meleeType = ItemType::firstOrCreate(
@@ -44,7 +46,7 @@ class ItemResourceTest extends TestCase
         $this->assertEquals('martial_melee', $response['proficiency_category']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_magic_bonus_in_response(): void
     {
         $meleeType = ItemType::firstOrCreate(
@@ -74,7 +76,7 @@ class ItemResourceTest extends TestCase
         $this->assertEquals(2, $response['magic_bonus']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_proficiency_category_for_non_weapons(): void
     {
         $gearType = ItemType::firstOrCreate(
@@ -96,7 +98,7 @@ class ItemResourceTest extends TestCase
         $this->assertNull($response['proficiency_category']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_magic_bonus_for_non_magic_items(): void
     {
         $meleeType = ItemType::firstOrCreate(
@@ -119,7 +121,7 @@ class ItemResourceTest extends TestCase
         $this->assertNull($response['magic_bonus']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_contents_for_pack_items(): void
     {
         $gearType = ItemType::firstOrCreate(
@@ -174,7 +176,7 @@ class ItemResourceTest extends TestCase
         $this->assertArrayHasKey('slug', $backpackContent['item']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_array_for_items_without_contents(): void
     {
         $gearType = ItemType::firstOrCreate(
@@ -196,7 +198,7 @@ class ItemResourceTest extends TestCase
         $this->assertCount(0, $response['contents']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_equipment_slot_in_response(): void
     {
         $wondrousType = ItemType::firstOrCreate(
@@ -217,7 +219,7 @@ class ItemResourceTest extends TestCase
         $this->assertEquals('cloak', $response['equipment_slot']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_equipment_slot_for_items_without_body_slot(): void
     {
         $gearType = ItemType::firstOrCreate(

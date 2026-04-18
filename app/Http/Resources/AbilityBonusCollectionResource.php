@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * API Resource for a collection of ability bonuses with summary totals.
@@ -11,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Wraps multiple ability bonuses with calculated totals per ability score.
  * The totals only include resolved bonuses (fixed bonuses and resolved choices).
  *
- * @property array{bonuses: \Illuminate\Support\Collection, totals: array<string, int>} $resource
+ * @property array{bonuses: Collection, totals: array<string, int>} $resource
  */
 class AbilityBonusCollectionResource extends JsonResource
 {

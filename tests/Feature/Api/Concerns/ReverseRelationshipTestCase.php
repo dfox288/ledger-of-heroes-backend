@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api\Concerns;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -31,7 +32,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
      * @param  int  $expectedCount  Expected number of entities in response
      * @param  array  $expectedNames  Expected names in order
      */
-    protected function assertReturnsRelatedEntities(string $route, int $expectedCount, array $expectedNames = []): \Illuminate\Testing\TestResponse
+    protected function assertReturnsRelatedEntities(string $route, int $expectedCount, array $expectedNames = []): TestResponse
     {
         $response = $this->getJson($route);
 
@@ -50,7 +51,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
      *
      * @param  string  $route  Full API route
      */
-    protected function assertReturnsEmpty(string $route): \Illuminate\Testing\TestResponse
+    protected function assertReturnsEmpty(string $route): TestResponse
     {
         $response = $this->getJson($route);
 
@@ -73,7 +74,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
         int $expectedDataCount,
         int $expectedTotal,
         int $expectedPerPage
-    ): \Illuminate\Testing\TestResponse {
+    ): TestResponse {
         $response = $this->getJson($route);
 
         $response->assertOk()
@@ -90,7 +91,7 @@ abstract class ReverseRelationshipTestCase extends TestCase
      * @param  string  $route  Full API route using slug/code/name
      * @param  int  $expectedMinCount  Minimum expected count (use 1 for "has results")
      */
-    protected function assertAcceptsAlternativeIdentifier(string $route, int $expectedMinCount = 1): \Illuminate\Testing\TestResponse
+    protected function assertAcceptsAlternativeIdentifier(string $route, int $expectedMinCount = 1): TestResponse
     {
         $response = $this->getJson($route);
 

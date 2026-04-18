@@ -3,11 +3,12 @@
 namespace Tests\Unit\Services\Parsers\Strategies;
 
 use App\Services\Parsers\Strategies\TattooStrategy;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class TattooStrategyTest extends TestCase
 {

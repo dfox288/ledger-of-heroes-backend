@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\RaceXmlParser;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class RaceXmlParserTest extends TestCase
 {

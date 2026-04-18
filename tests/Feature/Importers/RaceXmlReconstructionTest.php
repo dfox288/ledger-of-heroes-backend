@@ -8,11 +8,15 @@ use App\Models\Race;
 use App\Models\Size;
 use App\Services\Importers\RaceImporter;
 use App\Services\Parsers\Concerns\MatchesLanguages;
+use Database\Seeders\AbilityScoreSeeder;
+use Database\Seeders\LanguageSeeder;
+use Database\Seeders\SizeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class RaceXmlReconstructionTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,13 +29,13 @@ class RaceXmlReconstructionTest extends TestCase
 
         // Seed necessary lookup tables for race imports
         if (Size::count() === 0) {
-            $this->seed(\Database\Seeders\SizeSeeder::class);
+            $this->seed(SizeSeeder::class);
         }
         if (AbilityScore::count() === 0) {
-            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+            $this->seed(AbilityScoreSeeder::class);
         }
         if (Language::count() === 0) {
-            $this->seed(\Database\Seeders\LanguageSeeder::class);
+            $this->seed(LanguageSeeder::class);
         }
 
         // Clear static cache so it uses fresh seeded data

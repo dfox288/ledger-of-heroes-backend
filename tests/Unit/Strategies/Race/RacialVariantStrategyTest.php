@@ -5,11 +5,13 @@ namespace Tests\Unit\Strategies\Race;
 use App\Models\Race;
 use App\Models\Size;
 use App\Services\Importers\Strategies\Race\RacialVariantStrategy;
+use Database\Seeders\SizeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class RacialVariantStrategyTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,8 +30,8 @@ class RacialVariantStrategyTest extends TestCase
      */
     private function seedSizes(): void
     {
-        if (! \App\Models\Size::where('code', 'M')->exists()) {
-            $this->seed(\Database\Seeders\SizeSeeder::class);
+        if (! Size::where('code', 'M')->exists()) {
+            $this->seed(SizeSeeder::class);
         }
     }
 

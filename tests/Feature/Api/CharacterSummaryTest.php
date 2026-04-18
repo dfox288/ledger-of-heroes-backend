@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Enums\SpellSlotType;
+use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
@@ -10,20 +11,24 @@ use App\Models\CharacterCondition;
 use App\Models\CharacterLanguage;
 use App\Models\CharacterSpellSlot;
 use App\Models\ClassCounter;
+use App\Models\ClassFeature;
 use App\Models\Condition;
 use App\Models\EntityChoice;
 use App\Models\Language;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
+use App\Models\Skill;
+use App\Services\CharacterProficiencyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CharacterSummaryTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_character_summary_structure()
     {
         $character = Character::factory()
@@ -69,7 +74,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_basic_character_info()
     {
         $character = Character::factory()
@@ -96,7 +101,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_calculates_pending_proficiency_choices()
     {
         $race = Race::factory()->create();
@@ -113,7 +118,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertIsInt($data['pending_choices']['proficiencies']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_calculates_pending_language_choices()
     {
         $race = Race::factory()->create();
@@ -162,7 +167,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_zero_for_spell_choices_placeholder()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -179,7 +184,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_asi_choices_remaining()
     {
         $character = Character::factory()
@@ -198,7 +203,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_hit_points_state()
     {
         $character = Character::factory()
@@ -225,7 +230,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_hit_dice_state()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -253,7 +258,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_spell_slots_state()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -313,7 +318,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertEquals(2, $slot2['available']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_counters_for_character_without_counters()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -330,7 +335,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_active_conditions()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -357,7 +362,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertContains($blinded->slug, $data['combat_state']['conditions']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_death_saves_state()
     {
         $character = Character::factory()
@@ -384,7 +389,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_determines_consciousness_based_on_hp()
     {
         $conscious = Character::factory()
@@ -405,7 +410,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJson(['data' => ['combat_state' => ['is_conscious' => false]]]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_incomplete_character_creation()
     {
         // Character missing race and ability scores
@@ -422,7 +427,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_complete_character_creation()
     {
         $race = Race::factory()->create();
@@ -444,7 +449,7 @@ class CharacterSummaryTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_shows_pending_choices_in_missing_required_when_incomplete()
     {
         $race = Race::factory()->create();
@@ -480,7 +485,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertContains('language_choices', $data['missing_required']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_size_choices_for_race_with_has_size_choice()
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
@@ -502,7 +507,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.size', 1);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_zero_size_choices_when_race_has_no_size_choice()
     {
         $race = Race::factory()->create(['has_size_choice' => false]);
@@ -520,7 +525,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.size', 0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_zero_size_choices_when_size_already_selected()
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
@@ -546,7 +551,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.size', 0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_size_choice_in_missing_required_when_pending()
     {
         $race = Race::factory()->create(['has_size_choice' => true]);
@@ -571,7 +576,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertContains('size_choice', $data['missing_required']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_feats_choices_for_race_with_bonus_feat()
     {
         $race = Race::factory()->create();
@@ -598,7 +603,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.feats', 1);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_zero_feats_choices_when_race_has_no_bonus_feat()
     {
         $race = Race::factory()->create();
@@ -616,7 +621,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.feats', 0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_feat_choices_in_missing_required_when_pending()
     {
         $race = Race::factory()->create();
@@ -646,7 +651,7 @@ class CharacterSummaryTest extends TestCase
         $this->assertContains('feat_choices', $data['missing_required']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_size_in_pending_choices_structure()
     {
         $character = Character::factory()->withStandardArray()->create();
@@ -672,9 +677,9 @@ class CharacterSummaryTest extends TestCase
     /**
      * Helper to create a skill with required ability score.
      */
-    private function createSkill(string $baseName): \App\Models\Skill
+    private function createSkill(string $baseName): Skill
     {
-        $abilityScore = \App\Models\AbilityScore::firstOrCreate(
+        $abilityScore = AbilityScore::firstOrCreate(
             ['code' => 'WIS'],
             ['name' => 'Wisdom', 'slug' => 'wisdom']
         );
@@ -682,7 +687,7 @@ class CharacterSummaryTest extends TestCase
         $uniqueId = uniqid();
         $slug = strtolower(str_replace(' ', '-', $baseName)).'-'.$uniqueId;
 
-        return \App\Models\Skill::create([
+        return Skill::create([
             'name' => $baseName.' '.$uniqueId,
             'slug' => $slug,
             'slug' => 'test:'.$slug,
@@ -693,7 +698,7 @@ class CharacterSummaryTest extends TestCase
     /**
      * Issue #480 fix: Verify subclass_feature proficiencies are counted in summary
      */
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_counts_subclass_feature_proficiencies_in_summary()
     {
         // Create skill for choices
@@ -722,7 +727,7 @@ class CharacterSummaryTest extends TestCase
 
         // Add skill choice to the feature via EntityChoice (proficiency choices moved from entity_proficiencies)
         EntityChoice::create([
-            'reference_type' => \App\Models\ClassFeature::class,
+            'reference_type' => ClassFeature::class,
             'reference_id' => $acolyteFeature->id,
             'choice_type' => 'proficiency',
             'choice_group' => 'feature_skill_choice_1',
@@ -764,7 +769,7 @@ class CharacterSummaryTest extends TestCase
      * This test uses the CharacterProficiencyService directly instead of the HTTP API
      * to avoid URL encoding issues with the choice ID (which contains colons and pipes).
      */
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_shows_zero_proficiencies_after_subclass_feature_choice_is_resolved()
     {
         // Create skill for choices
@@ -793,7 +798,7 @@ class CharacterSummaryTest extends TestCase
 
         // Add skill choice to the feature via EntityChoice (proficiency choices moved from entity_proficiencies)
         EntityChoice::create([
-            'reference_type' => \App\Models\ClassFeature::class,
+            'reference_type' => ClassFeature::class,
             'reference_id' => $acolyteFeature->id,
             'choice_type' => 'proficiency',
             'choice_group' => 'feature_skill_choice_1',
@@ -822,7 +827,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJson(['data' => ['pending_choices' => ['proficiencies' => 1]]]);
 
         // Resolve the choice using the service directly (avoid URL encoding issues)
-        $proficiencyService = app(\App\Services\CharacterProficiencyService::class);
+        $proficiencyService = app(CharacterProficiencyService::class);
         $fullChoiceGroup = 'Acolyte of Nature:feature_skill_choice_1';
         $proficiencyService->makeSkillChoice($character, 'subclass_feature', $fullChoiceGroup, [$nature->slug]);
 
@@ -843,7 +848,7 @@ class CharacterSummaryTest extends TestCase
     // Fighting Style & Expertise in Summary (Issue #490)
     // =====================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_fighting_style_in_pending_choices()
     {
         // Create Fighter class with "Fighting Styles Known" counter
@@ -883,7 +888,7 @@ class CharacterSummaryTest extends TestCase
             ->assertJsonPath('data.pending_choices.fighting_style', 1);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_expertise_in_pending_choices_structure()
     {
         $character = Character::factory()->withStandardArray()->create();

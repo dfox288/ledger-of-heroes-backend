@@ -4,10 +4,11 @@ namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ClassXmlParserEquipmentTest extends TestCase
 {
     use RefreshDatabase;

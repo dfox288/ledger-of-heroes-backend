@@ -2,10 +2,12 @@
 
 namespace Tests\Unit\Seeders;
 
+use App\Models\CharacterClass;
 use App\Models\OptionalFeature;
 use Database\Seeders\Testing\OptionalFeatureFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class OptionalFeatureFixtureSeederTest extends TestCase
@@ -118,7 +120,7 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_optional_features_from_fixture(): void
     {
         $this->assertDatabaseMissing('optional_features', ['slug' => 'test-invocation-no-prerequisites']);
@@ -135,11 +137,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_class_associations(): void
     {
         // Create classes that will be referenced
-        $warlock = \App\Models\CharacterClass::create([
+        $warlock = CharacterClass::create([
             'name' => 'Warlock',
             'slug' => 'warlock',
             'hit_die' => 8,
@@ -157,11 +159,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals('warlock', $feature->classes->first()->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_class_associations_with_subclass_name(): void
     {
         // Create classes
-        $monk = \App\Models\CharacterClass::create([
+        $monk = CharacterClass::create([
             'name' => 'Monk',
             'slug' => 'monk',
             'hit_die' => 8,
@@ -184,25 +186,25 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals('Way of the Four Elements', $pivot->subclass_name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_multiple_class_associations(): void
     {
         // Create classes
-        $fighter = \App\Models\CharacterClass::create([
+        $fighter = CharacterClass::create([
             'name' => 'Fighter',
             'slug' => 'fighter',
             'hit_die' => 10,
             'description' => 'Test fighter class',
         ]);
 
-        $paladin = \App\Models\CharacterClass::create([
+        $paladin = CharacterClass::create([
             'name' => 'Paladin',
             'slug' => 'paladin',
             'hit_die' => 10,
             'description' => 'Test paladin class',
         ]);
 
-        $ranger = \App\Models\CharacterClass::create([
+        $ranger = CharacterClass::create([
             'name' => 'Ranger',
             'slug' => 'ranger',
             'hit_die' => 10,
@@ -221,11 +223,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals(['fighter', 'paladin', 'ranger'], $classSlugs->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_prerequisites(): void
     {
         // Create the class that will be referenced as a prerequisite
-        $monk = \App\Models\CharacterClass::create([
+        $monk = CharacterClass::create([
             'name' => 'Monk',
             'slug' => 'monk',
             'hit_die' => 8,
@@ -248,11 +250,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals(11, $prereq->minimum_value);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_spell_school_association(): void
     {
         // Create monk class
-        $monk = \App\Models\CharacterClass::create([
+        $monk = CharacterClass::create([
             'name' => 'Monk',
             'slug' => 'monk',
             'hit_die' => 8,
@@ -270,11 +272,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals('EV', $feature->spellSchool->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         // Create warlock class
-        $warlock = \App\Models\CharacterClass::create([
+        $warlock = CharacterClass::create([
             'name' => 'Warlock',
             'slug' => 'warlock',
             'hit_die' => 8,
@@ -293,7 +295,7 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertEquals('110', $feature->sources->first()->pages);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_features_without_source(): void
     {
         // Add a feature without source to fixture
@@ -328,11 +330,11 @@ class OptionalFeatureFixtureSeederTest extends TestCase
         $this->assertCount(0, $feature->sources);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_features_without_spell_school(): void
     {
         // Create warlock class
-        $warlock = \App\Models\CharacterClass::create([
+        $warlock = CharacterClass::create([
             'name' => 'Warlock',
             'slug' => 'warlock',
             'hit_die' => 8,

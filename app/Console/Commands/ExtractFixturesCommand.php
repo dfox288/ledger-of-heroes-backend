@@ -2,6 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Background;
+use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\ItemType;
+use App\Models\Monster;
+use App\Models\OptionalFeature;
+use App\Models\Race;
+use App\Models\Size;
+use App\Models\Spell;
+use App\Models\SpellSchool;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -86,15 +97,15 @@ class ExtractFixturesCommand extends Command
 
         // One per level
         foreach (range(0, 9) as $level) {
-            $spell = \App\Models\Spell::where('level', $level)->first();
+            $spell = Spell::where('level', $level)->first();
             if ($spell) {
                 $spellIds->push($spell->id);
             }
         }
 
         // One per school
-        \App\Models\SpellSchool::all()->each(function ($school) use ($spellIds) {
-            $spell = \App\Models\Spell::where('spell_school_id', $school->id)
+        SpellSchool::all()->each(function ($school) use ($spellIds) {
+            $spell = Spell::where('spell_school_id', $school->id)
                 ->whereNotIn('id', $spellIds->toArray())
                 ->first();
             if ($spell) {
@@ -103,14 +114,14 @@ class ExtractFixturesCommand extends Command
         });
 
         // Concentration spells
-        $concentration = \App\Models\Spell::where('needs_concentration', true)
+        $concentration = Spell::where('needs_concentration', true)
             ->whereNotIn('id', $spellIds->toArray())
             ->take(3)
             ->pluck('id');
         $spellIds = $spellIds->merge($concentration);
 
         // Ritual spells
-        $ritual = \App\Models\Spell::where('is_ritual', true)
+        $ritual = Spell::where('is_ritual', true)
             ->whereNotIn('id', $spellIds->toArray())
             ->take(3)
             ->pluck('id');
@@ -119,7 +130,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random spells
         $remaining = $limit - $spellIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Spell::whereNotIn('id', $spellIds->toArray())
+            $additional = Spell::whereNotIn('id', $spellIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -127,14 +138,14 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $spells = \App\Models\Spell::whereIn('id', $spellIds->unique())
+        $spells = Spell::whereIn('id', $spellIds->unique())
             ->with(['spellSchool', 'classes', 'sources.source', 'effects.damageType'])
             ->get();
 
         return $spells->map(fn ($spell) => $this->formatSpell($spell))->toArray();
     }
 
-    protected function formatSpell(\App\Models\Spell $spell): array
+    protected function formatSpell(Spell $spell): array
     {
         return [
             'name' => $spell->name,
@@ -175,15 +186,15 @@ class ExtractFixturesCommand extends Command
         $crTiers = [0, 0.125, 0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30];
 
         foreach ($crTiers as $cr) {
-            $monster = \App\Models\Monster::where('challenge_rating', $cr)->first();
+            $monster = Monster::where('challenge_rating', $cr)->first();
             if ($monster) {
                 $monsterIds->push($monster->id);
             }
         }
 
         // One per size
-        \App\Models\Size::all()->each(function ($size) use ($monsterIds) {
-            $monster = \App\Models\Monster::where('size_id', $size->id)
+        Size::all()->each(function ($size) use ($monsterIds) {
+            $monster = Monster::where('size_id', $size->id)
                 ->whereNotIn('id', $monsterIds->toArray())
                 ->first();
             if ($monster) {
@@ -192,8 +203,8 @@ class ExtractFixturesCommand extends Command
         });
 
         // One per type
-        \App\Models\Monster::distinct('type')->pluck('type')->each(function ($type) use ($monsterIds) {
-            $monster = \App\Models\Monster::where('type', $type)
+        Monster::distinct('type')->pluck('type')->each(function ($type) use ($monsterIds) {
+            $monster = Monster::where('type', $type)
                 ->whereNotIn('id', $monsterIds->toArray())
                 ->first();
             if ($monster) {
@@ -204,21 +215,21 @@ class ExtractFixturesCommand extends Command
         // Fill remaining
         $remaining = $limit - $monsterIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Monster::whereNotIn('id', $monsterIds->toArray())
+            $additional = Monster::whereNotIn('id', $monsterIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
             $monsterIds = $monsterIds->merge($additional);
         }
 
-        $monsters = \App\Models\Monster::whereIn('id', $monsterIds->unique())
+        $monsters = Monster::whereIn('id', $monsterIds->unique())
             ->with(['size', 'sources.source', 'modifiers.damageType'])
             ->get();
 
         return $monsters->map(fn ($m) => $this->formatMonster($m))->toArray();
     }
 
-    protected function formatMonster(\App\Models\Monster $monster): array
+    protected function formatMonster(Monster $monster): array
     {
         // Group modifiers by category
         $damageVulnerabilities = $monster->modifiers
@@ -297,13 +308,13 @@ class ExtractFixturesCommand extends Command
         // 4. Spellcasters vs non-spellcasters
 
         // All base classes
-        $baseClasses = \App\Models\CharacterClass::whereNull('parent_class_id')
+        $baseClasses = CharacterClass::whereNull('parent_class_id')
             ->pluck('id');
         $classIds = $classIds->merge($baseClasses);
 
         // One subclass per base class
         foreach ($baseClasses as $baseClassId) {
-            $subclass = \App\Models\CharacterClass::where('parent_class_id', $baseClassId)
+            $subclass = CharacterClass::where('parent_class_id', $baseClassId)
                 ->whereNotIn('id', $classIds->toArray())
                 ->first();
             if ($subclass) {
@@ -313,7 +324,7 @@ class ExtractFixturesCommand extends Command
 
         // One per hit die value
         foreach ([6, 8, 10, 12] as $hitDie) {
-            $class = \App\Models\CharacterClass::where('hit_die', $hitDie)
+            $class = CharacterClass::where('hit_die', $hitDie)
                 ->whereNotIn('id', $classIds->toArray())
                 ->first();
             if ($class) {
@@ -322,7 +333,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Spellcasters
-        $spellcasters = \App\Models\CharacterClass::whereNotNull('spellcasting_ability_id')
+        $spellcasters = CharacterClass::whereNotNull('spellcasting_ability_id')
             ->whereNotIn('id', $classIds->toArray())
             ->take(3)
             ->pluck('id');
@@ -331,7 +342,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random classes
         $remaining = $limit - $classIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\CharacterClass::whereNotIn('id', $classIds->toArray())
+            $additional = CharacterClass::whereNotIn('id', $classIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -339,7 +350,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $classes = \App\Models\CharacterClass::whereIn('id', $classIds->unique())
+        $classes = CharacterClass::whereIn('id', $classIds->unique())
             ->with([
                 'spellcastingAbility',
                 'parentClass',
@@ -354,7 +365,7 @@ class ExtractFixturesCommand extends Command
         return $classes->map(fn ($class) => $this->formatClass($class))->toArray();
     }
 
-    protected function formatClass(\App\Models\CharacterClass $class): array
+    protected function formatClass(CharacterClass $class): array
     {
         return [
             'name' => $class->name,
@@ -399,8 +410,8 @@ class ExtractFixturesCommand extends Command
         // 4. Fill remaining
 
         // One per size
-        \App\Models\Size::all()->each(function ($size) use ($raceIds) {
-            $race = \App\Models\Race::where('size_id', $size->id)
+        Size::all()->each(function ($size) use ($raceIds) {
+            $race = Race::where('size_id', $size->id)
                 ->whereNull('parent_race_id')
                 ->first();
             if ($race) {
@@ -409,7 +420,7 @@ class ExtractFixturesCommand extends Command
         });
 
         // Races with subraces (base races that have children)
-        $racesWithSubraces = \App\Models\Race::whereNull('parent_race_id')
+        $racesWithSubraces = Race::whereNull('parent_race_id')
             ->whereHas('subraces')
             ->whereNotIn('id', $raceIds->toArray())
             ->take(3)
@@ -418,7 +429,7 @@ class ExtractFixturesCommand extends Command
 
         // Add at least one subrace for each race with subraces
         foreach ($racesWithSubraces as $baseRaceId) {
-            $subrace = \App\Models\Race::where('parent_race_id', $baseRaceId)
+            $subrace = Race::where('parent_race_id', $baseRaceId)
                 ->whereNotIn('id', $raceIds->toArray())
                 ->first();
             if ($subrace) {
@@ -429,7 +440,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random races
         $remaining = $limit - $raceIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Race::whereNotIn('id', $raceIds->toArray())
+            $additional = Race::whereNotIn('id', $raceIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -437,7 +448,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $races = \App\Models\Race::whereIn('id', $raceIds->unique())
+        $races = Race::whereIn('id', $raceIds->unique())
             ->with([
                 'size',
                 'parent',
@@ -453,7 +464,7 @@ class ExtractFixturesCommand extends Command
         return $races->map(fn ($race) => $this->formatRace($race))->toArray();
     }
 
-    protected function formatRace(\App\Models\Race $race): array
+    protected function formatRace(Race $race): array
     {
         // Extract ability score bonuses
         $abilityBonuses = $race->modifiers
@@ -506,15 +517,15 @@ class ExtractFixturesCommand extends Command
 
         // One per rarity
         foreach ($rarities as $rarity) {
-            $item = \App\Models\Item::where('rarity', $rarity)->first();
+            $item = Item::where('rarity', $rarity)->first();
             if ($item) {
                 $itemIds->push($item->id);
             }
         }
 
         // One per item type
-        \App\Models\ItemType::all()->each(function ($type) use ($itemIds) {
-            $item = \App\Models\Item::where('item_type_id', $type->id)
+        ItemType::all()->each(function ($type) use ($itemIds) {
+            $item = Item::where('item_type_id', $type->id)
                 ->whereNotIn('id', $itemIds->toArray())
                 ->first();
             if ($item) {
@@ -523,42 +534,42 @@ class ExtractFixturesCommand extends Command
         });
 
         // Magical items (not already included)
-        $magicalItems = \App\Models\Item::where('is_magic', true)
+        $magicalItems = Item::where('is_magic', true)
             ->whereNotIn('id', $itemIds->toArray())
             ->take(5)
             ->pluck('id');
         $itemIds = $itemIds->merge($magicalItems);
 
         // Mundane items (not already included)
-        $mundaneItems = \App\Models\Item::where('is_magic', false)
+        $mundaneItems = Item::where('is_magic', false)
             ->whereNotIn('id', $itemIds->toArray())
             ->take(5)
             ->pluck('id');
         $itemIds = $itemIds->merge($mundaneItems);
 
         // Items requiring attunement
-        $attunementItems = \App\Models\Item::where('requires_attunement', true)
+        $attunementItems = Item::where('requires_attunement', true)
             ->whereNotIn('id', $itemIds->toArray())
             ->take(3)
             ->pluck('id');
         $itemIds = $itemIds->merge($attunementItems);
 
         // Items with charges
-        $chargedItems = \App\Models\Item::whereNotNull('charges_max')
+        $chargedItems = Item::whereNotNull('charges_max')
             ->whereNotIn('id', $itemIds->toArray())
             ->take(3)
             ->pluck('id');
         $itemIds = $itemIds->merge($chargedItems);
 
         // Weapons with damage dice
-        $weapons = \App\Models\Item::whereNotNull('damage_dice')
+        $weapons = Item::whereNotNull('damage_dice')
             ->whereNotIn('id', $itemIds->toArray())
             ->take(5)
             ->pluck('id');
         $itemIds = $itemIds->merge($weapons);
 
         // Armor with AC
-        $armor = \App\Models\Item::whereNotNull('armor_class')
+        $armor = Item::whereNotNull('armor_class')
             ->whereNotIn('id', $itemIds->toArray())
             ->take(3)
             ->pluck('id');
@@ -567,7 +578,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random items
         $remaining = $limit - $itemIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Item::whereNotIn('id', $itemIds->toArray())
+            $additional = Item::whereNotIn('id', $itemIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -575,7 +586,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $items = \App\Models\Item::whereIn('id', $itemIds->unique())
+        $items = Item::whereIn('id', $itemIds->unique())
             ->with([
                 'itemType',
                 'damageType',
@@ -587,7 +598,7 @@ class ExtractFixturesCommand extends Command
         return $items->map(fn ($item) => $this->formatItem($item))->toArray();
     }
 
-    protected function formatItem(\App\Models\Item $item): array
+    protected function formatItem(Item $item): array
     {
         return [
             'name' => $item->name,
@@ -634,7 +645,7 @@ class ExtractFixturesCommand extends Command
         // 5. Fill remaining with random feats
 
         // Feats with ability score improvements
-        $featsWithASI = \App\Models\Feat::whereHas('modifiers', function ($q) {
+        $featsWithASI = Feat::whereHas('modifiers', function ($q) {
             $q->where('modifier_category', 'ability_score');
         })
             ->take(10)
@@ -642,21 +653,21 @@ class ExtractFixturesCommand extends Command
         $featIds = $featIds->merge($featsWithASI);
 
         // Feats with prerequisites (via text)
-        $featsWithPrereqText = \App\Models\Feat::whereNotNull('prerequisites_text')
+        $featsWithPrereqText = Feat::whereNotNull('prerequisites_text')
             ->whereNotIn('id', $featIds->toArray())
             ->take(5)
             ->pluck('id');
         $featIds = $featIds->merge($featsWithPrereqText);
 
         // Feats with prerequisites (via relationships)
-        $featsWithPrereqRelation = \App\Models\Feat::has('prerequisites')
+        $featsWithPrereqRelation = Feat::has('prerequisites')
             ->whereNotIn('id', $featIds->toArray())
             ->take(5)
             ->pluck('id');
         $featIds = $featIds->merge($featsWithPrereqRelation);
 
         // Feats without prerequisites
-        $featsWithoutPrereqs = \App\Models\Feat::whereNull('prerequisites_text')
+        $featsWithoutPrereqs = Feat::whereNull('prerequisites_text')
             ->doesntHave('prerequisites')
             ->whereNotIn('id', $featIds->toArray())
             ->take(5)
@@ -664,7 +675,7 @@ class ExtractFixturesCommand extends Command
         $featIds = $featIds->merge($featsWithoutPrereqs);
 
         // Feats with ability score choices (is_choice = true)
-        $featsWithChoices = \App\Models\Feat::whereHas('modifiers', function ($q) {
+        $featsWithChoices = Feat::whereHas('modifiers', function ($q) {
             $q->where('modifier_category', 'ability_score')
                 ->where('is_choice', true);
         })
@@ -674,7 +685,7 @@ class ExtractFixturesCommand extends Command
         $featIds = $featIds->merge($featsWithChoices);
 
         // Feats with proficiencies
-        $featsWithProficiencies = \App\Models\Feat::has('proficiencies')
+        $featsWithProficiencies = Feat::has('proficiencies')
             ->whereNotIn('id', $featIds->toArray())
             ->take(5)
             ->pluck('id');
@@ -683,7 +694,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random feats
         $remaining = $limit - $featIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Feat::whereNotIn('id', $featIds->toArray())
+            $additional = Feat::whereNotIn('id', $featIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -691,7 +702,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $feats = \App\Models\Feat::whereIn('id', $featIds->unique())
+        $feats = Feat::whereIn('id', $featIds->unique())
             ->with([
                 'sources.source',
                 'prerequisites.prerequisite',
@@ -703,7 +714,7 @@ class ExtractFixturesCommand extends Command
         return $feats->map(fn ($feat) => $this->formatFeat($feat))->toArray();
     }
 
-    protected function formatFeat(\App\Models\Feat $feat): array
+    protected function formatFeat(Feat $feat): array
     {
         // Extract prerequisites
         $prerequisites = $feat->prerequisites->map(function ($prereq) {
@@ -770,16 +781,16 @@ class ExtractFixturesCommand extends Command
         // 4. Fill remaining with random backgrounds
 
         // Get all backgrounds (they're typically few in number)
-        $allBackgrounds = \App\Models\Background::all();
+        $allBackgrounds = Background::all();
 
         // Backgrounds with skill proficiencies
-        $backgroundsWithSkills = \App\Models\Background::has('proficiencies')
+        $backgroundsWithSkills = Background::has('proficiencies')
             ->take(10)
             ->pluck('id');
         $backgroundIds = $backgroundIds->merge($backgroundsWithSkills);
 
         // Backgrounds with tool proficiencies
-        $backgroundsWithTools = \App\Models\Background::whereHas('proficiencies', function ($q) {
+        $backgroundsWithTools = Background::whereHas('proficiencies', function ($q) {
             $q->where('proficiency_type', 'tool');
         })
             ->whereNotIn('id', $backgroundIds->toArray())
@@ -788,7 +799,7 @@ class ExtractFixturesCommand extends Command
         $backgroundIds = $backgroundIds->merge($backgroundsWithTools);
 
         // Backgrounds with language proficiencies
-        $backgroundsWithLanguages = \App\Models\Background::whereHas('proficiencies', function ($q) {
+        $backgroundsWithLanguages = Background::whereHas('proficiencies', function ($q) {
             $q->where('proficiency_type', 'language');
         })
             ->whereNotIn('id', $backgroundIds->toArray())
@@ -797,7 +808,7 @@ class ExtractFixturesCommand extends Command
         $backgroundIds = $backgroundIds->merge($backgroundsWithLanguages);
 
         // Backgrounds with features (traits)
-        $backgroundsWithFeatures = \App\Models\Background::has('traits')
+        $backgroundsWithFeatures = Background::has('traits')
             ->whereNotIn('id', $backgroundIds->toArray())
             ->take(5)
             ->pluck('id');
@@ -806,7 +817,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random backgrounds
         $remaining = $limit - $backgroundIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\Background::whereNotIn('id', $backgroundIds->toArray())
+            $additional = Background::whereNotIn('id', $backgroundIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -814,7 +825,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $backgrounds = \App\Models\Background::whereIn('id', $backgroundIds->unique())
+        $backgrounds = Background::whereIn('id', $backgroundIds->unique())
             ->with([
                 'sources.source',
                 'proficiencies.skill',
@@ -828,7 +839,7 @@ class ExtractFixturesCommand extends Command
         return $backgrounds->map(fn ($background) => $this->formatBackground($background))->toArray();
     }
 
-    protected function formatBackground(\App\Models\Background $background): array
+    protected function formatBackground(Background $background): array
     {
         // Extract skill proficiencies
         $skillProficiencies = $background->proficiencies
@@ -938,35 +949,35 @@ class ExtractFixturesCommand extends Command
         ];
 
         foreach ($featureTypes as $type) {
-            $feature = \App\Models\OptionalFeature::where('feature_type', $type)->first();
+            $feature = OptionalFeature::where('feature_type', $type)->first();
             if ($feature) {
                 $featureIds->push($feature->id);
             }
         }
 
         // Features with level requirements
-        $withLevelReq = \App\Models\OptionalFeature::whereNotNull('level_requirement')
+        $withLevelReq = OptionalFeature::whereNotNull('level_requirement')
             ->whereNotIn('id', $featureIds->toArray())
             ->take(5)
             ->pluck('id');
         $featureIds = $featureIds->merge($withLevelReq);
 
         // Features with prerequisites
-        $withPrereqs = \App\Models\OptionalFeature::whereNotNull('prerequisite_text')
+        $withPrereqs = OptionalFeature::whereNotNull('prerequisite_text')
             ->whereNotIn('id', $featureIds->toArray())
             ->take(5)
             ->pluck('id');
         $featureIds = $featureIds->merge($withPrereqs);
 
         // Features with resource costs
-        $withResources = \App\Models\OptionalFeature::whereNotNull('resource_type')
+        $withResources = OptionalFeature::whereNotNull('resource_type')
             ->whereNotIn('id', $featureIds->toArray())
             ->take(5)
             ->pluck('id');
         $featureIds = $featureIds->merge($withResources);
 
         // Features with spell mechanics
-        $withSpellMechanics = \App\Models\OptionalFeature::whereNotNull('casting_time')
+        $withSpellMechanics = OptionalFeature::whereNotNull('casting_time')
             ->whereNotIn('id', $featureIds->toArray())
             ->take(5)
             ->pluck('id');
@@ -975,7 +986,7 @@ class ExtractFixturesCommand extends Command
         // Fill remaining with random features
         $remaining = $limit - $featureIds->count();
         if ($remaining > 0) {
-            $additional = \App\Models\OptionalFeature::whereNotIn('id', $featureIds->toArray())
+            $additional = OptionalFeature::whereNotIn('id', $featureIds->toArray())
                 ->inRandomOrder()
                 ->take($remaining)
                 ->pluck('id');
@@ -983,7 +994,7 @@ class ExtractFixturesCommand extends Command
         }
 
         // Load full models with relationships
-        $features = \App\Models\OptionalFeature::whereIn('id', $featureIds->unique())
+        $features = OptionalFeature::whereIn('id', $featureIds->unique())
             ->with([
                 'classes',
                 'classPivots',
@@ -996,7 +1007,7 @@ class ExtractFixturesCommand extends Command
         return $features->map(fn ($feature) => $this->formatOptionalFeature($feature))->toArray();
     }
 
-    protected function formatOptionalFeature(\App\Models\OptionalFeature $feature): array
+    protected function formatOptionalFeature(OptionalFeature $feature): array
     {
         // Extract prerequisites
         $prerequisites = $feature->prerequisites->map(function ($prereq) {

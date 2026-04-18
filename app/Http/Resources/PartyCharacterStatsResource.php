@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\ItemTypeCode;
 use App\Models\Character;
 use App\Services\CharacterStatCalculator;
+use App\Services\CounterService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -431,7 +432,7 @@ class PartyCharacterStatsResource extends JsonResource
      */
     private function formatCounters(): array
     {
-        $counterService = app(\App\Services\CounterService::class);
+        $counterService = app(CounterService::class);
 
         return $counterService->getCountersForCharacter($this->resource)->toArray();
     }

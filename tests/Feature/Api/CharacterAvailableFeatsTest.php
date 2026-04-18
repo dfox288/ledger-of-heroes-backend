@@ -4,20 +4,23 @@ namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class CharacterAvailableFeatsTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function character_with_no_prerequisites_gets_all_non_prerequisite_feats()
@@ -412,7 +415,7 @@ class CharacterAvailableFeatsTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $warlock = \App\Models\CharacterClass::factory()->create([
+        $warlock = CharacterClass::factory()->create([
             'name' => 'Warlock',
             'slug' => 'warlock',
         ]);
@@ -428,7 +431,7 @@ class CharacterAvailableFeatsTest extends TestCase
         // Create feat that requires Warlock class
         $feat = Feat::factory()->create(['name' => 'Eldritch Adept']);
         $feat->prerequisites()->create([
-            'prerequisite_type' => \App\Models\CharacterClass::class,
+            'prerequisite_type' => CharacterClass::class,
             'prerequisite_id' => $warlock->id,
         ]);
 
@@ -443,7 +446,7 @@ class CharacterAvailableFeatsTest extends TestCase
     {
         $character = Character::factory()->create();
 
-        $warlock = \App\Models\CharacterClass::factory()->create([
+        $warlock = CharacterClass::factory()->create([
             'name' => 'Warlock',
             'slug' => 'warlock',
         ]);
@@ -451,7 +454,7 @@ class CharacterAvailableFeatsTest extends TestCase
         // Create feat that requires Warlock class (character doesn't have it)
         $feat = Feat::factory()->create(['name' => 'Eldritch Adept']);
         $feat->prerequisites()->create([
-            'prerequisite_type' => \App\Models\CharacterClass::class,
+            'prerequisite_type' => CharacterClass::class,
             'prerequisite_id' => $warlock->id,
         ]);
 

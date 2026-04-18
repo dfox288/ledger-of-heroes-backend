@@ -4,6 +4,7 @@ namespace App\Services\Importers\Strategies\Monster;
 
 use App\Models\Monster;
 use App\Services\Concerns\NormalizesSpellNames;
+use Illuminate\Database\Eloquent\Model;
 
 class SpellcasterStrategy extends AbstractMonsterStrategy
 {
@@ -17,7 +18,7 @@ class SpellcasterStrategy extends AbstractMonsterStrategy
     /**
      * @param  Monster  $entity
      */
-    public function afterCreate(\Illuminate\Database\Eloquent\Model $entity, array $data): void
+    public function afterCreate(Model $entity, array $data): void
     {
         if (empty($data['spells'])) {
             return;

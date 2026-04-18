@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use Database\Seeders\ConditionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ConditionApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -14,7 +16,7 @@ class ConditionApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\ConditionSeeder::class);
+        $this->seed(ConditionSeeder::class);
     }
 
     #[Test]

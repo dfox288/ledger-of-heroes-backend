@@ -162,7 +162,7 @@ class ConditionController extends Controller
      * - Duration: Varies from 1 round to 1 minute (concentration) to permanent
      *
      * @param  Condition  $condition  The condition (by ID or slug)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function spells(Condition $condition)
     {
@@ -231,7 +231,7 @@ class ConditionController extends Controller
      * - CR correlation: Higher CR monsters inflict more conditions simultaneously
      *
      * @param  Condition  $condition  The condition (by ID or slug)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function monsters(Condition $condition)
     {

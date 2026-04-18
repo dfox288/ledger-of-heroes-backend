@@ -4,14 +4,16 @@ namespace Tests\Unit\Resources;
 
 use App\Http\Resources\SpellSlotsResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SpellSlotsResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_old_structure_with_standard_slots(): void
     {
         $data = [
@@ -35,7 +37,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayHasKey('3', $standardArray);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_old_structure_with_pact_magic(): void
     {
         $data = [
@@ -56,7 +58,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayHasKey('2', $pactArray);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_old_structure_with_both_standard_and_pact_magic(): void
     {
         $data = [
@@ -78,7 +80,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertIsObject($array['pact_magic']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_new_consolidated_structure(): void
     {
         $data = [
@@ -102,7 +104,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertEquals(8, $array['preparation_limit']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_preserves_spell_level_keys_as_strings_in_json(): void
     {
         $data = [
@@ -125,7 +127,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayHasKey('9', $slotsArray);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_slots_array(): void
     {
         $data = [
@@ -143,7 +145,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertEquals(5, $array['preparation_limit']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_null_preparation_limit(): void
     {
         $data = [
@@ -161,7 +163,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertNull($array['preparation_limit']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_modify_structure_without_slots_key(): void
     {
         $data = [
@@ -178,7 +180,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertEquals(123, $array['another_field']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_only_converts_to_object_when_prepared_count_exists(): void
     {
         // Test that old structure with 'slots' key but no prepared_count doesn't get converted
@@ -193,7 +195,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayHasKey('slots', $array);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_standard_slots_without_pact_magic(): void
     {
         $data = [
@@ -210,7 +212,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayNotHasKey('pact_magic', $array);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_pact_magic_without_standard_slots(): void
     {
         $data = [
@@ -226,7 +228,7 @@ class SpellSlotsResourceTest extends TestCase
         $this->assertArrayNotHasKey('standard', $array);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_preserves_nested_slot_data_structure(): void
     {
         $data = [

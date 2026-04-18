@@ -6,7 +6,11 @@ use App\DTOs\RaceSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Race;
 use App\Services\RaceSearchService;
+use Database\Seeders\TestDatabaseSeeder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Scout\Builder;
 use MeiliSearch\Client;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +21,7 @@ class RaceSearchServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     private RaceSearchService $service;
 
@@ -81,7 +85,7 @@ class RaceSearchServiceTest extends TestCase
 
         $builder = $this->service->buildScoutQuery($dto);
 
-        $this->assertInstanceOf(\Laravel\Scout\Builder::class, $builder);
+        $this->assertInstanceOf(Builder::class, $builder);
     }
 
     #[Test]
@@ -120,7 +124,7 @@ class RaceSearchServiceTest extends TestCase
         $builder = $this->service->buildDatabaseQuery($dto);
 
         $results = $builder->get();
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $results);
+        $this->assertInstanceOf(Collection::class, $results);
     }
 
     #[Test]
@@ -137,7 +141,7 @@ class RaceSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertGreaterThan(0, $result->total());
     }
 
@@ -158,7 +162,7 @@ class RaceSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $names = $result->pluck('name')->toArray();
         $this->assertContains($race->name, $names);
     }
@@ -177,7 +181,7 @@ class RaceSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
 
         foreach ($result->items() as $race) {
             $this->assertEquals('M', $race->size->code, 'All races should be Medium size');
@@ -234,7 +238,7 @@ class RaceSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertEquals(0, $result->count());
     }
 

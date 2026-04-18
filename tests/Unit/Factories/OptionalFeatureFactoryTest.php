@@ -7,10 +7,11 @@ use App\Enums\ResourceType;
 use App\Models\CharacterClass;
 use App\Models\OptionalFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class OptionalFeatureFactoryTest extends TestCase
 {
     use RefreshDatabase;

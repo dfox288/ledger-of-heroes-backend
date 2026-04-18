@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\ProficiencyType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * Resource for entity choices (equipment, proficiency, spell, language, ability_score).
@@ -57,7 +58,7 @@ class EntityChoiceResource extends JsonResource
      * - Items resolved with name, slug, quantity, is_fixed
      * - Category choices (e.g., "any simple weapon") marked with is_category
      *
-     * @param  \Illuminate\Support\Collection<int, EntityChoice>  $choices
+     * @param  Collection<int, EntityChoice>  $choices
      * @return array<int, array{choice_group: string, quantity: int, level_granted: int, is_required: bool, options: array}>
      */
     public static function groupedByChoiceGroup($choices): array

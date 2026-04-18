@@ -4,17 +4,20 @@ namespace Tests\Feature\Api;
 
 use App\Models\Item;
 use App\Models\Spell;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class GlobalSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -22,7 +25,7 @@ class GlobalSearchTest extends TestCase
         $this->artisan('search:configure-indexes');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_across_all_entity_types(): void
     {
         Spell::factory()->create(['name' => 'Fireball']);
@@ -45,7 +48,7 @@ class GlobalSearchTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_entity_types(): void
     {
         Spell::factory()->create(['name' => 'Fireball']);
@@ -63,7 +66,7 @@ class GlobalSearchTest extends TestCase
             ->assertJsonPath('data.items', []);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_query_required(): void
     {
         $response = $this->getJson('/api/v1/search');
@@ -72,7 +75,7 @@ class GlobalSearchTest extends TestCase
             ->assertJsonValidationErrors(['q']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_supports_debug_mode(): void
     {
         $spell = Spell::factory()->create(['name' => 'Fireball']);
@@ -89,7 +92,7 @@ class GlobalSearchTest extends TestCase
             ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_query_minimum_length(): void
     {
         $response = $this->getJson('/api/v1/search?q=a');

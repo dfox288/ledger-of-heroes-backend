@@ -7,14 +7,16 @@ use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class FeatSearchableTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
         $source = Source::firstOrCreate(['code' => 'PHB'], ['name' => 'Player\'s Handbook']);
@@ -42,7 +44,7 @@ class FeatSearchableTest extends TestCase
         $this->assertEquals(['PHB'], $searchable['source_codes']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_defines_searchable_relationships(): void
     {
         $feat = new Feat;
@@ -51,14 +53,14 @@ class FeatSearchableTest extends TestCase
         $this->assertContains('sources.source', $feat->searchableWith());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_correct_search_index_name(): void
     {
         $feat = new Feat;
         $this->assertEquals('test_feats', $feat->searchableAs());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_is_half_feat_in_searchable_array(): void
     {
         $feat = Feat::factory()->create(['name' => 'Actor']);
@@ -78,7 +80,7 @@ class FeatSearchableTest extends TestCase
         $this->assertTrue($searchable['is_half_feat']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_parent_feat_slug_in_searchable_array(): void
     {
         $feat = Feat::factory()->create([
@@ -92,7 +94,7 @@ class FeatSearchableTest extends TestCase
         $this->assertEquals('resilient', $searchable['parent_feat_slug']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_new_fields_in_filterable_attributes(): void
     {
         $feat = new Feat;

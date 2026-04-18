@@ -5,9 +5,11 @@ namespace Tests\Unit\Models;
 use App\Models\Feat;
 use App\Models\Modifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class FeatAccessorsTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,7 +18,7 @@ class FeatAccessorsTest extends TestCase
     // is_half_feat accessor tests
     // =========================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_true_for_feat_with_plus_one_ability_modifier(): void
     {
         $feat = Feat::factory()->create(['name' => 'Actor']);
@@ -31,7 +33,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertTrue($feat->is_half_feat);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_false_for_feat_with_plus_two_ability_modifier(): void
     {
         $feat = Feat::factory()->create(['name' => 'Test Feat']);
@@ -46,7 +48,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertFalse($feat->is_half_feat);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_false_for_feat_without_ability_modifiers(): void
     {
         $feat = Feat::factory()->create(['name' => 'Great Weapon Master']);
@@ -56,7 +58,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertFalse($feat->is_half_feat);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_false_for_feat_with_non_ability_modifiers(): void
     {
         $feat = Feat::factory()->create(['name' => 'Test Feat']);
@@ -71,7 +73,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertFalse($feat->is_half_feat);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_true_when_any_modifier_is_plus_one_ability(): void
     {
         $feat = Feat::factory()->create(['name' => 'Multi-Modifier Feat']);
@@ -99,7 +101,7 @@ class FeatAccessorsTest extends TestCase
     // parent_feat_slug accessor tests
     // =========================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_parent_slug_for_variant_feat(): void
     {
         $feat = Feat::factory()->create([
@@ -110,7 +112,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertEquals('resilient', $feat->parent_feat_slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_parent_slug_for_elemental_adept_variant(): void
     {
         $feat = Feat::factory()->create([
@@ -121,7 +123,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertEquals('elemental-adept', $feat->parent_feat_slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_parent_slug_for_magic_initiate_variant(): void
     {
         $feat = Feat::factory()->create([
@@ -132,7 +134,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertEquals('magic-initiate', $feat->parent_feat_slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_non_variant_feat(): void
     {
         $feat = Feat::factory()->create([
@@ -143,7 +145,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertNull($feat->parent_feat_slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_feat_with_parentheses_in_middle(): void
     {
         // Edge case: feat name has parentheses but not as variant notation
@@ -155,7 +157,7 @@ class FeatAccessorsTest extends TestCase
         $this->assertNull($feat->parent_feat_slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_athlete_variants_correctly(): void
     {
         $feat = Feat::factory()->create([

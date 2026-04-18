@@ -4,10 +4,11 @@ namespace Tests\Unit\Factories;
 
 use App\Models\SpellEffect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SpellEffectFactoryTest extends TestCase
 {
     use RefreshDatabase;

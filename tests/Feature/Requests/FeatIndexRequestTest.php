@@ -3,14 +3,16 @@
 namespace Tests\Feature\Requests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class FeatIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_whitelists_sortable_columns()
     {
         // Valid sortable columns (no timestamps - models use BaseModel with $timestamps = false)
@@ -26,7 +28,7 @@ class FeatIndexRequestTest extends TestCase
             ->assertJsonValidationErrors(['sort_by']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_base_index_parameters()
     {
         // Valid pagination

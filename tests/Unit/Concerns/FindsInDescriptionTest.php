@@ -3,10 +3,11 @@
 namespace Tests\Unit\Concerns;
 
 use App\Services\Parsers\Concerns\FindsInDescription;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class FindsInDescriptionTest extends TestCase
 {
     private object $subject;

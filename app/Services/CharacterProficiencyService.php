@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Enums\CharacterSource;
 use App\Models\Character;
 use App\Models\CharacterProficiency;
+use App\Models\ClassFeature;
 use App\Models\EntityChoice;
+use App\Models\ProficiencyType;
 use App\Models\Skill;
 use App\Services\Concerns\PopulatesFromEntity;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 class CharacterProficiencyService
@@ -288,11 +291,11 @@ class CharacterProficiencyService
                 'musical_instrument' => 'musical_instrument',
             ];
             if (isset($standaloneCategories[$proficiencySubcategory])) {
-                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory])
+                $validProficiencyTypeSlugs = ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory])
                     ->pluck('slug')
                     ->toArray();
             } else {
-                $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
+                $validProficiencyTypeSlugs = ProficiencyType::where('category', $proficiencyType)
                     ->where('subcategory', $proficiencySubcategory)
                     ->pluck('slug')
                     ->toArray();
@@ -305,7 +308,7 @@ class CharacterProficiencyService
             }
         } else {
             // Unrestricted without subcategory: all proficiency types of this type are valid
-            $validProficiencyTypeSlugs = \App\Models\ProficiencyType::where('category', $proficiencyType)
+            $validProficiencyTypeSlugs = ProficiencyType::where('category', $proficiencyType)
                 ->pluck('slug')
                 ->toArray();
 
@@ -394,7 +397,7 @@ class CharacterProficiencyService
      * The choice group for subclass_feature is formatted as "FeatureName (Subclass):base_choice_group"
      * We need to extract just the base_choice_group for the lookup.
      */
-    private function getSubclassFeatureEntity(Character $character, string $choiceGroup): ?\App\Models\ClassFeature
+    private function getSubclassFeatureEntity(Character $character, string $choiceGroup): ?ClassFeature
     {
         $subclass = $character->characterClasses->first()?->subclass;
         if (! $subclass) {
@@ -499,7 +502,7 @@ class CharacterProficiencyService
                             }
                         }
                     } elseif ($choice->target_type === 'proficiency_type' && $choice->target_slug) {
-                        $profType = \App\Models\ProficiencyType::where('slug', $choice->target_slug)->first();
+                        $profType = ProficiencyType::where('slug', $choice->target_slug)->first();
                         if ($profType) {
                             $allOptions[] = [
                                 'type' => 'proficiency_type',
@@ -608,9 +611,9 @@ class CharacterProficiencyService
 
         if ($proficiencySubcategory && isset($standaloneCategories[$proficiencySubcategory])) {
             // These are stored as top-level categories, not subcategories
-            $query = \App\Models\ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory]);
+            $query = ProficiencyType::where('category', $standaloneCategories[$proficiencySubcategory]);
         } else {
-            $query = \App\Models\ProficiencyType::where('category', $proficiencyType);
+            $query = ProficiencyType::where('category', $proficiencyType);
 
             if ($proficiencySubcategory) {
                 $query->where('subcategory', $proficiencySubcategory);
@@ -660,7 +663,7 @@ class CharacterProficiencyService
      *
      * Proficiencies are deduplicated, preferring stored ones (which have an ID).
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getCharacterProficiencies(Character $character)
     {
@@ -682,7 +685,7 @@ class CharacterProficiencyService
     /**
      * Collect granted (fixed) proficiencies from class, subclass, race, and background.
      */
-    private function collectGrantedProficiencies(Character $character): \Illuminate\Support\Collection
+    private function collectGrantedProficiencies(Character $character): Collection
     {
         $proficiencies = collect();
 
@@ -734,7 +737,7 @@ class CharacterProficiencyService
      * @param  mixed  $entity  The source entity (CharacterClass, Race, Background)
      * @param  string  $source  The source identifier ('class', 'race', 'background')
      */
-    private function getEntityGrantedProficiencies($entity, string $source): \Illuminate\Support\Collection
+    private function getEntityGrantedProficiencies($entity, string $source): Collection
     {
         return $entity->proficiencies()
             ->whereNotIn('proficiency_type', ['saving_throw', 'multiclass_requirement'])
@@ -748,7 +751,7 @@ class CharacterProficiencyService
                 // If no linked proficiency type but we have a name, look it up
                 // This handles imported data that uses proficiency_name text instead of proficiency_type_id FK
                 if (! $proficiencyTypeSlug && $proficiency->proficiency_name) {
-                    $proficiencyType = \App\Models\ProficiencyType::where('name', 'like', $proficiency->proficiency_name)->first();
+                    $proficiencyType = ProficiencyType::where('name', 'like', $proficiency->proficiency_name)->first();
                     $proficiencyTypeSlug = $proficiencyType?->slug;
                 }
 
@@ -776,9 +779,9 @@ class CharacterProficiencyService
      * Prefers stored proficiencies (which have an ID).
      *
      * @param  \Illuminate\Database\Eloquent\Collection  $stored
-     * @param  \Illuminate\Support\Collection  $granted
+     * @param  Collection  $granted
      */
-    private function mergeAndDeduplicate($stored, $granted): \Illuminate\Support\Collection
+    private function mergeAndDeduplicate($stored, $granted): Collection
     {
         // Create lookup sets for stored proficiencies
         $storedSkillSlugs = $stored->whereNotNull('skill_slug')->pluck('skill_slug')->toArray();

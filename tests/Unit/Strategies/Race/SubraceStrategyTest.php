@@ -5,11 +5,14 @@ namespace Tests\Unit\Strategies\Race;
 use App\Models\Race;
 use App\Models\Size;
 use App\Services\Importers\Strategies\Race\SubraceStrategy;
+use Database\Seeders\SizeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SubraceStrategyTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,8 +31,8 @@ class SubraceStrategyTest extends TestCase
      */
     private function seedSizes(): void
     {
-        if (! \App\Models\Size::where('code', 'M')->exists()) {
-            $this->seed(\Database\Seeders\SizeSeeder::class);
+        if (! Size::where('code', 'M')->exists()) {
+            $this->seed(SizeSeeder::class);
         }
     }
 
@@ -86,7 +89,7 @@ class SubraceStrategyTest extends TestCase
 
         // Use a unique race name to avoid fixture conflicts
         $uniqueRaceName = 'TestRace'.time();
-        $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
+        $uniqueRaceSlug = Str::slug($uniqueRaceName);
 
         $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 
@@ -245,7 +248,7 @@ class SubraceStrategyTest extends TestCase
 
         // Use a unique race name to avoid fixture conflicts
         $uniqueRaceName = 'FullSlugTestRace'.time();
-        $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
+        $uniqueRaceSlug = Str::slug($uniqueRaceName);
 
         $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 
@@ -273,7 +276,7 @@ class SubraceStrategyTest extends TestCase
 
         // Use a unique race name to avoid fixture conflicts
         $uniqueRaceName = 'EmptySourceRace'.time();
-        $uniqueRaceSlug = \Illuminate\Support\Str::slug($uniqueRaceName);
+        $uniqueRaceSlug = Str::slug($uniqueRaceName);
 
         $this->assertDatabaseMissing('races', ['slug' => "phb:{$uniqueRaceSlug}"]);
 

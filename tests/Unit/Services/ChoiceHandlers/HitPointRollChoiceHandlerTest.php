@@ -14,6 +14,7 @@ use App\Models\Modifier;
 use App\Models\Race;
 use App\Services\ChoiceHandlers\HitPointRollChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -44,7 +45,7 @@ class HitPointRollChoiceHandlerTest extends TestCase
 
         $choices = $this->handler->getChoices($character);
 
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $choices);
+        $this->assertInstanceOf(Collection::class, $choices);
         $this->assertEmpty($choices);
     }
 

@@ -11,13 +11,14 @@ use App\Models\Race;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Tests for route model binding supporting id and slug formats.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class RouteBindingTest extends TestCase
 {
     use RefreshDatabase;

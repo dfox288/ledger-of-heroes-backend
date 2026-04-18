@@ -4,10 +4,12 @@ namespace Tests\Feature\Api;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterSpell;
 use App\Models\OptionalFeature;
 use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CharacterSlugIdParameterTest extends TestCase
@@ -50,11 +52,11 @@ class CharacterSlugIdParameterTest extends TestCase
     // CharacterSpellController Tests
     // ========================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_spell_by_id()
     {
         // Add spell to character
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'known',
@@ -70,11 +72,11 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_spell_by_slug()
     {
         // Add spell to character
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'known',
@@ -90,7 +92,7 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_spell_slug()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/spells/invalid-slug");
@@ -98,7 +100,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertNotFound();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_spell_id()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/spells/99999");
@@ -106,11 +108,11 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertNotFound();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_prepares_spell_by_id()
     {
         // Add spell to character (not prepared)
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'known',
@@ -123,11 +125,11 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.preparation_status', 'prepared');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_prepares_spell_by_slug()
     {
         // Add spell to character (not prepared)
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'known',
@@ -140,11 +142,11 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.preparation_status', 'prepared');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_unprepares_spell_by_id()
     {
         // Add spell to character (prepared)
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'prepared',
@@ -157,11 +159,11 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.preparation_status', 'known');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_unprepares_spell_by_slug()
     {
         // Add spell to character (prepared)
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $this->character->id,
             'spell_id' => $this->spell->id,
             'preparation_status' => 'prepared',
@@ -178,7 +180,7 @@ class CharacterSlugIdParameterTest extends TestCase
     // CharacterClassController Tests
     // ========================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_character_class_by_id()
     {
         // Add two classes to character (need at least 2 to delete one)
@@ -201,7 +203,7 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_character_class_by_slug()
     {
         // Add two classes to character (need at least 2 to delete one)
@@ -224,7 +226,7 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_class_slug()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/classes/invalid-slug");
@@ -232,7 +234,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertNotFound();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_class_id()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/classes/99999");
@@ -240,7 +242,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertNotFound();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_levels_up_class_by_slug()
     {
         $race = Race::factory()->create();
@@ -262,7 +264,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.previous_level', 3);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_levels_up_class_by_slug()
     {
         $race = Race::factory()->create();
@@ -284,7 +286,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.previous_level', 3);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_sets_subclass_by_id()
     {
         // Create a subclass for this class
@@ -309,7 +311,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertJsonPath('data.subclass.id', $subclass->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_sets_subclass_by_slug()
     {
         // Create a subclass for this class
@@ -338,7 +340,7 @@ class CharacterSlugIdParameterTest extends TestCase
     // FeatureSelectionController Tests
     // ========================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_feature_selection_by_id()
     {
         // Add feature selection to character
@@ -356,7 +358,7 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deletes_feature_selection_by_slug()
     {
         // Add feature selection to character
@@ -374,7 +376,7 @@ class CharacterSlugIdParameterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_feature_selection_slug()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/invalid-slug");
@@ -382,7 +384,7 @@ class CharacterSlugIdParameterTest extends TestCase
         $response->assertNotFound();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_404_for_invalid_feature_selection_id()
     {
         $response = $this->deleteJson("/api/v1/characters/{$this->character->id}/feature-selections/99999");

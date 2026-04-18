@@ -5,10 +5,13 @@ namespace Tests\Feature\Requests;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use Database\Seeders\SpellSchoolSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ClassSpellListRequestTest extends TestCase
 {
     use RefreshDatabase;
@@ -19,11 +22,11 @@ class ClassSpellListRequestTest extends TestCase
 
         // Only seed if database is empty
         if (SpellSchool::count() === 0) {
-            $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+            $this->seed(SpellSchoolSeeder::class);
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_spell_level_range(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Wizard']);
@@ -48,7 +51,7 @@ class ClassSpellListRequestTest extends TestCase
         $response->assertJsonValidationErrors('level');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_school_exists(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Sorcerer']);
@@ -67,7 +70,7 @@ class ClassSpellListRequestTest extends TestCase
         $response->assertJsonValidationErrors('school');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_boolean_filters(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Cleric']);
@@ -94,7 +97,7 @@ class ClassSpellListRequestTest extends TestCase
         $response->assertJsonValidationErrors('concentration');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_sortable_columns(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Druid']);
@@ -114,7 +117,7 @@ class ClassSpellListRequestTest extends TestCase
         $response->assertJsonValidationErrors('sort_by');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_per_page_limit(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Bard']);
@@ -139,7 +142,7 @@ class ClassSpellListRequestTest extends TestCase
         $response->assertJsonValidationErrors('per_page');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_max_length(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Warlock']);

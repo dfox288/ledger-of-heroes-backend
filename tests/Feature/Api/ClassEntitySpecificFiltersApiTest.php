@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -11,20 +14,20 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class ClassEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
         parent::setUp();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_is_spellcaster_true(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = true');
@@ -38,7 +41,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_is_spellcaster_false(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=is_spellcaster = false');
@@ -52,7 +55,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_hit_die_12(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 12');
@@ -67,7 +70,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_hit_die_10(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 10');
@@ -82,7 +85,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_combined_hit_die_and_is_spellcaster(): void
     {
         // d10 spellcasters: Ranger, Paladin
@@ -99,7 +102,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_combined_hit_die_and_is_spellcaster_false(): void
     {
         // d12 non-spellcasters: Barbarian (and subclasses)
@@ -116,7 +119,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_max_spell_level(): void
     {
         // Note: Class-spell relationships are created during spell imports, not class imports.
@@ -144,7 +147,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_rejects_invalid_filter_syntax(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=invalid_field INVALID_OPERATOR value');
@@ -152,7 +155,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $this->assertContains($response->status(), [400, 422, 500]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_filter_with_multiple_conditions(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=hit_die = 6 AND is_spellcaster = true');
@@ -161,7 +164,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         $response->assertJsonStructure(['data', 'links', 'meta']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_is_base_class_true(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = true');
@@ -175,7 +178,7 @@ class ClassEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_classes_by_is_base_class_false(): void
     {
         $response = $this->getJson('/api/v1/classes?filter=is_base_class = false');

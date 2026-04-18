@@ -3,12 +3,14 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\ClassXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ClassXmlParserSpellsKnownTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_spells_known_into_spell_progression(): void
     {
         // Test with NON-optional slots (e.g., Wizard)
@@ -52,7 +54,7 @@ XML;
         $this->assertEquals(4, $data[0]['spell_progression'][1]['spells_known']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_include_spells_known_in_counters(): void
     {
         $xml = <<<'XML'
@@ -84,7 +86,7 @@ XML;
         $this->assertEquals('Second Wind', $data[0]['counters'][0]['name']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_merges_spells_known_from_separate_autolevel_elements(): void
     {
         // Real-world case: Bard has slots and counters in SEPARATE autolevels
@@ -134,7 +136,7 @@ XML;
         $this->assertEquals(5, $level2['spells_known'], 'Level 2 should have 5 spells known');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_spells_known_for_optional_slots(): void
     {
         // Classes with optional slots (Fighter, Rogue) should NOT have spell progression

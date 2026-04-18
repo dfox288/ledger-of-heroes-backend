@@ -8,6 +8,7 @@ use App\Models\EntityChoice;
 use App\Models\Skill;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,7 +19,7 @@ class ClassImporterFeatureSkillChoiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     private ClassImporter $importer;
 

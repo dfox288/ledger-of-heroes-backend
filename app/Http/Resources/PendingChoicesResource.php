@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * API Resource for a collection of pending choices with summary.
@@ -11,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Wraps multiple PendingChoice DTOs with summary metadata including
  * total count, remaining choices, and counts by type.
  *
- * @property array{choices: \Illuminate\Support\Collection, summary: array} $resource
+ * @property array{choices: Collection, summary: array} $resource
  */
 class PendingChoicesResource extends JsonResource
 {

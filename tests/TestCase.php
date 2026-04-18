@@ -8,6 +8,7 @@ use App\Models\Size;
 use App\Models\Skill;
 use App\Models\Source;
 use App\Models\SpellSchool;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -30,7 +31,7 @@ abstract class TestCase extends BaseTestCase
      *
      * @var string
      */
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     /**
      * Store original error/exception handlers to restore after test.

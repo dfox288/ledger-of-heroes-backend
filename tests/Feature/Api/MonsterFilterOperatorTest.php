@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Monster;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\TestsFilterOperators;
 use Tests\TestCase;
 
@@ -12,14 +15,14 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class MonsterFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
     use TestsFilterOperators;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     // ============================================================
     // Entity-Specific Configuration
@@ -97,43 +100,43 @@ class MonsterFilterOperatorTest extends TestCase
     // Integer Operators (challenge_rating field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_equals(): void
     {
         $this->assertIntegerEquals();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_not_equals(): void
     {
         $this->assertIntegerNotEquals();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_greater_than(): void
     {
         $this->assertIntegerGreaterThan();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_greater_than_or_equal(): void
     {
         $this->assertIntegerGreaterThanOrEqual();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_less_than(): void
     {
         $this->assertIntegerLessThan();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_less_than_or_equal(): void
     {
         $this->assertIntegerLessThanOrEqual();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_challenge_rating_with_to_range(): void
     {
         // Override to use better range for monsters (5-10 instead of trait defaults)
@@ -153,7 +156,7 @@ class MonsterFilterOperatorTest extends TestCase
     // String Operators (slug field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_equals(): void
     {
         $config = $this->getStringFieldConfig();
@@ -168,7 +171,7 @@ class MonsterFilterOperatorTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $response->json('meta.total'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_not_equals(): void
     {
         $config = $this->getStringFieldConfig();
@@ -188,25 +191,25 @@ class MonsterFilterOperatorTest extends TestCase
     // Boolean Operators (has_legendary_actions field) - 4 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_legendary_actions_with_equals_true(): void
     {
         $this->assertBooleanEqualsTrue();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_legendary_actions_with_equals_false(): void
     {
         $this->assertBooleanEqualsFalse();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_legendary_actions_with_not_equals_true(): void
     {
         $this->assertBooleanNotEqualsTrue();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_legendary_actions_with_not_equals_false(): void
     {
         $this->assertBooleanNotEqualsFalse();
@@ -216,7 +219,7 @@ class MonsterFilterOperatorTest extends TestCase
     // Array Operators (source_codes field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_source_codes_with_in(): void
     {
         $config = $this->getArrayFieldConfig();
@@ -227,7 +230,7 @@ class MonsterFilterOperatorTest extends TestCase
         $this->assertArrayIn();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_source_codes_with_not_in(): void
     {
         $config = $this->getArrayFieldConfig();

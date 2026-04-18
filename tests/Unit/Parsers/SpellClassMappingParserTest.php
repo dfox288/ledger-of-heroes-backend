@@ -3,9 +3,11 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\SpellClassMappingParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class SpellClassMappingParserTest extends TestCase
 {
@@ -17,7 +19,7 @@ class SpellClassMappingParserTest extends TestCase
         $this->parser = new SpellClassMappingParser;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_spell_name_and_classes_from_xml()
     {
         $xml = <<<'XML'
@@ -41,7 +43,7 @@ XML;
         ], $result['Animate Dead']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_multiple_spells()
     {
         $xml = <<<'XML'
@@ -72,7 +74,7 @@ XML;
         $this->assertArrayHasKey('Confusion', $result);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_single_class_without_subclass()
     {
         $xml = <<<'XML'
@@ -92,7 +94,7 @@ XML;
         $this->assertEquals(['Wizard'], $result['Fireball']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_spells_without_name()
     {
         $xml = <<<'XML'
@@ -116,7 +118,7 @@ XML;
         $this->assertArrayHasKey('Fireball', $result);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_spells_without_classes()
     {
         $xml = <<<'XML'
@@ -140,7 +142,7 @@ XML;
         $this->assertArrayHasKey('Magic Missile', $result);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_throws_exception_for_missing_file()
     {
         $this->expectException(\Exception::class);
@@ -149,7 +151,7 @@ XML;
         $this->parser->parse('/nonexistent/file.xml');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_throws_exception_for_invalid_xml()
     {
         $invalidXml = '<?xml version="1.0"?><broken><unclosed>';

@@ -4,10 +4,11 @@ namespace Tests\Feature\Requests;
 
 use Database\Seeders\ProficiencyTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ProficiencyTypeIndexRequestTest extends TestCase
 {
     use RefreshDatabase;

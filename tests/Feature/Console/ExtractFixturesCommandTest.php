@@ -2,8 +2,29 @@
 
 namespace Tests\Feature\Console;
 
+use App\Models\AbilityScore;
+use App\Models\Background;
+use App\Models\CharacterClass;
+use App\Models\CharacterTrait;
+use App\Models\EntityPrerequisite;
+use App\Models\EntitySource;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\ItemType;
+use App\Models\Modifier;
+use App\Models\Monster;
+use App\Models\OptionalFeature;
+use App\Models\Proficiency;
+use App\Models\Race;
+use App\Models\Size;
+use App\Models\Skill;
+use App\Models\Source;
+use App\Models\Spell;
+use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Tests\TestCase;
 
 class ExtractFixturesCommandTest extends TestCase
@@ -21,42 +42,42 @@ class ExtractFixturesCommandTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_the_command_registered(): void
     {
         $this->artisan('fixtures:extract', ['--help' => true])
             ->assertSuccessful();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_requires_entity_type_argument(): void
     {
         try {
             $this->artisan('fixtures:extract');
             $this->fail('Expected RuntimeException was not thrown');
-        } catch (\Symfony\Component\Console\Exception\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->assertStringContainsString('Not enough arguments', $e->getMessage());
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_spells_with_coverage_based_selection(): void
     {
         // Create test spells covering edge cases
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST', 'name' => 'Test Source']);
-        $school = \App\Models\SpellSchool::first();
-        $class = \App\Models\CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
+        $source = Source::factory()->create(['code' => 'TEST', 'name' => 'Test Source']);
+        $school = SpellSchool::first();
+        $class = CharacterClass::factory()->create(['slug' => 'wizard', 'name' => 'Wizard']);
 
         // Create spells at different levels
         foreach (range(0, 3) as $level) {
-            $spell = \App\Models\Spell::factory()->create([
+            $spell = Spell::factory()->create([
                 'level' => $level,
                 'spell_school_id' => $school->id,
             ]);
             $spell->classes()->attach($class->id);
 
             // Create entity source relationship
-            \App\Models\EntitySource::create([
+            EntitySource::create([
                 'reference_type' => 'App\Models\Spell',
                 'reference_id' => $spell->id,
                 'source_id' => $source->id,
@@ -93,19 +114,19 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertIsArray($spell['sources']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_monsters_with_cr_coverage(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-MM']);
+        $source = Source::factory()->create(['code' => 'TEST-MM']);
 
         // Create monsters at different CRs
         foreach ([0, 0.125, 0.25, 0.5, 1, 5, 10, 20] as $cr) {
-            $monster = \App\Models\Monster::factory()->create([
+            $monster = Monster::factory()->create([
                 'challenge_rating' => $cr,
             ]);
 
             // Create entity source relationship
-            \App\Models\EntitySource::create([
+            EntitySource::create([
                 'reference_type' => 'App\Models\Monster',
                 'reference_id' => $monster->id,
                 'source_id' => $source->id,
@@ -134,17 +155,17 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertArrayHasKey('source', $monster);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_classes_with_all_base_classes(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+        $source = Source::factory()->create(['code' => 'TEST-PHB']);
 
         // Create test classes covering different hit dice and spellcasting
-        $wizInt = \App\Models\AbilityScore::where('code', 'INT')->first();
-        $wisWis = \App\Models\AbilityScore::where('code', 'WIS')->first();
+        $wizInt = AbilityScore::where('code', 'INT')->first();
+        $wisWis = AbilityScore::where('code', 'WIS')->first();
 
         // Base class with spellcasting
-        $wizard = \App\Models\CharacterClass::factory()->create([
+        $wizard = CharacterClass::factory()->create([
             'name' => 'Wizard',
             'slug' => 'wizard',
             'hit_die' => 6,
@@ -154,7 +175,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Base class without spellcasting
-        $fighter = \App\Models\CharacterClass::factory()->create([
+        $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'slug' => 'fighter',
             'hit_die' => 10,
@@ -164,7 +185,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Base class with different spellcasting
-        $cleric = \App\Models\CharacterClass::factory()->create([
+        $cleric = CharacterClass::factory()->create([
             'name' => 'Cleric',
             'slug' => 'cleric',
             'hit_die' => 8,
@@ -175,7 +196,7 @@ class ExtractFixturesCommandTest extends TestCase
 
         // Create entity source relationships
         foreach ([$wizard, $fighter, $cleric] as $class) {
-            \App\Models\EntitySource::create([
+            EntitySource::create([
                 'reference_type' => 'App\Models\CharacterClass',
                 'reference_id' => $class->id,
                 'source_id' => $source->id,
@@ -211,23 +232,23 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertIsString($class['slug']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_races_with_size_coverage(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+        $source = Source::factory()->create(['code' => 'TEST-PHB']);
 
         // Get different sizes
-        $sizeMedium = \App\Models\Size::where('code', 'M')->first();
-        $sizeSmall = \App\Models\Size::where('code', 'S')->first();
-        $sizeTiny = \App\Models\Size::where('code', 'T')->first();
+        $sizeMedium = Size::where('code', 'M')->first();
+        $sizeSmall = Size::where('code', 'S')->first();
+        $sizeTiny = Size::where('code', 'T')->first();
 
         // Get ability scores for modifiers
-        $strAbility = \App\Models\AbilityScore::where('code', 'STR')->first();
-        $dexAbility = \App\Models\AbilityScore::where('code', 'DEX')->first();
-        $conAbility = \App\Models\AbilityScore::where('code', 'CON')->first();
+        $strAbility = AbilityScore::where('code', 'STR')->first();
+        $dexAbility = AbilityScore::where('code', 'DEX')->first();
+        $conAbility = AbilityScore::where('code', 'CON')->first();
 
         // Create base race with traits and modifiers
-        $human = \App\Models\Race::factory()->create([
+        $human = Race::factory()->create([
             'name' => 'Human',
             'slug' => 'human',
             'size_id' => $sizeMedium->id,
@@ -236,7 +257,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add ability score modifiers
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $human->id,
             'modifier_category' => 'ability_score',
@@ -244,7 +265,7 @@ class ExtractFixturesCommandTest extends TestCase
             'value' => 1,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $human->id,
             'modifier_category' => 'ability_score',
@@ -253,7 +274,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add a trait
-        \App\Models\CharacterTrait::create([
+        CharacterTrait::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $human->id,
             'name' => 'Extra Language',
@@ -262,7 +283,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create race with subraces
-        $elf = \App\Models\Race::factory()->create([
+        $elf = Race::factory()->create([
             'name' => 'Elf',
             'slug' => 'elf',
             'size_id' => $sizeMedium->id,
@@ -270,7 +291,7 @@ class ExtractFixturesCommandTest extends TestCase
             'parent_race_id' => null,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $elf->id,
             'modifier_category' => 'ability_score',
@@ -279,7 +300,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create subrace
-        $highElf = \App\Models\Race::factory()->create([
+        $highElf = Race::factory()->create([
             'name' => 'High Elf',
             'slug' => 'high-elf',
             'size_id' => $sizeMedium->id,
@@ -287,7 +308,7 @@ class ExtractFixturesCommandTest extends TestCase
             'parent_race_id' => $elf->id,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $highElf->id,
             'modifier_category' => 'ability_score',
@@ -296,7 +317,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create small race
-        $halfling = \App\Models\Race::factory()->create([
+        $halfling = Race::factory()->create([
             'name' => 'Halfling',
             'slug' => 'halfling',
             'size_id' => $sizeSmall->id,
@@ -304,7 +325,7 @@ class ExtractFixturesCommandTest extends TestCase
             'parent_race_id' => null,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $halfling->id,
             'modifier_category' => 'ability_score',
@@ -313,7 +334,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create tiny race
-        $fairy = \App\Models\Race::factory()->create([
+        $fairy = Race::factory()->create([
             'name' => 'Fairy',
             'slug' => 'fairy',
             'size_id' => $sizeTiny->id,
@@ -321,7 +342,7 @@ class ExtractFixturesCommandTest extends TestCase
             'parent_race_id' => null,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Race',
             'reference_id' => $fairy->id,
             'modifier_category' => 'ability_score',
@@ -331,7 +352,7 @@ class ExtractFixturesCommandTest extends TestCase
 
         // Create entity source relationships
         foreach ([$human, $elf, $highElf, $halfling, $fairy] as $race) {
-            \App\Models\EntitySource::create([
+            EntitySource::create([
                 'reference_type' => 'App\Models\Race',
                 'reference_id' => $race->id,
                 'source_id' => $source->id,
@@ -378,20 +399,20 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $subraces->count(), 'Should have at least one subrace');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_items_with_rarity_and_type_coverage(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-DMG']);
+        $source = Source::factory()->create(['code' => 'TEST-DMG']);
 
         // Get different item types
-        $typeGeneral = \App\Models\ItemType::where('code', 'G')->first();
-        $typeMelee = \App\Models\ItemType::where('code', 'M')->first();
-        $typeRanged = \App\Models\ItemType::where('code', 'R')->first();
-        $typeLightArmor = \App\Models\ItemType::where('code', 'LA')->first();
-        $typePotion = \App\Models\ItemType::where('code', 'P')->first();
+        $typeGeneral = ItemType::where('code', 'G')->first();
+        $typeMelee = ItemType::where('code', 'M')->first();
+        $typeRanged = ItemType::where('code', 'R')->first();
+        $typeLightArmor = ItemType::where('code', 'LA')->first();
+        $typePotion = ItemType::where('code', 'P')->first();
 
         // Create mundane items with different types
-        $rope = \App\Models\Item::factory()->create([
+        $rope = Item::factory()->create([
             'name' => 'Rope, Hempen',
             'slug' => 'rope-hempen',
             'item_type_id' => $typeGeneral->id,
@@ -401,7 +422,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 10.00,
         ]);
 
-        $longsword = \App\Models\Item::factory()->create([
+        $longsword = Item::factory()->create([
             'name' => 'Longsword',
             'slug' => 'longsword',
             'item_type_id' => $typeMelee->id,
@@ -413,7 +434,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 3.00,
         ]);
 
-        $longbow = \App\Models\Item::factory()->create([
+        $longbow = Item::factory()->create([
             'name' => 'Longbow',
             'slug' => 'longbow',
             'item_type_id' => $typeRanged->id,
@@ -426,7 +447,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 2.00,
         ]);
 
-        $leatherArmor = \App\Models\Item::factory()->create([
+        $leatherArmor = Item::factory()->create([
             'name' => 'Leather Armor',
             'slug' => 'leather-armor',
             'item_type_id' => $typeLightArmor->id,
@@ -438,7 +459,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create magical items with different rarities
-        $potionHealing = \App\Models\Item::factory()->create([
+        $potionHealing = Item::factory()->create([
             'name' => 'Potion of Healing',
             'slug' => 'potion-of-healing',
             'item_type_id' => $typePotion->id,
@@ -448,7 +469,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 0.50,
         ]);
 
-        $bagOfHolding = \App\Models\Item::factory()->create([
+        $bagOfHolding = Item::factory()->create([
             'name' => 'Bag of Holding',
             'slug' => 'bag-of-holding',
             'item_type_id' => $typeGeneral->id,
@@ -459,7 +480,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 15.00,
         ]);
 
-        $flametongueSword = \App\Models\Item::factory()->create([
+        $flametongueSword = Item::factory()->create([
             'name' => 'Flametongue Sword',
             'slug' => 'flametongue-sword',
             'item_type_id' => $typeMelee->id,
@@ -471,7 +492,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 3.00,
         ]);
 
-        $veryRareItem = \App\Models\Item::factory()->create([
+        $veryRareItem = Item::factory()->create([
             'name' => 'Cloak of Invisibility',
             'slug' => 'cloak-of-invisibility',
             'item_type_id' => $typeGeneral->id,
@@ -482,7 +503,7 @@ class ExtractFixturesCommandTest extends TestCase
             'weight' => 1.00,
         ]);
 
-        $legendaryItem = \App\Models\Item::factory()->create([
+        $legendaryItem = Item::factory()->create([
             'name' => 'Vorpal Sword',
             'slug' => 'vorpal-sword',
             'item_type_id' => $typeMelee->id,
@@ -496,7 +517,7 @@ class ExtractFixturesCommandTest extends TestCase
 
         // Create entity source relationships
         foreach ([$rope, $longsword, $longbow, $leatherArmor, $potionHealing, $bagOfHolding, $flametongueSword, $veryRareItem, $legendaryItem] as $item) {
-            \App\Models\EntitySource::create([
+            EntitySource::create([
                 'reference_type' => 'App\Models\Item',
                 'reference_id' => $item->id,
                 'source_id' => $source->id,
@@ -550,18 +571,18 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $mundaneItems->count(), 'Should have at least one mundane item');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_feats_with_prerequisite_coverage(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+        $source = Source::factory()->create(['code' => 'TEST-PHB']);
 
         // Get ability scores for prerequisites and modifiers
-        $strAbility = \App\Models\AbilityScore::where('code', 'STR')->first();
-        $dexAbility = \App\Models\AbilityScore::where('code', 'DEX')->first();
-        $intAbility = \App\Models\AbilityScore::where('code', 'INT')->first();
+        $strAbility = AbilityScore::where('code', 'STR')->first();
+        $dexAbility = AbilityScore::where('code', 'DEX')->first();
+        $intAbility = AbilityScore::where('code', 'INT')->first();
 
         // Create feat without prerequisites
-        $grappler = \App\Models\Feat::factory()->create([
+        $grappler = Feat::factory()->create([
             'name' => 'Grappler',
             'slug' => 'grappler',
             'prerequisites_text' => null,
@@ -569,7 +590,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $grappler->id,
             'source_id' => $source->id,
@@ -577,7 +598,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create feat with prerequisites
-        $heavyArmorMaster = \App\Models\Feat::factory()->create([
+        $heavyArmorMaster = Feat::factory()->create([
             'name' => 'Heavy Armor Master',
             'slug' => 'heavy-armor-master',
             'prerequisites_text' => 'Proficiency with heavy armor',
@@ -585,7 +606,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add ability score modifier to this feat
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $heavyArmorMaster->id,
             'modifier_category' => 'ability_score',
@@ -594,7 +615,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $heavyArmorMaster->id,
             'source_id' => $source->id,
@@ -602,7 +623,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create feat with prerequisite entity
-        $athlete = \App\Models\Feat::factory()->create([
+        $athlete = Feat::factory()->create([
             'name' => 'Athlete',
             'slug' => 'athlete',
             'prerequisites_text' => null,
@@ -610,7 +631,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add ability score prerequisite
-        \App\Models\EntityPrerequisite::create([
+        EntityPrerequisite::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $athlete->id,
             'prerequisite_type' => 'App\Models\AbilityScore',
@@ -619,7 +640,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add multiple ability score modifiers (choice options)
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $athlete->id,
             'modifier_category' => 'ability_score',
@@ -628,7 +649,7 @@ class ExtractFixturesCommandTest extends TestCase
             'choice_count' => 1,
         ]);
 
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $athlete->id,
             'modifier_category' => 'ability_score',
@@ -638,7 +659,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $athlete->id,
             'source_id' => $source->id,
@@ -646,7 +667,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create feat with ability score improvement only
-        $keenMind = \App\Models\Feat::factory()->create([
+        $keenMind = Feat::factory()->create([
             'name' => 'Keen Mind',
             'slug' => 'keen-mind',
             'prerequisites_text' => null,
@@ -654,7 +675,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add ability score modifier
-        \App\Models\Modifier::create([
+        Modifier::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $keenMind->id,
             'modifier_category' => 'ability_score',
@@ -663,7 +684,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Feat',
             'reference_id' => $keenMind->id,
             'source_id' => $source->id,
@@ -711,30 +732,30 @@ class ExtractFixturesCommandTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $featsWithASI->count(), 'Should have at least one feat with ability score improvements');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_backgrounds(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-PHB']);
+        $source = Source::factory()->create(['code' => 'TEST-PHB']);
 
         // Create ability score for skills
-        $chaAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'CHA'], ['name' => 'Charisma']);
-        $wisAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'WIS'], ['name' => 'Wisdom']);
-        $dexAbility = \App\Models\AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
+        $chaAbility = AbilityScore::firstOrCreate(['code' => 'CHA'], ['name' => 'Charisma']);
+        $wisAbility = AbilityScore::firstOrCreate(['code' => 'WIS'], ['name' => 'Wisdom']);
+        $dexAbility = AbilityScore::firstOrCreate(['code' => 'DEX'], ['name' => 'Dexterity']);
 
         // Create skills for proficiencies (look up by name to avoid unique constraint issues)
-        $deception = \App\Models\Skill::firstOrCreate(['name' => 'Deception'], ['slug' => 'deception', 'ability_score_id' => $chaAbility->id]);
-        $stealth = \App\Models\Skill::firstOrCreate(['name' => 'Stealth'], ['slug' => 'stealth', 'ability_score_id' => $dexAbility->id]);
-        $insight = \App\Models\Skill::firstOrCreate(['name' => 'Insight'], ['slug' => 'insight', 'ability_score_id' => $wisAbility->id]);
-        $persuasion = \App\Models\Skill::firstOrCreate(['name' => 'Persuasion'], ['slug' => 'persuasion', 'ability_score_id' => $chaAbility->id]);
+        $deception = Skill::firstOrCreate(['name' => 'Deception'], ['slug' => 'deception', 'ability_score_id' => $chaAbility->id]);
+        $stealth = Skill::firstOrCreate(['name' => 'Stealth'], ['slug' => 'stealth', 'ability_score_id' => $dexAbility->id]);
+        $insight = Skill::firstOrCreate(['name' => 'Insight'], ['slug' => 'insight', 'ability_score_id' => $wisAbility->id]);
+        $persuasion = Skill::firstOrCreate(['name' => 'Persuasion'], ['slug' => 'persuasion', 'ability_score_id' => $chaAbility->id]);
 
         // Create background with skill proficiencies
-        $criminal = \App\Models\Background::factory()->create([
+        $criminal = Background::factory()->create([
             'name' => 'Criminal',
             'slug' => 'criminal',
         ]);
 
         // Add skill proficiencies
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'proficiency_type' => 'skill',
@@ -742,7 +763,7 @@ class ExtractFixturesCommandTest extends TestCase
             'proficiency_name' => null,
         ]);
 
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'proficiency_type' => 'skill',
@@ -751,7 +772,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add tool proficiency
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'proficiency_type' => 'tool',
@@ -761,7 +782,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add language proficiency
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'proficiency_type' => 'language',
@@ -770,7 +791,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add background feature
-        \App\Models\CharacterTrait::create([
+        CharacterTrait::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'name' => 'Criminal Contact',
@@ -779,7 +800,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $criminal->id,
             'source_id' => $source->id,
@@ -787,20 +808,20 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create second background with different proficiencies
-        $acolyte = \App\Models\Background::factory()->create([
+        $acolyte = Background::factory()->create([
             'name' => 'Acolyte',
             'slug' => 'acolyte',
         ]);
 
         // Add different skill proficiencies
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $acolyte->id,
             'proficiency_type' => 'skill',
             'skill_id' => $insight->id,
         ]);
 
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $acolyte->id,
             'proficiency_type' => 'skill',
@@ -808,7 +829,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add language proficiency
-        \App\Models\Proficiency::create([
+        Proficiency::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $acolyte->id,
             'proficiency_type' => 'language',
@@ -817,7 +838,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Add background feature
-        \App\Models\CharacterTrait::create([
+        CharacterTrait::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $acolyte->id,
             'name' => 'Shelter of the Faithful',
@@ -826,7 +847,7 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // Create entity source relationship
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\Background',
             'reference_id' => $acolyte->id,
             'source_id' => $source->id,
@@ -887,31 +908,31 @@ class ExtractFixturesCommandTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_optional_features_by_type(): void
     {
-        $source = \App\Models\Source::factory()->create(['code' => 'TEST-XGE']);
+        $source = Source::factory()->create(['code' => 'TEST-XGE']);
 
         // Get classes for associations
-        $warlock = \App\Models\CharacterClass::factory()->create([
+        $warlock = CharacterClass::factory()->create([
             'name' => 'Warlock',
             'slug' => 'warlock',
             'parent_class_id' => null,
         ]);
 
-        $monk = \App\Models\CharacterClass::factory()->create([
+        $monk = CharacterClass::factory()->create([
             'name' => 'Monk',
             'slug' => 'monk',
             'parent_class_id' => null,
         ]);
 
-        $fighter = \App\Models\CharacterClass::factory()->create([
+        $fighter = CharacterClass::factory()->create([
             'name' => 'Fighter',
             'slug' => 'fighter',
             'parent_class_id' => null,
         ]);
 
-        $sorcerer = \App\Models\CharacterClass::factory()->create([
+        $sorcerer = CharacterClass::factory()->create([
             'name' => 'Sorcerer',
             'slug' => 'sorcerer',
             'parent_class_id' => null,
@@ -920,13 +941,13 @@ class ExtractFixturesCommandTest extends TestCase
         // Create optional features of different types
 
         // 1. Eldritch Invocation
-        $invocation = \App\Models\OptionalFeature::factory()->invocation()->create([
+        $invocation = OptionalFeature::factory()->invocation()->create([
             'name' => 'Agonizing Blast',
             'slug' => 'agonizing-blast',
             'prerequisite_text' => 'eldritch blast cantrip',
         ]);
         $invocation->classes()->attach($warlock->id);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $invocation->id,
             'source_id' => $source->id,
@@ -934,12 +955,12 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 2. Elemental Discipline (spell-like with resource cost)
-        $discipline = \App\Models\OptionalFeature::factory()->elementalDiscipline()->create([
+        $discipline = OptionalFeature::factory()->elementalDiscipline()->create([
             'name' => 'Fangs of the Fire Snake',
             'slug' => 'fangs-of-the-fire-snake',
         ]);
         $discipline->classes()->attach($monk->id, ['subclass_name' => 'Way of the Four Elements']);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $discipline->id,
             'source_id' => $source->id,
@@ -947,12 +968,12 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 3. Maneuver
-        $maneuver = \App\Models\OptionalFeature::factory()->maneuver()->create([
+        $maneuver = OptionalFeature::factory()->maneuver()->create([
             'name' => 'Riposte',
             'slug' => 'riposte',
         ]);
         $maneuver->classes()->attach($fighter->id, ['subclass_name' => 'Battle Master']);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $maneuver->id,
             'source_id' => $source->id,
@@ -960,12 +981,12 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 4. Metamagic
-        $metamagic = \App\Models\OptionalFeature::factory()->metamagic()->create([
+        $metamagic = OptionalFeature::factory()->metamagic()->create([
             'name' => 'Quickened Spell',
             'slug' => 'quickened-spell',
         ]);
         $metamagic->classes()->attach($sorcerer->id);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $metamagic->id,
             'source_id' => $source->id,
@@ -973,12 +994,12 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 5. Fighting Style (available to multiple classes)
-        $fightingStyle = \App\Models\OptionalFeature::factory()->fightingStyle()->create([
+        $fightingStyle = OptionalFeature::factory()->fightingStyle()->create([
             'name' => 'Archery',
             'slug' => 'archery',
         ]);
         $fightingStyle->classes()->attach($fighter->id);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $fightingStyle->id,
             'source_id' => $source->id,
@@ -986,18 +1007,18 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 6. Artificer Infusion
-        $artificer = \App\Models\CharacterClass::factory()->create([
+        $artificer = CharacterClass::factory()->create([
             'name' => 'Artificer',
             'slug' => 'artificer',
             'parent_class_id' => null,
         ]);
-        $infusion = \App\Models\OptionalFeature::factory()->artificerInfusion()->create([
+        $infusion = OptionalFeature::factory()->artificerInfusion()->create([
             'name' => 'Replicate Magic Item',
             'slug' => 'replicate-magic-item',
             'level_requirement' => 2,
         ]);
         $infusion->classes()->attach($artificer->id);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $infusion->id,
             'source_id' => $source->id,
@@ -1005,13 +1026,13 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 7. Rune
-        $rune = \App\Models\OptionalFeature::factory()->rune()->create([
+        $rune = OptionalFeature::factory()->rune()->create([
             'name' => 'Cloud Rune',
             'slug' => 'cloud-rune',
             'level_requirement' => 7,
         ]);
         $rune->classes()->attach($fighter->id, ['subclass_name' => 'Rune Knight']);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $rune->id,
             'source_id' => $source->id,
@@ -1019,12 +1040,12 @@ class ExtractFixturesCommandTest extends TestCase
         ]);
 
         // 8. Arcane Shot
-        $arcaneShot = \App\Models\OptionalFeature::factory()->arcaneShot()->create([
+        $arcaneShot = OptionalFeature::factory()->arcaneShot()->create([
             'name' => 'Bursting Arrow',
             'slug' => 'bursting-arrow',
         ]);
         $arcaneShot->classes()->attach($fighter->id, ['subclass_name' => 'Arcane Archer']);
-        \App\Models\EntitySource::create([
+        EntitySource::create([
             'reference_type' => 'App\Models\OptionalFeature',
             'reference_id' => $arcaneShot->id,
             'source_id' => $source->id,

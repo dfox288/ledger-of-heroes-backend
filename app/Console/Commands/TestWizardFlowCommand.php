@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Character;
 use App\Services\WizardFlowTesting\CharacterRandomizer;
 use App\Services\WizardFlowTesting\FlowExecutor;
 use App\Services\WizardFlowTesting\FlowGenerator;
@@ -214,7 +215,7 @@ class TestWizardFlowCommand extends Command
         $deleted = 0;
         foreach ($report['summary']['characters_created'] as $char) {
             try {
-                \App\Models\Character::where('id', $char['id'])->delete();
+                Character::where('id', $char['id'])->delete();
                 $deleted++;
             } catch (\Throwable $e) {
                 $this->warn("Failed to delete character {$char['public_id']}: {$e->getMessage()}");

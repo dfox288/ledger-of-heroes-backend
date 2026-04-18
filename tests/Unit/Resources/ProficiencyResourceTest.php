@@ -10,14 +10,16 @@ use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ProficiencyResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_basic_proficiency_fields(): void
     {
         $race = Race::factory()->create();
@@ -41,7 +43,7 @@ class ProficiencyResourceTest extends TestCase
         $this->assertNull($array['level']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_proficiency_type_detail_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -65,7 +67,7 @@ class ProficiencyResourceTest extends TestCase
         $this->assertNotNull($array['proficiency_type_detail']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_skill_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -89,7 +91,7 @@ class ProficiencyResourceTest extends TestCase
         $this->assertNotNull($array['skill']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_item_when_present(): void
     {
         $race = Race::factory()->create();
@@ -115,7 +117,7 @@ class ProficiencyResourceTest extends TestCase
         $this->assertEquals('Longsword', $array['item']['name']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_ability_score_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -142,7 +144,7 @@ class ProficiencyResourceTest extends TestCase
     // Note: Choice proficiencies are now stored in entity_choices table
     // and tested via EntityChoiceResourceTest
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_proficiency_subcategory_when_present(): void
     {
         $race = Race::factory()->create();
@@ -162,7 +164,7 @@ class ProficiencyResourceTest extends TestCase
         $this->assertEquals('artisan', $array['proficiency_subcategory']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_level_when_granted_at_specific_level(): void
     {
         $race = Race::factory()->create();

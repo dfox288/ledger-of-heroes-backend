@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Background;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
@@ -12,20 +15,20 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class BackgroundFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     // ============================================================
     // Integer Operators (id field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_equals(): void
     {
         // Arrange: Verify database has backgrounds
@@ -45,7 +48,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertEquals('Acolyte', $response->json('data.0.name'), 'Should return Acolyte');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_not_equals(): void
     {
         // Arrange: Verify database has backgrounds
@@ -71,7 +74,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertNotContains('Acolyte', $names, 'Acolyte should be excluded');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_greater_than(): void
     {
         // Arrange: Get backgrounds and find a mid-range ID
@@ -94,7 +97,7 @@ class BackgroundFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_greater_than_or_equal(): void
     {
         // Arrange: Get a specific background
@@ -121,7 +124,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertContains($midBackground->id, $ids, 'Mid-range background should be included (>= is inclusive)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_less_than(): void
     {
         // Arrange: Get backgrounds and find a mid-range ID
@@ -144,7 +147,7 @@ class BackgroundFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_less_than_or_equal(): void
     {
         // Arrange: Get a specific background
@@ -171,7 +174,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertContains($midBackground->id, $ids, 'Mid-range background should be included (<= is inclusive)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_to_range(): void
     {
         // Arrange: Get backgrounds and define a range
@@ -206,7 +209,7 @@ class BackgroundFilterOperatorTest extends TestCase
     // String Operators (slug field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_equals(): void
     {
         // Arrange: Verify database has backgrounds
@@ -225,7 +228,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertEquals('Acolyte', $response->json('data.0.name'), 'Should return Acolyte background');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_not_equals(): void
     {
         // Arrange: Verify database has backgrounds
@@ -247,7 +250,7 @@ class BackgroundFilterOperatorTest extends TestCase
     // Array Operators (skill_proficiencies field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_skill_proficiencies_with_in(): void
     {
         // Acolyte has Insight and Religion proficiencies (from PHB import)
@@ -264,7 +267,7 @@ class BackgroundFilterOperatorTest extends TestCase
         $this->assertContains('Acolyte', $names, 'Acolyte grants insight and religion proficiency');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_skill_proficiencies_with_not_in(): void
     {
         // Skill slugs are stored with the "core:" prefix (see SkillSeeder).

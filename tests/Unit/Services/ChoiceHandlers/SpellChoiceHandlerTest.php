@@ -8,7 +8,9 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterSpell;
+use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Models\EntityChoice;
 use App\Models\Spell;
 use App\Services\ChoiceHandlers\SpellChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -562,7 +564,7 @@ class SpellChoiceHandlerTest extends TestCase
         ]);
 
         // Create a subclass feature for Nature Domain at level 1
-        $feature = \App\Models\ClassFeature::factory()->create([
+        $feature = ClassFeature::factory()->create([
             'class_id' => $natureDomain->id,
             'level' => 1,
             'feature_name' => 'Acolyte of Nature',
@@ -575,8 +577,8 @@ class SpellChoiceHandlerTest extends TestCase
         ]);
 
         // Create spell choice record for the feature (1 druid cantrip)
-        \App\Models\EntityChoice::create([
-            'reference_type' => \App\Models\ClassFeature::class,
+        EntityChoice::create([
+            'reference_type' => ClassFeature::class,
             'reference_id' => $feature->id,
             'choice_type' => 'spell',
             'choice_group' => 'acolyte_of_nature_cantrip',

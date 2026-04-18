@@ -6,6 +6,7 @@ use App\Models\CharacterClass;
 use App\Models\ClassFeature;
 use App\Models\EntitySpell;
 use App\Models\Spell;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,7 +17,7 @@ class ClassFeatureSpellsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function class_api_includes_feature_spells(): void

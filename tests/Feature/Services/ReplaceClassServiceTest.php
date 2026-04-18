@@ -8,6 +8,7 @@ use App\Exceptions\ClassReplacementException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\CharacterEquipment;
 use App\Services\ReplaceClassService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -389,14 +390,14 @@ class ReplaceClassServiceTest extends TestCase
         ]);
 
         // Add equipment from the old class
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'test:longsword',
             'quantity' => 1,
             'custom_description' => json_encode(['source' => 'class']),
         ]);
 
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'test:shield',
             'quantity' => 1,
@@ -404,7 +405,7 @@ class ReplaceClassServiceTest extends TestCase
         ]);
 
         // Add background equipment that should be preserved
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'test:backpack',
             'quantity' => 1,
@@ -445,7 +446,7 @@ class ReplaceClassServiceTest extends TestCase
         ]);
 
         // Add starting wealth gold from old class
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'phb:gold-gp',
             'quantity' => 125, // Fighter average starting wealth
@@ -453,7 +454,7 @@ class ReplaceClassServiceTest extends TestCase
         ]);
 
         // Add background gold that should be preserved
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => 'phb:gold-gp',
             'quantity' => 15,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Traits;
 
 use App\Models\Character;
+use App\Services\CharacterStatCalculator;
 use App\Services\LevelUpFlowTesting\LevelUpFlowExecutor;
 use App\Services\WizardFlowTesting\CharacterRandomizer;
 use App\Services\WizardFlowTesting\FlowExecutor;
@@ -287,7 +288,7 @@ trait CreatesTestCharacters
      */
     protected function getCharacterSpellSlots(Character $character): array
     {
-        $calculator = app(\App\Services\CharacterStatCalculator::class);
+        $calculator = app(CharacterStatCalculator::class);
         $primaryClass = $character->primary_class;
 
         if (! $primaryClass) {

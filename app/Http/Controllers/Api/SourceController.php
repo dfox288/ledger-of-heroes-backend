@@ -7,6 +7,7 @@ use App\Http\Requests\SourceIndexRequest;
 use App\Http\Resources\SourceResource;
 use App\Models\Source;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SourceController extends Controller
 {
@@ -42,7 +43,7 @@ class SourceController extends Controller
      * - Publication reference: "What year was Xanathar's Guide published?"
      *
      * @param  SourceIndexRequest  $request  Validated request with search and pagination parameters
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search by sourcebook name or code (e.g., "handbook", "PHB", "xanathar")', example: 'handbook')]
     #[QueryParameter('per_page', description: 'Results per page (1-100, default: 50)', example: '20')]
@@ -84,7 +85,7 @@ class SourceController extends Controller
      * - Content attribution: "Link to the original source website and author information"
      *
      * @param  Source  $source  The sourcebook to retrieve (accepts ID or code)
-     * @return \App\Http\Resources\SourceResource
+     * @return SourceResource
      */
     public function show(Source $source)
     {

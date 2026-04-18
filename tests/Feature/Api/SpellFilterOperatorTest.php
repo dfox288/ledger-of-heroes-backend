@@ -2,15 +2,18 @@
 
 namespace Tests\Feature\Api;
 
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class SpellFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -24,7 +27,7 @@ class SpellFilterOperatorTest extends TestCase
     // Integer Operators (level field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_equals(): void
     {
         // Act: Filter by level = 3 (PHB has many level 3 spells)
@@ -44,7 +47,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertContains('Animate Dead', $spellNames);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_not_equals(): void
     {
         // Act: Filter by level != 3 (should return all spells except level 3)
@@ -64,7 +67,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertNotContains(3, $levels, 'Level 3 should be excluded');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_greater_than(): void
     {
         // Act: Filter by level > 5 (should return levels 6, 7, 8, 9)
@@ -86,7 +89,7 @@ class SpellFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_greater_than_or_equal(): void
     {
         // Act: Filter by level >= 7 (should return levels 7, 8, 9)
@@ -109,7 +112,7 @@ class SpellFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_less_than(): void
     {
         // Act: Filter by level < 2 (should return levels 0, 1 only)
@@ -131,7 +134,7 @@ class SpellFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_less_than_or_equal(): void
     {
         // Act: Filter by level <= 1 (should return levels 0, 1)
@@ -151,7 +154,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertEquals([0, 1], $levels, 'Should only have levels 0 and 1');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_level_with_to_range(): void
     {
         // Act: Filter by level 3 TO 5 (inclusive range - should return levels 3, 4, 5)
@@ -182,7 +185,7 @@ class SpellFilterOperatorTest extends TestCase
     // String Operators (school_code field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_school_code_with_equals(): void
     {
         // Act: Filter by school_code = EV (Evocation spells) - use per_page to get more results
@@ -205,7 +208,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertContains('Bigby\'s Hand', $spellNames, 'Bigby\'s Hand is an Evocation spell in fixtures');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_school_code_with_not_equals(): void
     {
         // Act: Filter by school_code != EV (all spells except Evocation)
@@ -232,7 +235,7 @@ class SpellFilterOperatorTest extends TestCase
     // Boolean Operators (concentration field) - 5 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_concentration_with_equals_true(): void
     {
         // Act: Filter by concentration = true (spells requiring concentration) - use per_page to get more results
@@ -254,7 +257,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertContains('Alter Self', $spellNames, 'Alter Self requires concentration and exists in fixtures');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_concentration_with_equals_false(): void
     {
         // Act: Filter by concentration = false (spells not requiring concentration)
@@ -277,7 +280,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertContains('Acid Splash', $spellNames, 'Acid Splash does not require concentration');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_concentration_with_not_equals_true(): void
     {
         // Act: Filter by concentration != true (spells that are false or null)
@@ -299,7 +302,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertNotContains('Alter Self', $spellNames, 'Alter Self requires concentration (should be excluded)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_concentration_with_not_equals_false(): void
     {
         // Act: Filter by concentration != false (spells that are true or null)
@@ -321,7 +324,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertNotContains('Acid Splash', $spellNames, 'Acid Splash does not require concentration (should be excluded)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_concentration_with_is_null(): void
     {
         // Act: Filter by concentration IS NULL (spells with no concentration data)
@@ -344,7 +347,7 @@ class SpellFilterOperatorTest extends TestCase
     // Array Operators (class_slugs field) - 3 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_class_slugs_with_in(): void
     {
         // Act: Filter by class_slugs IN [wizard, bard] (spells available to wizard OR bard)
@@ -367,7 +370,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertGreaterThan(50, $response->json('meta.total'), 'Should find many wizard/bard spells in PHB');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_class_slugs_with_not_in(): void
     {
         // Act: Filter by class_slugs NOT IN [wizard] (exclude all wizard spells)
@@ -390,7 +393,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertLessThan(400, $response->json('meta.total'), 'Should have excluded wizard spells');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_class_slugs_with_is_empty(): void
     {
         // Act: Filter by class_slugs IS EMPTY (spells with no class associations)
@@ -415,7 +418,7 @@ class SpellFilterOperatorTest extends TestCase
     // Boolean Operators (ritual field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ritual_with_equals_true(): void
     {
         // Act: Filter by ritual = true (spells that can be cast as rituals)
@@ -437,7 +440,7 @@ class SpellFilterOperatorTest extends TestCase
         $this->assertContains('Alarm', $spellNames, 'Alarm can be cast as a ritual and exists in fixtures');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_ritual_with_not_equals_false(): void
     {
         // Act: Filter by ritual != false (spells that are true or null)

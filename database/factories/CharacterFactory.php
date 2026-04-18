@@ -8,10 +8,11 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\Race;
+use App\Services\CharacterFeatureService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Character>
+ * @extends Factory<Character>
  */
 class CharacterFactory extends Factory
 {
@@ -302,7 +303,7 @@ class CharacterFactory extends Factory
     public function withFeatures(): static
     {
         return $this->afterCreating(function (Character $character) {
-            $service = app(\App\Services\CharacterFeatureService::class);
+            $service = app(CharacterFeatureService::class);
             $service->populateAll($character);
         });
     }

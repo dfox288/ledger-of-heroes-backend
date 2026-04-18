@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 use App\Models\Character;
 use App\Models\CharacterClass;
+use Tests\TestCase;
 use Tests\Traits\CreatesTestCharacters;
 
-uses(Tests\TestCase::class, CreatesTestCharacters::class)->group('integration');
+uses(TestCase::class, CreatesTestCharacters::class)->group('integration');
 
 /*
 |--------------------------------------------------------------------------
@@ -37,8 +38,8 @@ beforeEach(function () {
     config(['database.connections.mysql.password' => 'dnd_password']);
 
     // Purge existing connections and reconnect
-    \DB::purge('mysql');
-    \DB::reconnect('mysql');
+    DB::purge('mysql');
+    DB::reconnect('mysql');
 
     // Skip if required classes aren't imported
     $classCount = CharacterClass::count();

@@ -2,20 +2,24 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\CharacterTrait;
 use App\Models\Modifier;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class MonsterTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_belongs_to_size(): void
     {
         $monster = Monster::factory()->create();
@@ -23,18 +27,18 @@ class MonsterTest extends TestCase
         $this->assertInstanceOf(Size::class, $monster->size);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_polymorphic_entity_traits(): void
     {
         $monster = Monster::factory()->create();
-        \App\Models\CharacterTrait::create([
+        CharacterTrait::create([
             'reference_type' => Monster::class,
             'reference_id' => $monster->id,
             'name' => 'Magic Resistance',
             'description' => 'The monster has advantage on saving throws against spells.',
             'sort_order' => 1,
         ]);
-        \App\Models\CharacterTrait::create([
+        CharacterTrait::create([
             'reference_type' => Monster::class,
             'reference_id' => $monster->id,
             'name' => 'Amphibious',
@@ -43,12 +47,12 @@ class MonsterTest extends TestCase
         ]);
 
         $this->assertCount(2, $monster->entityTraits);
-        $this->assertInstanceOf(\App\Models\CharacterTrait::class, $monster->entityTraits->first());
+        $this->assertInstanceOf(CharacterTrait::class, $monster->entityTraits->first());
         // Verify ordering by sort_order
         $this->assertEquals('Magic Resistance', $monster->entityTraits->first()->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_many_actions(): void
     {
         $monster = Monster::factory()->create();
@@ -58,7 +62,7 @@ class MonsterTest extends TestCase
         $this->assertInstanceOf(MonsterAction::class, $monster->actions->first());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_many_legendary_actions(): void
     {
         $monster = Monster::factory()->create();
@@ -68,13 +72,13 @@ class MonsterTest extends TestCase
         $this->assertInstanceOf(MonsterLegendaryAction::class, $monster->legendaryActions->first());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_use_timestamps(): void
     {
         $this->assertFalse(Monster::make()->usesTimestamps());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_many_modifiers(): void
     {
         $monster = Monster::factory()->create();
@@ -89,7 +93,7 @@ class MonsterTest extends TestCase
 
     // Computed Accessor Tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function is_legendary_returns_true_when_has_legendary_actions(): void
     {
         $monster = Monster::factory()->create();
@@ -101,7 +105,7 @@ class MonsterTest extends TestCase
         $this->assertTrue($monster->is_legendary);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function is_legendary_returns_false_when_only_lair_actions(): void
     {
         $monster = Monster::factory()->create();
@@ -113,7 +117,7 @@ class MonsterTest extends TestCase
         $this->assertFalse($monster->is_legendary);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function is_legendary_returns_false_when_no_legendary_actions(): void
     {
         $monster = Monster::factory()->create();
@@ -121,8 +125,8 @@ class MonsterTest extends TestCase
         $this->assertFalse($monster->is_legendary);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
-    #[\PHPUnit\Framework\Attributes\DataProvider('proficiencyBonusProvider')]
+    #[Test]
+    #[DataProvider('proficiencyBonusProvider')]
     public function proficiency_bonus_is_computed_from_challenge_rating(string $cr, int $expectedBonus): void
     {
         $monster = Monster::factory()->create(['challenge_rating' => $cr]);
@@ -158,8 +162,8 @@ class MonsterTest extends TestCase
 
     // Challenge Rating Tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
-    #[\PHPUnit\Framework\Attributes\DataProvider('challengeRatingProvider')]
+    #[Test]
+    #[DataProvider('challengeRatingProvider')]
     public function get_challenge_rating_numeric_converts_correctly(string $cr, float $expected): void
     {
         $monster = Monster::factory()->create(['challenge_rating' => $cr]);
@@ -184,7 +188,7 @@ class MonsterTest extends TestCase
 
     // Saving Throws Accessor Tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function saving_throws_returns_all_six_abilities(): void
     {
         $monster = Monster::factory()->create([
@@ -206,7 +210,7 @@ class MonsterTest extends TestCase
         $this->assertArrayHasKey('CHA', $savingThrows);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function saving_throws_calculates_from_ability_scores_when_not_proficient(): void
     {
         // Formula: floor((ability_score - 10) / 2)
@@ -229,7 +233,7 @@ class MonsterTest extends TestCase
         $this->assertSame(-2, $savingThrows['CHA']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function saving_throws_uses_stored_modifier_for_proficient_saves(): void
     {
         $monster = Monster::factory()->create([
@@ -270,7 +274,7 @@ class MonsterTest extends TestCase
         $this->assertSame(0, $savingThrows['CHA']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function saving_throws_handles_ancient_red_dragon_stats(): void
     {
         // Real stats from Ancient Red Dragon: CR 24, +7 proficiency
@@ -327,7 +331,7 @@ class MonsterTest extends TestCase
 
     // Legendary Metadata Tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function legendary_actions_per_round_defaults_to_null(): void
     {
         $monster = Monster::factory()->create();
@@ -335,7 +339,7 @@ class MonsterTest extends TestCase
         $this->assertNull($monster->legendary_actions_per_round);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function legendary_resistance_uses_defaults_to_null(): void
     {
         $monster = Monster::factory()->create();
@@ -343,7 +347,7 @@ class MonsterTest extends TestCase
         $this->assertNull($monster->legendary_resistance_uses);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function legendary_factory_state_sets_both_values(): void
     {
         $monster = Monster::factory()->legendary()->create();
@@ -352,7 +356,7 @@ class MonsterTest extends TestCase
         $this->assertSame(3, $monster->legendary_resistance_uses);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function legendary_factory_state_accepts_custom_values(): void
     {
         $monster = Monster::factory()->legendary(5, 2)->create();
@@ -361,7 +365,7 @@ class MonsterTest extends TestCase
         $this->assertSame(2, $monster->legendary_resistance_uses);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function can_set_legendary_actions_without_resistance(): void
     {
         $monster = Monster::factory()->withLegendaryActions(4)->create();
@@ -370,7 +374,7 @@ class MonsterTest extends TestCase
         $this->assertNull($monster->legendary_resistance_uses);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function can_set_legendary_resistance_without_actions(): void
     {
         $monster = Monster::factory()->withLegendaryResistance(5)->create();

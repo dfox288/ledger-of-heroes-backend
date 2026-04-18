@@ -2,15 +2,19 @@
 
 namespace Tests\Unit\Strategies\Monster;
 
+use App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy;
+use App\Services\Importers\Strategies\Monster\DefaultStrategy;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class AbstractMonsterStrategyTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_action_cost_from_legendary_name(): void
     {
-        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy
+        $strategy = new class extends AbstractMonsterStrategy
         {
             public function appliesTo(array $monsterData): bool
             {
@@ -28,10 +32,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertEquals(3, $strategy->test_extract_cost('Psychic Drain (Costs 3 Actions)'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_lair_actions_from_category(): void
     {
-        $strategy = new class extends \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy
+        $strategy = new class extends AbstractMonsterStrategy
         {
             public function appliesTo(array $monsterData): bool
             {
@@ -53,10 +57,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertTrue($enhanced[1]['is_lair_action']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_damage_immunity(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $monsterData = [
             'damage_immunities' => 'fire, cold',
         ];
@@ -66,10 +70,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertFalse($this->callProtectedMethod($strategy, 'hasDamageImmunity', [$monsterData, 'poison']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_damage_resistance(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $monsterData = [
             'damage_resistances' => 'bludgeoning, piercing',
         ];
@@ -78,10 +82,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertFalse($this->callProtectedMethod($strategy, 'hasDamageResistance', [$monsterData, 'fire']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_condition_immunity(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $monsterData = [
             'condition_immunities' => 'charmed, frightened, poisoned',
         ];
@@ -91,10 +95,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertFalse($this->callProtectedMethod($strategy, 'hasConditionImmunity', [$monsterData, 'paralyzed']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_finds_trait_containing_keyword(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $traits = [
             ['name' => 'Magic Resistance', 'description' => 'The creature has advantage on saving throws against spells'],
             ['name' => 'Pack Tactics', 'description' => 'The creature has advantage on attacks'],
@@ -105,10 +109,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertFalse($this->callProtectedMethod($strategy, 'hasTraitContaining', [$traits, 'regeneration']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_conditional_tags_with_trait_checks(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $traits = [
@@ -141,10 +145,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['beasts_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_conditional_tags_with_immunity_checks(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $monsterData = [
@@ -173,10 +177,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertNotContains('cold_immune', $tags);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_conditional_tags_with_resistance_checks(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $monsterData = [
@@ -200,10 +204,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertContains('physical_resistant', $tags);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_conditional_tags_with_condition_immunity_checks(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $monsterData = [
@@ -229,10 +233,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertNotContains('paralysis_immune', $tags);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_conditional_tags_with_custom_metric_names(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $traits = [
@@ -256,10 +260,10 @@ class AbstractMonsterStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['magic_resistant_fiends']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_deduplicates_tags_when_multiple_conditions_match_same_tag(): void
     {
-        $strategy = new \App\Services\Importers\Strategies\Monster\DefaultStrategy;
+        $strategy = new DefaultStrategy;
         $strategy->reset();
 
         $traits = [

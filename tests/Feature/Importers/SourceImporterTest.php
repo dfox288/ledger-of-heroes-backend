@@ -5,10 +5,11 @@ namespace Tests\Feature\Importers;
 use App\Models\Source;
 use App\Services\Importers\SourceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class SourceImporterTest extends TestCase
 {
     use RefreshDatabase;

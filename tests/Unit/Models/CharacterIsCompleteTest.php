@@ -6,6 +6,7 @@ namespace Tests\Unit\Models;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\Race;
 use App\Services\CharacterChoiceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -342,7 +343,7 @@ class CharacterIsCompleteTest extends TestCase
             ->create();
 
         // Add a dangling class reference via the pivot
-        \App\Models\CharacterClassPivot::create([
+        CharacterClassPivot::create([
             'character_id' => $character->id,
             'class_slug' => 'nonexistent:class',
             'level' => 1,

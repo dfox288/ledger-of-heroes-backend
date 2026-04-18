@@ -6,6 +6,7 @@ use App\Models\Race;
 use Database\Seeders\Testing\RaceFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RaceFixtureSeederTest extends TestCase
@@ -82,7 +83,7 @@ class RaceFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_races_from_fixture(): void
     {
         $this->assertDatabaseMissing('races', ['slug' => 'test-elf']);
@@ -97,7 +98,7 @@ class RaceFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_size_by_code(): void
     {
         $seeder = new RaceFixtureSeeder;
@@ -108,7 +109,7 @@ class RaceFixtureSeederTest extends TestCase
         $this->assertEquals('M', $race->size->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_parent_race_by_slug(): void
     {
         $seeder = new RaceFixtureSeeder;
@@ -125,7 +126,7 @@ class RaceFixtureSeederTest extends TestCase
         $this->assertEquals($parentRace->id, $subrace->parent_race_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_ability_bonuses(): void
     {
         $seeder = new RaceFixtureSeeder;
@@ -145,7 +146,7 @@ class RaceFixtureSeederTest extends TestCase
         $this->assertFalse($modifier->is_choice);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_traits(): void
     {
         $seeder = new RaceFixtureSeeder;
@@ -162,7 +163,7 @@ class RaceFixtureSeederTest extends TestCase
         $this->assertStringContainsString('60 feet', $trait->description);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new RaceFixtureSeeder;
@@ -177,7 +178,7 @@ class RaceFixtureSeederTest extends TestCase
         $this->assertEquals('21-23', $race->sources->first()->pages);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_races_with_choice_abilities(): void
     {
         // Add a fixture with ability choice

@@ -7,9 +7,11 @@ use App\Models\Spell;
 use App\Services\Importers\SpellClassMappingImporter;
 use App\Services\Parsers\SpellClassMappingParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class SpellClassMappingImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,7 +27,7 @@ class SpellClassMappingImporterTest extends TestCase
         $this->importer = new SpellClassMappingImporter(new SpellClassMappingParser);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_adds_class_associations_to_existing_spell()
     {
         // Create classes and spell
@@ -70,7 +72,7 @@ XML;
         $this->assertContains('Oathbreaker', $classNames);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_duplicate_existing_class_associations()
     {
         // Create classes
@@ -111,7 +113,7 @@ XML;
         $this->assertContains('Oathbreaker', $classNames);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_base_class_without_subclass()
     {
         // Create base classes
@@ -146,7 +148,7 @@ XML;
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_spells_not_found_in_database()
     {
         $xml = <<<'XML'
@@ -168,7 +170,7 @@ XML;
         $this->assertEquals(['Nonexistent Spell'], $stats['spells_not_found']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_processes_multiple_spells()
     {
         // Create classes
@@ -208,7 +210,7 @@ XML;
         $this->assertEmpty($stats['spells_not_found']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_fuzzy_matching_for_spell_names()
     {
         // Create classes
@@ -239,7 +241,7 @@ XML;
         $this->assertEquals(1, $stats['classes_added']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_subclass_aliases()
     {
         // Create classes

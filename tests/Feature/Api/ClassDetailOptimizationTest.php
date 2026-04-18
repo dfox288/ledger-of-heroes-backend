@@ -5,16 +5,18 @@ namespace Tests\Feature\Api;
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ClassDetailOptimizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function show_endpoint_returns_computed_hit_points_for_base_class(): void

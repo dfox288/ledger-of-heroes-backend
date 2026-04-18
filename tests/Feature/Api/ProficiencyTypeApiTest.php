@@ -3,11 +3,13 @@
 namespace Tests\Feature\Api;
 
 use App\Models\ProficiencyType;
+use Database\Seeders\ProficiencyTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ProficiencyTypeApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -15,7 +17,7 @@ class ProficiencyTypeApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\ProficiencyTypeSeeder::class);
+        $this->seed(ProficiencyTypeSeeder::class);
     }
 
     #[Test]

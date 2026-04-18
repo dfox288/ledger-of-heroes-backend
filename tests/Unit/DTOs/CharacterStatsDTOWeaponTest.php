@@ -7,6 +7,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
 use App\Models\Item;
+use App\Models\ItemProperty;
 use App\Models\ItemType;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -742,7 +743,7 @@ class CharacterStatsDTOWeaponTest extends TestCase
     private function createMartialMeleeWeapon(string $name, bool $isMagic = false): Item
     {
         $meleeType = ItemType::where('code', 'M')->first();
-        $martialProperty = \App\Models\ItemProperty::where('code', 'M')->first();
+        $martialProperty = ItemProperty::where('code', 'M')->first();
 
         $item = Item::factory()->create([
             'name' => $name,

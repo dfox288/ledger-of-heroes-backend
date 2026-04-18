@@ -6,10 +6,11 @@ use App\Models\CharacterClass;
 use App\Services\Importers\ClassImporter;
 use App\Services\Importers\MergeMode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ClassImporterMergeTest extends TestCase
 {
     use RefreshDatabase;

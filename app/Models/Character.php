@@ -8,6 +8,7 @@ use App\Events\CharacterUpdated;
 use App\Services\CharacterChoiceService;
 use App\Services\CharacterStatCalculator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -81,7 +82,7 @@ class Character extends Model implements HasMedia
      *
      * @param  mixed  $value
      * @param  string|null  $field
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
     public function resolveRouteBinding($value, $field = null)
     {
@@ -749,9 +750,9 @@ class Character extends Model implements HasMedia
     /**
      * Get equipped weapons.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, CharacterEquipment>
+     * @return Collection<int, CharacterEquipment>
      */
-    public function equippedWeapons(): \Illuminate\Database\Eloquent\Collection
+    public function equippedWeapons(): Collection
     {
         return $this->equipment()
             ->where('equipped', true)

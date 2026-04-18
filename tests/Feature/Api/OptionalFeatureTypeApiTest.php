@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Enums\OptionalFeatureType;
+use App\Http\Controllers\Api\OptionalFeatureTypeController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +14,7 @@ use Tests\TestCase;
 /**
  * Tests for OptionalFeatureTypeController.
  *
- * @see \App\Http\Controllers\Api\OptionalFeatureTypeController
+ * @see OptionalFeatureTypeController
  */
 #[Group('feature-db')]
 class OptionalFeatureTypeApiTest extends TestCase

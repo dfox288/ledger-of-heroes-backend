@@ -8,7 +8,7 @@ use App\Models\Race;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityLanguage>
+ * @extends Factory<EntityLanguage>
  */
 class EntityLanguageFactory extends Factory
 {

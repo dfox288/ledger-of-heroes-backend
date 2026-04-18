@@ -15,6 +15,7 @@ use App\Services\AsiChoiceService;
 use App\Services\AvailableFeatsService;
 use App\Services\ChoiceHandlers\AsiChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -75,7 +76,7 @@ class AsiChoiceHandlerTest extends TestCase
 
         $choices = $this->handler->getChoices($character);
 
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $choices);
+        $this->assertInstanceOf(Collection::class, $choices);
         $this->assertEmpty($choices);
     }
 

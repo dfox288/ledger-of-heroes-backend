@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 /**
  * Tests for enhanced Meilisearch filtering features:
  * 1. Damage Type Filtering (damage_types array field)
@@ -24,7 +26,7 @@ class SpellEnhancedFilteringTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

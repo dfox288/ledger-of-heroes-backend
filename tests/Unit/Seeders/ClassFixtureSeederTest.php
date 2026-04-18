@@ -6,6 +6,7 @@ use App\Models\CharacterClass;
 use Database\Seeders\Testing\ClassFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ClassFixtureSeederTest extends TestCase
@@ -89,7 +90,7 @@ class ClassFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_classes_from_fixture(): void
     {
         $this->assertDatabaseMissing('classes', ['slug' => 'test-wizard']);
@@ -104,7 +105,7 @@ class ClassFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_spellcasting_ability_by_code(): void
     {
         $seeder = new ClassFixtureSeeder;
@@ -116,7 +117,7 @@ class ClassFixtureSeederTest extends TestCase
         $this->assertEquals('INT', $class->spellcastingAbility->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_parent_class_by_slug(): void
     {
         $seeder = new ClassFixtureSeeder;
@@ -130,7 +131,7 @@ class ClassFixtureSeederTest extends TestCase
         $this->assertEquals($parentClass->id, $subclass->parent_class_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_proficiencies(): void
     {
         $seeder = new ClassFixtureSeeder;
@@ -157,7 +158,7 @@ class ClassFixtureSeederTest extends TestCase
         $this->assertEquals('WIS', $wisProf->abilityScore->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new ClassFixtureSeeder;

@@ -2,6 +2,8 @@
 
 namespace App\Services\Parsers;
 
+use App\Models\AbilityScore;
+use App\Models\Skill;
 use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
@@ -457,7 +459,7 @@ class ItemXmlParser
         // Fall back to fuzzy matching (e.g., "Strength save" contains "strength")
         try {
             $text = strtolower($text);
-            $abilities = \App\Models\AbilityScore::all();
+            $abilities = AbilityScore::all();
 
             foreach ($abilities as $ability) {
                 if (str_contains($text, strtolower($ability->name)) ||
@@ -487,7 +489,7 @@ class ItemXmlParser
         // Fall back to fuzzy matching (e.g., "Acrobatics check" contains "acrobatics")
         try {
             $text = strtolower($text);
-            $skills = \App\Models\Skill::all();
+            $skills = Skill::all();
 
             foreach ($skills as $skill) {
                 if (str_contains($text, strtolower($skill->name))) {

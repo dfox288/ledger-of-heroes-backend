@@ -6,6 +6,7 @@ use App\Models\Spell;
 use Database\Seeders\Testing\SpellFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SpellFixtureSeederTest extends TestCase
@@ -59,7 +60,7 @@ class SpellFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_spells_from_fixture(): void
     {
         $this->assertDatabaseMissing('spells', ['slug' => 'test-fireball']);
@@ -74,7 +75,7 @@ class SpellFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_school_by_code(): void
     {
         $seeder = new SpellFixtureSeeder;
@@ -85,7 +86,7 @@ class SpellFixtureSeederTest extends TestCase
         $this->assertEquals('EV', $spell->spellSchool->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_spell_effects_for_damage_types(): void
     {
         $seeder = new SpellFixtureSeeder;
@@ -99,7 +100,7 @@ class SpellFixtureSeederTest extends TestCase
         $this->assertEquals('F', $spell->effects->first()->damageType->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new SpellFixtureSeeder;

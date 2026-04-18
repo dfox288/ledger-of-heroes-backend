@@ -3,7 +3,24 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
+use App\Models\CharacterCondition;
+use App\Models\CharacterCounter;
+use App\Models\CharacterEquipment;
+use App\Models\CharacterLanguage;
+use App\Models\CharacterProficiency;
+use App\Models\CharacterSpell;
+use App\Models\EntitySense;
+use App\Models\Item;
+use App\Models\ItemType;
+use App\Models\Language;
 use App\Models\Party;
+use App\Models\ProficiencyType;
+use App\Models\Race;
+use App\Models\Sense;
+use App\Models\Size;
+use App\Models\Spell;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -471,7 +488,7 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Add a condition to the character
-        \App\Models\CharacterCondition::factory()->create([
+        CharacterCondition::factory()->create([
             'character_id' => $character->id,
             'condition_slug' => 'poisoned',
             'level' => null,
@@ -564,7 +581,7 @@ class PartyApiTest extends TestCase
         $party = Party::factory()->create(['user_id' => $user->id]);
 
         // Create a race with multiple speeds
-        $race = \App\Models\Race::factory()->create([
+        $race = Race::factory()->create([
             'speed' => 30,
             'fly_speed' => 50,
             'swim_speed' => null,
@@ -637,13 +654,13 @@ class PartyApiTest extends TestCase
         $party = Party::factory()->create(['user_id' => $user->id]);
 
         // Create a race with darkvision
-        $race = \App\Models\Race::factory()->create();
-        $sense = \App\Models\Sense::firstOrCreate(
+        $race = Race::factory()->create();
+        $sense = Sense::firstOrCreate(
             ['slug' => 'core:darkvision'],
             ['name' => 'Darkvision']
         );
-        \App\Models\EntitySense::create([
-            'reference_type' => \App\Models\Race::class,
+        EntitySense::create([
+            'reference_type' => Race::class,
             'reference_id' => $race->id,
             'sense_id' => $sense->id,
             'range_feet' => 60,
@@ -682,21 +699,21 @@ class PartyApiTest extends TestCase
 
         // Add languages with unique names for test isolation
         $uniqueId = uniqid();
-        $common = \App\Models\Language::create([
+        $common = Language::create([
             'slug' => 'test:common-'.$uniqueId,
             'name' => 'Common '.$uniqueId,
         ]);
-        $elvish = \App\Models\Language::create([
+        $elvish = Language::create([
             'slug' => 'test:elvish-'.$uniqueId,
             'name' => 'Elvish '.$uniqueId,
         ]);
 
-        \App\Models\CharacterLanguage::create([
+        CharacterLanguage::create([
             'character_id' => $character->id,
             'language_slug' => $common->slug,
             'source' => 'race',
         ]);
-        \App\Models\CharacterLanguage::create([
+        CharacterLanguage::create([
             'character_id' => $character->id,
             'language_slug' => $elvish->slug,
             'source' => 'race',
@@ -720,11 +737,11 @@ class PartyApiTest extends TestCase
         $user = User::factory()->create();
         $party = Party::factory()->create(['user_id' => $user->id]);
 
-        $size = \App\Models\Size::firstOrCreate(
+        $size = Size::firstOrCreate(
             ['code' => 'M'],
             ['name' => 'Medium']
         );
-        $race = \App\Models\Race::factory()->create(['size_id' => $size->id]);
+        $race = Race::factory()->create(['size_id' => $size->id]);
 
         $character = Character::factory()->create(['race_slug' => $race->slug]);
         $party->characters()->attach($character);
@@ -744,21 +761,21 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Create tool proficiencies
-        $smithsTools = \App\Models\ProficiencyType::firstOrCreate(
+        $smithsTools = ProficiencyType::firstOrCreate(
             ['slug' => 'core:smiths-tools'],
             ['name' => "Smith's Tools", 'category' => 'tool']
         );
-        $thievesTools = \App\Models\ProficiencyType::firstOrCreate(
+        $thievesTools = ProficiencyType::firstOrCreate(
             ['slug' => 'core:thieves-tools'],
             ['name' => "Thieves' Tools", 'category' => 'tool']
         );
 
-        \App\Models\CharacterProficiency::create([
+        CharacterProficiency::create([
             'character_id' => $character->id,
             'proficiency_type_slug' => $smithsTools->slug,
             'source' => 'background',
         ]);
-        \App\Models\CharacterProficiency::create([
+        CharacterProficiency::create([
             'character_id' => $character->id,
             'proficiency_type_slug' => $thievesTools->slug,
             'source' => 'class',
@@ -790,17 +807,17 @@ class PartyApiTest extends TestCase
         $char2 = Character::factory()->create();
 
         $uniqueId = uniqid();
-        $common = \App\Models\Language::create(['slug' => 'test:common-agg-'.$uniqueId, 'name' => 'Common '.$uniqueId]);
-        $elvish = \App\Models\Language::create(['slug' => 'test:elvish-agg-'.$uniqueId, 'name' => 'Elvish '.$uniqueId]);
-        $dwarvish = \App\Models\Language::create(['slug' => 'test:dwarvish-agg-'.$uniqueId, 'name' => 'Dwarvish '.$uniqueId]);
+        $common = Language::create(['slug' => 'test:common-agg-'.$uniqueId, 'name' => 'Common '.$uniqueId]);
+        $elvish = Language::create(['slug' => 'test:elvish-agg-'.$uniqueId, 'name' => 'Elvish '.$uniqueId]);
+        $dwarvish = Language::create(['slug' => 'test:dwarvish-agg-'.$uniqueId, 'name' => 'Dwarvish '.$uniqueId]);
 
         // Char1 knows Common and Elvish
-        \App\Models\CharacterLanguage::create(['character_id' => $char1->id, 'language_slug' => $common->slug, 'source' => 'race']);
-        \App\Models\CharacterLanguage::create(['character_id' => $char1->id, 'language_slug' => $elvish->slug, 'source' => 'race']);
+        CharacterLanguage::create(['character_id' => $char1->id, 'language_slug' => $common->slug, 'source' => 'race']);
+        CharacterLanguage::create(['character_id' => $char1->id, 'language_slug' => $elvish->slug, 'source' => 'race']);
 
         // Char2 knows Common and Dwarvish
-        \App\Models\CharacterLanguage::create(['character_id' => $char2->id, 'language_slug' => $common->slug, 'source' => 'race']);
-        \App\Models\CharacterLanguage::create(['character_id' => $char2->id, 'language_slug' => $dwarvish->slug, 'source' => 'race']);
+        CharacterLanguage::create(['character_id' => $char2->id, 'language_slug' => $common->slug, 'source' => 'race']);
+        CharacterLanguage::create(['character_id' => $char2->id, 'language_slug' => $dwarvish->slug, 'source' => 'race']);
 
         $party->characters()->attach([$char1->id, $char2->id]);
 
@@ -823,17 +840,17 @@ class PartyApiTest extends TestCase
         $party = Party::factory()->create(['user_id' => $user->id]);
 
         // Create race with darkvision
-        $raceWithDarkvision = \App\Models\Race::factory()->create();
-        $sense = \App\Models\Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
-        \App\Models\EntitySense::create([
-            'reference_type' => \App\Models\Race::class,
+        $raceWithDarkvision = Race::factory()->create();
+        $sense = Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
+        EntitySense::create([
+            'reference_type' => Race::class,
             'reference_id' => $raceWithDarkvision->id,
             'sense_id' => $sense->id,
             'range_feet' => 60,
         ]);
 
         // Create race without darkvision
-        $raceWithoutDarkvision = \App\Models\Race::factory()->create();
+        $raceWithoutDarkvision = Race::factory()->create();
 
         $char1 = Character::factory()->create(['name' => 'Elf', 'race_slug' => $raceWithDarkvision->slug]);
         $char2 = Character::factory()->create(['name' => 'Human', 'race_slug' => $raceWithoutDarkvision->slug]);
@@ -858,19 +875,19 @@ class PartyApiTest extends TestCase
         $party = Party::factory()->create(['user_id' => $user->id]);
 
         // Create a cleric class using factory
-        $clericClass = \App\Models\CharacterClass::factory()->create([
+        $clericClass = CharacterClass::factory()->create([
             'slug' => 'test:cleric-healer-'.uniqid(),
             'name' => 'Cleric',
         ]);
 
         // Create a fighter class using factory
-        $fighterClass = \App\Models\CharacterClass::factory()->create([
+        $fighterClass = CharacterClass::factory()->create([
             'slug' => 'test:fighter-healer-'.uniqid(),
             'name' => 'Fighter',
         ]);
 
         $healer = Character::factory()->create(['name' => 'Mira']);
-        \App\Models\CharacterClassPivot::create([
+        CharacterClassPivot::create([
             'character_id' => $healer->id,
             'class_slug' => $clericClass->slug,
             'level' => 5,
@@ -879,7 +896,7 @@ class PartyApiTest extends TestCase
         ]);
 
         $fighter = Character::factory()->create(['name' => 'Aldric']);
-        \App\Models\CharacterClassPivot::create([
+        CharacterClassPivot::create([
             'character_id' => $fighter->id,
             'class_slug' => $fighterClass->slug,
             'level' => 5,
@@ -907,24 +924,24 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Create spells using factory
-        $detectMagic = \App\Models\Spell::factory()->create([
+        $detectMagic = Spell::factory()->create([
             'slug' => 'test:detect-magic',
             'name' => 'Detect Magic',
             'level' => 1,
         ]);
-        $counterspell = \App\Models\Spell::factory()->create([
+        $counterspell = Spell::factory()->create([
             'slug' => 'test:counterspell',
             'name' => 'Counterspell',
             'level' => 3,
         ]);
 
         // Add spells to character
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $detectMagic->slug,
             'source' => 'class',
         ]);
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $counterspell->slug,
             'source' => 'class',
@@ -955,17 +972,17 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Create heavy armor type and item using factory
-        $heavyArmorType = \App\Models\ItemType::firstOrCreate(
+        $heavyArmorType = ItemType::firstOrCreate(
             ['code' => 'HA'],
             ['name' => 'Heavy Armor']
         );
-        $plateArmor = \App\Models\Item::factory()->create([
+        $plateArmor = Item::factory()->create([
             'slug' => 'test:plate-'.uniqid(),
             'name' => 'Plate',
             'item_type_id' => $heavyArmorType->id,
         ]);
 
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => $plateArmor->slug,
             'quantity' => 1,
@@ -993,29 +1010,29 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Create weapon type and items using factory
-        $meleeType = \App\Models\ItemType::firstOrCreate(
+        $meleeType = ItemType::firstOrCreate(
             ['code' => 'M'],
             ['name' => 'Melee Weapon']
         );
         $uniqueId = uniqid();
-        $longsword = \App\Models\Item::factory()->create([
+        $longsword = Item::factory()->create([
             'slug' => 'test:longsword-'.$uniqueId,
             'name' => 'Longsword',
             'item_type_id' => $meleeType->id,
         ]);
-        $longbow = \App\Models\Item::factory()->create([
+        $longbow = Item::factory()->create([
             'slug' => 'test:longbow-'.$uniqueId,
             'name' => 'Longbow',
             'item_type_id' => $meleeType->id,
         ]);
 
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => $longsword->slug,
             'quantity' => 1,
             'equipped' => true,
         ]);
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => $longbow->slug,
             'quantity' => 1,
@@ -1045,17 +1062,17 @@ class PartyApiTest extends TestCase
         $character = Character::factory()->create();
 
         // Create shield using factory
-        $shieldType = \App\Models\ItemType::firstOrCreate(
+        $shieldType = ItemType::firstOrCreate(
             ['code' => 'S'],
             ['name' => 'Shield']
         );
-        $shield = \App\Models\Item::factory()->create([
+        $shield = Item::factory()->create([
             'slug' => 'test:shield-'.uniqid(),
             'name' => 'Shield',
             'item_type_id' => $shieldType->id,
         ]);
 
-        \App\Models\CharacterEquipment::create([
+        CharacterEquipment::create([
             'character_id' => $character->id,
             'item_slug' => $shield->slug,
             'quantity' => 1,
@@ -1084,7 +1101,7 @@ class PartyApiTest extends TestCase
 
         // Add counter directly to the character_counters table (new approach)
         // current_uses = actual remaining (null = full capacity)
-        \App\Models\CharacterCounter::create([
+        CharacterCounter::create([
             'character_id' => $character->id,
             'source_type' => 'class',
             'source_slug' => 'phb:barbarian',

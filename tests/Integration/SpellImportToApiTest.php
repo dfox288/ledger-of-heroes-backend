@@ -2,18 +2,21 @@
 
 namespace Tests\Integration;
 
+use App\Models\Spell;
 use App\Services\Importers\SpellImporter;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-imported')]
+#[Group('feature-search')]
+#[Group('search-imported')]
 class SpellImportToApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     #[Test]
     public function spell_import_to_api_pipeline(): void
@@ -50,7 +53,7 @@ class SpellImportToApiTest extends TestCase
             ]);
 
         // Test search - use a spell we know exists from fixtures
-        $spell = \App\Models\Spell::first();
+        $spell = Spell::first();
         if ($spell) {
             $searchResponse = $this->getJson('/api/v1/spells?q='.urlencode($spell->name));
             $searchResponse->assertStatus(200);

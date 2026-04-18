@@ -8,7 +8,7 @@ use App\Models\Race;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Modifier>
+ * @extends Factory<Modifier>
  */
 class ModifierFactory extends Factory
 {

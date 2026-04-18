@@ -8,10 +8,11 @@ use App\Models\ProficiencyType;
 use App\Models\Race;
 use App\Services\Importers\FeatImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class FeatImporterPrerequisitesTest extends TestCase
 {
     use RefreshDatabase;

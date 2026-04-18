@@ -4,10 +4,11 @@ namespace Tests\Unit\Enums;
 
 use App\Enums\ItemGroup;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ItemGroupTest extends TestCase
 {
     #[Test]

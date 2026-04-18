@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
 use App\Services\EquipmentManagerService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 beforeEach(function () {
@@ -191,7 +192,7 @@ it('undoes choice by deleting CharacterEquipment records', function () {
     );
 
     // Mock equipment relationship - uses whereJsonContains for deletion
-    $equipmentQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $equipmentQuery = Mockery::mock(HasMany::class);
     $equipmentQuery->shouldReceive('whereJsonContains')
         ->with('custom_description->source', 'class')
         ->andReturnSelf();

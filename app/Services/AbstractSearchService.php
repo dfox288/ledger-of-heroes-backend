@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use MeiliSearch\Client;
+use MeiliSearch\Exceptions\ApiException;
 
 /**
  * Base class for entity search services using Meilisearch.
@@ -64,7 +65,7 @@ use MeiliSearch\Client;
  * - Services with fundamentally different search behavior
  * - Non-Meilisearch search implementations
  *
- * @see \App\Services\SpellSearchService Gold standard implementation
+ * @see SpellSearchService Gold standard implementation
  * @see ../wrapper/docs/backend/reference/SEARCH-SERVICE-ARCHITECTURE.md Full documentation
  */
 abstract class AbstractSearchService
@@ -135,7 +136,7 @@ abstract class AbstractSearchService
             $modelClass = $this->getModelClass();
             $indexName = (new $modelClass)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        } catch (ApiException $e) {
             throw new InvalidFilterSyntaxException(
                 filter: $dto->meilisearchFilter ?? 'unknown',
                 meilisearchMessage: $e->getMessage(),

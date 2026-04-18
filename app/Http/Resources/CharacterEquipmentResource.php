@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\ItemGroup;
 use App\Enums\ItemTypeCode;
 use App\Http\Resources\Concerns\FormatsRelatedModels;
+use App\Models\CharacterEquipment;
 use App\Models\Item;
 use App\Services\CharacterStatCalculator;
 use App\Services\ProficiencyCheckerService;
@@ -12,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\CharacterEquipment
+ * @mixin CharacterEquipment
  */
 class CharacterEquipmentResource extends JsonResource
 {

@@ -6,8 +6,11 @@ use App\DTOs\ItemSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Item;
 use App\Services\Search\MeilisearchFilterCompiler;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Scout\Builder;
 use MeiliSearch\Client;
+use MeiliSearch\Exceptions\ApiException;
 
 /**
  * Service for searching and filtering D&D items
@@ -50,7 +53,7 @@ final class ItemSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -104,7 +107,7 @@ final class ItemSearchService extends AbstractSearchService
         try {
             $indexName = (new Item)->searchableAs();
             $results = $client->index($indexName)->search($dto->searchQuery ?? '', $searchParams);
-        } catch (\MeiliSearch\Exceptions\ApiException $e) {
+        } catch (ApiException $e) {
             throw new InvalidFilterSyntaxException(
                 filter: $dto->meilisearchFilter ?? 'unknown',
                 meilisearchMessage: $e->getMessage(),
@@ -141,7 +144,7 @@ final class ItemSearchService extends AbstractSearchService
      *
      * @param  ItemSearchDTO|object  $dto
      */
-    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    public function buildScoutQuery(object $dto): Builder
     {
         return Item::search($dto->searchQuery ?? '');
     }

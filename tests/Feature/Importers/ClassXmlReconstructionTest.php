@@ -6,10 +6,11 @@ use App\Models\CharacterClass;
 use App\Services\Importers\ClassImporter;
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ClassXmlReconstructionTest extends TestCase
 {
     use RefreshDatabase;

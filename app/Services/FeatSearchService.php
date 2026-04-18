@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Feat;
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Builder;
 
 final class FeatSearchService extends AbstractSearchService
 {
@@ -46,7 +48,7 @@ final class FeatSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -82,7 +84,7 @@ final class FeatSearchService extends AbstractSearchService
      *
      * @param  string|object  $searchQueryOrDto  Search query string or DTO object
      */
-    public function buildScoutQuery(string|object $searchQueryOrDto): \Laravel\Scout\Builder
+    public function buildScoutQuery(string|object $searchQueryOrDto): Builder
     {
         $searchQuery = is_string($searchQueryOrDto) ? $searchQueryOrDto : ($searchQueryOrDto->searchQuery ?? '');
 

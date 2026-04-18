@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -99,7 +100,7 @@ class CharacterClassPivotTest extends TestCase
             'order' => 1,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         CharacterClassPivot::create([
             'character_id' => $character->id,

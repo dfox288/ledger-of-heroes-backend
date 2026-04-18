@@ -4,6 +4,7 @@ namespace App\Services\Importers\Concerns;
 
 use App\Exceptions\Lookup\EntityNotFoundException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Provides generic caching for lookup table queries.
@@ -47,7 +48,7 @@ trait CachesLookupTables
 
                 // Cache result (even if null)
                 $this->lookupCache[$model][$column][$normalizedValue] = $result;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            } catch (ModelNotFoundException $e) {
                 $entityType = class_basename($model);
                 throw new EntityNotFoundException($entityType, $normalizedValue, $column);
             }

@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\Concerns\ParsesProjectileScaling;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class SpellProjectileScalingParserTest extends TestCase
 {
     use ParsesProjectileScaling;

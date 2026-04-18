@@ -2,6 +2,10 @@
 
 namespace App\Services\Parsers;
 
+use App\Models\AbilityScore;
+use App\Models\ProficiencyType;
+use App\Models\Race;
+use App\Models\Skill;
 use App\Services\Parsers\Concerns\ConvertsWordNumbers;
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use App\Services\Parsers\Concerns\ParsesModifiers;
@@ -12,6 +16,7 @@ use App\Services\Parsers\Concerns\ParsesSourceCitations;
 use App\Services\Parsers\Concerns\ParsesUnarmoredAc;
 use App\Services\Parsers\Concerns\ParsesUsageLimits;
 use App\Services\Parsers\Concerns\StripsSourceCitations;
+use Illuminate\Database\Eloquent\Collection;
 use SimpleXMLElement;
 
 class FeatXmlParser
@@ -390,11 +395,11 @@ class FeatXmlParser
                 $abilityCode = $this->mapAbilityNameToCode($abilityName);
 
                 // Look up ability score ID
-                $abilityScore = \App\Models\AbilityScore::where('code', $abilityCode)->first();
+                $abilityScore = AbilityScore::where('code', $abilityCode)->first();
 
                 if ($abilityScore) {
                     $prerequisites[] = [
-                        'prerequisite_type' => \App\Models\AbilityScore::class,
+                        'prerequisite_type' => AbilityScore::class,
                         'prerequisite_id' => $abilityScore->id,
                         'minimum_value' => $minimumValue,
                         'description' => null,
@@ -438,7 +443,7 @@ class FeatXmlParser
 
                 if ($skill) {
                     $prerequisites[] = [
-                        'prerequisite_type' => \App\Models\Skill::class,
+                        'prerequisite_type' => Skill::class,
                         'prerequisite_id' => $skill->id,
                         'minimum_value' => null,
                         'description' => null,
@@ -455,7 +460,7 @@ class FeatXmlParser
             if ($profType) {
                 // Add the category proficiency
                 $prerequisites[] = [
-                    'prerequisite_type' => \App\Models\ProficiencyType::class,
+                    'prerequisite_type' => ProficiencyType::class,
                     'prerequisite_id' => $profType->id,
                     'minimum_value' => null,
                     'description' => null,
@@ -469,7 +474,7 @@ class FeatXmlParser
 
                     foreach ($individualWeapons as $weapon) {
                         $prerequisites[] = [
-                            'prerequisite_type' => \App\Models\ProficiencyType::class,
+                            'prerequisite_type' => ProficiencyType::class,
                             'prerequisite_id' => $weapon->id,
                             'minimum_value' => null,
                             'description' => null,
@@ -495,7 +500,7 @@ class FeatXmlParser
     /**
      * Check if a proficiency type is a weapon category that should be expanded.
      */
-    private function shouldExpandWeaponCategory(\App\Models\ProficiencyType $profType): bool
+    private function shouldExpandWeaponCategory(ProficiencyType $profType): bool
     {
         $weaponCategories = ['Martial Weapons', 'Simple Weapons'];
 
@@ -505,9 +510,9 @@ class FeatXmlParser
     /**
      * Get individual weapons for a weapon category based on subcategory.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProficiencyType>
+     * @return Collection<int, ProficiencyType>
      */
-    private function getIndividualWeapons(\App\Models\ProficiencyType $categoryProfType): \Illuminate\Database\Eloquent\Collection
+    private function getIndividualWeapons(ProficiencyType $categoryProfType): Collection
     {
         // Map category names to subcategory prefixes
         $subcategoryPrefix = match ($categoryProfType->name) {
@@ -518,13 +523,13 @@ class FeatXmlParser
 
         if ($subcategoryPrefix === null) {
             // Fallback: get all individual weapons
-            return \App\Models\ProficiencyType::where('category', 'weapon')
+            return ProficiencyType::where('category', 'weapon')
                 ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
                 ->get();
         }
 
         // Get weapons with matching subcategory (e.g., 'martial_melee', 'martial_ranged')
-        return \App\Models\ProficiencyType::where('category', 'weapon')
+        return ProficiencyType::where('category', 'weapon')
             ->where('subcategory', 'LIKE', "{$subcategoryPrefix}%")
             ->whereNotIn('name', ['Simple Weapons', 'Martial Weapons'])
             ->get();
@@ -533,24 +538,24 @@ class FeatXmlParser
     /**
      * Find skill by name.
      */
-    private function findSkill(string $name): ?\App\Models\Skill
+    private function findSkill(string $name): ?Skill
     {
         $normalized = strtolower(trim($name));
 
         // Try exact match first
-        $skill = \App\Models\Skill::whereRaw('LOWER(name) = ?', [$normalized])->first();
+        $skill = Skill::whereRaw('LOWER(name) = ?', [$normalized])->first();
         if ($skill) {
             return $skill;
         }
 
         // Try LIKE match
-        return \App\Models\Skill::where('name', 'LIKE', "%{$name}%")->first();
+        return Skill::where('name', 'LIKE', "%{$name}%")->first();
     }
 
     /**
      * Find proficiency type by name (with fuzzy matching).
      */
-    private function findProficiencyType(string $name): ?\App\Models\ProficiencyType
+    private function findProficiencyType(string $name): ?ProficiencyType
     {
         $normalized = strtolower(trim($name));
 
@@ -558,35 +563,35 @@ class FeatXmlParser
         $normalized = preg_replace('/^(a|an)\s+/', '', $normalized);
 
         // Direct match
-        $profType = \App\Models\ProficiencyType::whereRaw('LOWER(name) = ?', [$normalized])->first();
+        $profType = ProficiencyType::whereRaw('LOWER(name) = ?', [$normalized])->first();
         if ($profType) {
             return $profType;
         }
 
         // Fuzzy match for armor types
         if (str_contains($normalized, 'light') && str_contains($normalized, 'armor')) {
-            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Light%Armor%')->first();
+            return ProficiencyType::where('name', 'LIKE', '%Light%Armor%')->first();
         }
 
         if (str_contains($normalized, 'medium') && str_contains($normalized, 'armor')) {
-            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Medium%Armor%')->first();
+            return ProficiencyType::where('name', 'LIKE', '%Medium%Armor%')->first();
         }
 
         if (str_contains($normalized, 'heavy') && str_contains($normalized, 'armor')) {
-            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Heavy%Armor%')->first();
+            return ProficiencyType::where('name', 'LIKE', '%Heavy%Armor%')->first();
         }
 
         // Fuzzy match for weapon categories
         if (str_contains($normalized, 'martial') && str_contains($normalized, 'weapon')) {
-            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
+            return ProficiencyType::where('name', 'LIKE', '%Martial%Weapon%')->first();
         }
 
         if (str_contains($normalized, 'simple') && str_contains($normalized, 'weapon')) {
-            return \App\Models\ProficiencyType::where('name', 'LIKE', '%Simple%Weapon%')->first();
+            return ProficiencyType::where('name', 'LIKE', '%Simple%Weapon%')->first();
         }
 
         // Try LIKE match
-        return \App\Models\ProficiencyType::where('name', 'LIKE', "%{$name}%")->first();
+        return ProficiencyType::where('name', 'LIKE', "%{$name}%")->first();
     }
 
     /**
@@ -673,7 +678,7 @@ class FeatXmlParser
                 $race = $this->findRace($raceName);
                 if ($race) {
                     $prerequisites[] = [
-                        'prerequisite_type' => \App\Models\Race::class,
+                        'prerequisite_type' => Race::class,
                         'prerequisite_id' => $race->id,
                         'minimum_value' => null,
                         'description' => null,
@@ -702,7 +707,7 @@ class FeatXmlParser
                 $race = $this->findRace($raceName);
                 if ($race) {
                     $prerequisites[] = [
-                        'prerequisite_type' => \App\Models\Race::class,
+                        'prerequisite_type' => Race::class,
                         'prerequisite_id' => $race->id,
                         'minimum_value' => null,
                         'description' => null,
@@ -735,7 +740,7 @@ class FeatXmlParser
      * - Simple race: "Elf", "Dwarf"
      * - Parenthetical subrace: "Elf (High)", "Elf (Drow)", "Elf (Wood)"
      */
-    private function findRace(string $name): ?\App\Models\Race
+    private function findRace(string $name): ?Race
     {
         $name = trim($name);
 
@@ -750,13 +755,13 @@ class FeatXmlParser
         $normalized = strtolower($name);
 
         // Try exact match first
-        $race = \App\Models\Race::whereRaw('LOWER(name) = ?', [$normalized])->first();
+        $race = Race::whereRaw('LOWER(name) = ?', [$normalized])->first();
         if ($race) {
             return $race;
         }
 
         // Try LIKE match
-        return \App\Models\Race::where('name', 'LIKE', "%{$name}%")->first();
+        return Race::where('name', 'LIKE', "%{$name}%")->first();
     }
 
     /**
@@ -766,10 +771,10 @@ class FeatXmlParser
      * - findSubrace("Elf", "High") -> Race with name "High" and parent_race_id pointing to "Elf"
      * - findSubrace("Elf", "Drow") -> Race with name containing "Drow" (e.g., "Drow / Dark")
      */
-    private function findSubrace(string $parentRaceName, string $subraceName): ?\App\Models\Race
+    private function findSubrace(string $parentRaceName, string $subraceName): ?Race
     {
         // First find the parent race
-        $parentRace = \App\Models\Race::whereRaw('LOWER(name) = ?', [strtolower($parentRaceName)])
+        $parentRace = Race::whereRaw('LOWER(name) = ?', [strtolower($parentRaceName)])
             ->whereNull('parent_race_id')
             ->first();
 
@@ -780,7 +785,7 @@ class FeatXmlParser
         $normalizedSubrace = strtolower($subraceName);
 
         // Try exact match on subrace name
-        $subrace = \App\Models\Race::where('parent_race_id', $parentRace->id)
+        $subrace = Race::where('parent_race_id', $parentRace->id)
             ->whereRaw('LOWER(name) = ?', [$normalizedSubrace])
             ->first();
 
@@ -789,7 +794,7 @@ class FeatXmlParser
         }
 
         // Try LIKE match (for names like "Drow / Dark" matching "Drow")
-        return \App\Models\Race::where('parent_race_id', $parentRace->id)
+        return Race::where('parent_race_id', $parentRace->id)
             ->where('name', 'LIKE', "%{$subraceName}%")
             ->first();
     }

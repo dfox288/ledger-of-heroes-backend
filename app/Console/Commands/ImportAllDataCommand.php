@@ -2,6 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CharacterClass;
+use App\Models\ClassFeature;
+use App\Models\EntityChoice;
+use App\Models\EntitySpell;
+use App\Services\Cache\EntityCacheService;
+use App\Services\Importers\ClassImporter;
+use App\Services\Importers\ItemImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -85,7 +92,7 @@ class ImportAllDataCommand extends Command
 
             // Link pack contents after all items are imported
             $this->info('  Linking pack contents...');
-            $importer = app(\App\Services\Importers\ItemImporter::class);
+            $importer = app(ItemImporter::class);
             $packsLinked = $importer->importAllPackContents();
             $this->info("  ✓ Linked contents for {$packsLinked} equipment pack(s)");
         }
@@ -335,7 +342,7 @@ class ImportAllDataCommand extends Command
                 $classesImported++;
 
                 // Count subclasses for this class
-                $subclassCount = \App\Models\CharacterClass::where('slug', 'like', "{$className}%")
+                $subclassCount = CharacterClass::where('slug', 'like', "{$className}%")
                     ->count();
                 if ($subclassCount > 1) {
                     $subclassesImported += ($subclassCount - 1); // -1 for base class
@@ -365,10 +372,10 @@ class ImportAllDataCommand extends Command
      */
     private function linkSubclassSpells(): void
     {
-        $importer = new \App\Services\Importers\ClassImporter;
+        $importer = new ClassImporter;
 
         // Get all subclasses (classes with parent_class_id)
-        $subclasses = \App\Models\CharacterClass::whereNotNull('parent_class_id')->get();
+        $subclasses = CharacterClass::whereNotNull('parent_class_id')->get();
 
         $linkedFeatureIds = [];
 
@@ -390,8 +397,8 @@ class ImportAllDataCommand extends Command
         }
 
         // Single query for total count instead of per-feature queries
-        $totalSpells = \App\Models\EntitySpell::whereIn('reference_id', $linkedFeatureIds)
-            ->where('reference_type', \App\Models\ClassFeature::class)
+        $totalSpells = EntitySpell::whereIn('reference_id', $linkedFeatureIds)
+            ->where('reference_type', ClassFeature::class)
             ->count();
 
         $linkedCount = count($linkedFeatureIds);
@@ -413,7 +420,7 @@ class ImportAllDataCommand extends Command
 
         // Get all class features with descriptions matching the pattern
         // Use LIKE for SQLite compatibility (tests use SQLite)
-        $features = \App\Models\ClassFeature::where('description', 'like', '%cantrip of your choice%')
+        $features = ClassFeature::where('description', 'like', '%cantrip of your choice%')
             ->orWhere('description', 'like', '%spell of your choice%')
             ->get();
 
@@ -422,7 +429,7 @@ class ImportAllDataCommand extends Command
 
         foreach ($features as $feature) {
             // Check if this feature already has a spell choice in entity_choices
-            $existingChoice = \App\Models\EntityChoice::where('reference_type', \App\Models\ClassFeature::class)
+            $existingChoice = EntityChoice::where('reference_type', ClassFeature::class)
                 ->where('reference_id', $feature->id)
                 ->where('choice_type', 'spell')
                 ->exists();
@@ -440,13 +447,13 @@ class ImportAllDataCommand extends Command
                 $isCantrip = $spellType === 'cantrip';
 
                 // Find the class by name (base class only)
-                $spellListClass = \App\Models\CharacterClass::where('name', $className)
+                $spellListClass = CharacterClass::where('name', $className)
                     ->whereNull('parent_class_id')
                     ->first();
 
                 if ($spellListClass) {
-                    \App\Models\EntityChoice::create([
-                        'reference_type' => \App\Models\ClassFeature::class,
+                    EntityChoice::create([
+                        'reference_type' => ClassFeature::class,
                         'reference_id' => $feature->id,
                         'choice_type' => 'spell',
                         'choice_group' => 'feature_spell_choice',
@@ -572,7 +579,7 @@ class ImportAllDataCommand extends Command
         // Clear entity caches after import
         $this->newLine();
         $this->info('Clearing entity caches...');
-        app(\App\Services\Cache\EntityCacheService::class)->clearAll();
+        app(EntityCacheService::class)->clearAll();
         $this->info('✓ Entity caches cleared');
     }
 

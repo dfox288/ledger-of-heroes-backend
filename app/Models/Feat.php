@@ -14,6 +14,7 @@ use App\Models\Concerns\HasProficiencyScopes;
 use App\Models\Concerns\HasSearchableHelpers;
 use App\Models\Concerns\HasSources;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -79,7 +80,7 @@ class Feat extends BaseModel
         $baseName = trim(explode('(', $this->name)[0]);
 
         // Convert to slug format
-        return \Illuminate\Support\Str::slug($baseName);
+        return Str::slug($baseName);
     }
 
     // =========================================================================

@@ -3,19 +3,22 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\Feature\Api\Concerns\TestsFilterOperators;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class ClassFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
     use TestsFilterOperators;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -98,43 +101,43 @@ class ClassFilterOperatorTest extends TestCase
     // Integer Operators (hit_die field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_equals(): void
     {
         $this->assertIntegerEquals();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_not_equals(): void
     {
         $this->assertIntegerNotEquals();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_greater_than(): void
     {
         $this->assertIntegerGreaterThan();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_greater_than_or_equal(): void
     {
         $this->assertIntegerGreaterThanOrEqual();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_less_than(): void
     {
         $this->assertIntegerLessThan();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_less_than_or_equal(): void
     {
         $this->assertIntegerLessThanOrEqual();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_hit_die_with_to_range(): void
     {
         $this->assertIntegerToRange();
@@ -144,7 +147,7 @@ class ClassFilterOperatorTest extends TestCase
     // String Operators (spellcasting_ability field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_spellcasting_ability_with_equals(): void
     {
         // Assert: Database should have imported classes
@@ -168,7 +171,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertContains('Wizard', $classNames, 'Wizard is an Intelligence caster');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_spellcasting_ability_with_not_equals(): void
     {
         // Assert: Database should have imported classes
@@ -202,7 +205,7 @@ class ClassFilterOperatorTest extends TestCase
     // Boolean Operators (is_base_class field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_equals_true(): void
     {
         $this->assertBooleanEqualsTrue();
@@ -214,7 +217,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertContains('Fighter', $classNames, 'Fighter is a base class');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_equals_false(): void
     {
         $this->assertBooleanEqualsFalse();
@@ -228,7 +231,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertGreaterThan(0, count($parentClasses), 'Should have subclasses with parent classes');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_not_equals_true(): void
     {
         $this->assertBooleanNotEqualsTrue();
@@ -240,7 +243,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertNotContains('Fighter', $classNames, 'Fighter is a base class (should be excluded)');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_not_equals_false(): void
     {
         $this->assertBooleanNotEqualsFalse();
@@ -252,7 +255,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertContains('Fighter', $classNames, 'Fighter is a base class');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_is_null(): void
     {
         $this->assertBooleanIsNull();
@@ -262,7 +265,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertEquals(0, $response->json('meta.total'), 'IS NULL should return 0 results for properly imported data');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_is_not_null(): void
     {
         $this->assertBooleanIsNotNull();
@@ -272,7 +275,7 @@ class ClassFilterOperatorTest extends TestCase
         $this->assertGreaterThanOrEqual(CharacterClass::count(), $response->json('meta.total'), 'Should return all classes or more if index has stale data');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_is_base_class_with_not_equals(): void
     {
         // Assert: Database should have imported classes
@@ -295,19 +298,19 @@ class ClassFilterOperatorTest extends TestCase
     // Array Operators (source_codes field) - 3 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_source_codes_with_in(): void
     {
         $this->assertArrayIn();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_source_codes_with_not_in(): void
     {
         $this->assertArrayNotIn();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_source_codes_with_is_empty(): void
     {
         $this->assertArrayIsEmpty();

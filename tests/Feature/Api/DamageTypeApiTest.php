@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\DamageType;
+use Database\Seeders\DamageTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class DamageTypeApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,8 +19,8 @@ class DamageTypeApiTest extends TestCase
         parent::setUp();
 
         // Only seed if not already seeded (prevents duplicate key errors)
-        if (\App\Models\DamageType::count() === 0) {
-            $this->seed(\Database\Seeders\DamageTypeSeeder::class);
+        if (DamageType::count() === 0) {
+            $this->seed(DamageTypeSeeder::class);
         }
     }
 

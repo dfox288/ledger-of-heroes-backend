@@ -3,6 +3,7 @@
 namespace Tests\Feature\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
+use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
@@ -728,7 +729,7 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
 
         expect(fn () => $this->handler->resolve($character, $choice, ['selected' => ['invalid']]))
-            ->toThrow(\App\Exceptions\InvalidSelectionException::class);
+            ->toThrow(InvalidSelectionException::class);
     }
 
     #[Test]
@@ -756,6 +757,6 @@ class EquipmentModeChoiceHandlerTest extends TestCase
         $character = Character::factory()->create();
 
         expect(fn () => $this->handler->resolve($character, $choice, []))
-            ->toThrow(\App\Exceptions\InvalidSelectionException::class);
+            ->toThrow(InvalidSelectionException::class);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\SkillIndexRequest;
 use App\Http\Resources\SkillResource;
 use App\Models\Skill;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SkillController extends Controller
 {
@@ -44,7 +45,7 @@ class SkillController extends Controller
      * - **Class Selection:** Rogues excel at DEX skills, Clerics at WIS skills, Bards at CHA skills
      * - **Background Selection:** Backgrounds grant 2 skill proficiencies - pick ones matching your build
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search skills by name', example: 'perception')]
     #[QueryParameter('ability', description: 'Filter by ability score code (STR, DEX, CON, INT, WIS, CHA)', example: 'DEX')]

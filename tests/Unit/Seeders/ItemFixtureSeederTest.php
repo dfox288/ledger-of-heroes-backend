@@ -6,6 +6,7 @@ use App\Models\Item;
 use Database\Seeders\Testing\ItemFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ItemFixtureSeederTest extends TestCase
@@ -88,7 +89,7 @@ class ItemFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_items_from_fixture(): void
     {
         $this->assertDatabaseMissing('items', ['slug' => 'test-longsword']);
@@ -110,7 +111,7 @@ class ItemFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_item_type_by_code(): void
     {
         $seeder = new ItemFixtureSeeder;
@@ -125,7 +126,7 @@ class ItemFixtureSeederTest extends TestCase
         $this->assertEquals('HA', $plateArmor->itemType->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_damage_type_by_code_for_weapons(): void
     {
         $seeder = new ItemFixtureSeeder;
@@ -136,7 +137,7 @@ class ItemFixtureSeederTest extends TestCase
         $this->assertEquals('S', $longsword->damageType->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_attaches_item_properties(): void
     {
         $seeder = new ItemFixtureSeeder;
@@ -150,7 +151,7 @@ class ItemFixtureSeederTest extends TestCase
         $this->assertEquals('V', $longsword->properties->first()->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new ItemFixtureSeeder;

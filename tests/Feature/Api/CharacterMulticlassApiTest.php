@@ -6,6 +6,7 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\ClassFeature;
 use App\Models\Proficiency;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -380,7 +381,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         // Create subclass feature at level 3 to set the subclass_level
-        \App\Models\ClassFeature::factory()->create([
+        ClassFeature::factory()->create([
             'class_id' => $champion->id,
             'level' => 3,
             'feature_name' => 'Improved Critical',
@@ -416,7 +417,7 @@ class CharacterMulticlassApiTest extends TestCase
         ]);
 
         // Create subclass feature at level 1
-        \App\Models\ClassFeature::factory()->create([
+        ClassFeature::factory()->create([
             'class_id' => $lifeDomain->id,
             'level' => 1,
             'feature_name' => 'Disciple of Life',

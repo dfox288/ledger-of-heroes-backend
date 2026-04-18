@@ -4,7 +4,10 @@ namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
 use App\Models\Race;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -12,17 +15,17 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class ParentRelationshipTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     // ==================== RACE TESTS ====================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function race_index_returns_parent_race_with_minimal_data(): void
     {
         // Find a subrace from imported data (e.g., High Elf)
@@ -51,7 +54,7 @@ class ParentRelationshipTest extends TestCase
         $this->assertArrayNotHasKey('subraces', $subraceData['parent_race']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function race_show_returns_parent_race_with_full_relationships(): void
     {
         // Find a subrace from imported data that has a parent with traits
@@ -84,7 +87,7 @@ class ParentRelationshipTest extends TestCase
         $this->assertIsArray($data['parent_race']['traits']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function race_search_returns_parent_race(): void
     {
         // Find a subrace from imported data
@@ -108,7 +111,7 @@ class ParentRelationshipTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function race_index_with_base_race_has_null_parent(): void
     {
         // Find a base race from imported data (has no parent_race_id)
@@ -132,7 +135,7 @@ class ParentRelationshipTest extends TestCase
 
     // ==================== CLASS TESTS ====================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function class_index_returns_parent_class_with_minimal_data(): void
     {
         // Find a subclass from imported data
@@ -161,7 +164,7 @@ class ParentRelationshipTest extends TestCase
         $this->assertArrayNotHasKey('subclasses', $subclassData['parent_class']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function class_show_returns_parent_class_with_full_relationships(): void
     {
         // Find a subclass from imported data that has a parent with features
@@ -194,7 +197,7 @@ class ParentRelationshipTest extends TestCase
         $this->assertIsArray($data['parent_class']['features']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function class_search_returns_parent_class(): void
     {
         // Find a subclass from imported data
@@ -219,7 +222,7 @@ class ParentRelationshipTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function class_index_with_base_class_has_null_parent(): void
     {
         // Find a base class from imported data (has no parent_class_id)

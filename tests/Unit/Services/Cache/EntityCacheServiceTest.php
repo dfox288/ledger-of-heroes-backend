@@ -8,9 +8,11 @@ use App\Models\Spell;
 use App\Services\Cache\EntityCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class EntityCacheServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -24,7 +26,7 @@ class EntityCacheServiceTest extends TestCase
         Cache::flush();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function cache_miss_loads_spell_from_database(): void
     {
         $spell = Spell::factory()->create(['name' => 'Fireball']);
@@ -40,7 +42,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertEquals($spell->id, $result->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function cache_hit_returns_cached_spell(): void
     {
         $spell = Spell::factory()->create(['name' => 'Magic Missile']);
@@ -59,7 +61,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertTrue(Cache::has($cacheKey));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function get_spell_by_slug_resolves_to_id(): void
     {
         $spell = Spell::factory()->create([
@@ -75,7 +77,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertEquals('Fireball', $result->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function cache_key_format_is_consistent(): void
     {
         $spell = Spell::factory()->create(['name' => 'Shield']);
@@ -87,7 +89,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertTrue(Cache::has($expectedKey));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function invalidate_spell_clears_cache(): void
     {
         $spell = Spell::factory()->create(['name' => 'Cure Wounds']);
@@ -105,7 +107,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertFalse(Cache::has($cacheKey));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function invalidate_all_clears_entity_type_cache(): void
     {
         $spell1 = Spell::factory()->create(['name' => 'Fireball']);
@@ -128,7 +130,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertTrue(Cache::has("entity:item:{$item->id}"));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function clear_all_clears_all_entity_caches(): void
     {
         $spell = Spell::factory()->create(['name' => 'Fireball']);
@@ -146,7 +148,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertFalse(Cache::has("entity:item:{$item->id}"));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function cache_miss_loads_item_from_database(): void
     {
         $item = Item::factory()->create(['name' => 'Longsword']);
@@ -161,7 +163,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertEquals($item->id, $result->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function get_monster_with_relationships_eager_loaded(): void
     {
         $monster = Monster::factory()->create(['name' => 'Dragon']);
@@ -177,7 +179,7 @@ class EntityCacheServiceTest extends TestCase
         $this->assertTrue($result->relationLoaded('sources'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function ttl_is_fifteen_minutes(): void
     {
         // This test verifies the TTL constant

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 use Laravel\Scout\Searchable;
 use Spatie\Tags\HasTags;
 
@@ -519,7 +520,7 @@ class CharacterClass extends BaseModel
      * Features are sorted by level, then by sort_order to maintain proper ordering.
      *
      * @param  bool  $includeInherited  Whether to include parent class features (default: true)
-     * @return \Illuminate\Support\Collection<ClassFeature> Top-level features only
+     * @return Collection<ClassFeature> Top-level features only
      */
     public function getAllFeatures(bool $includeInherited = true)
     {

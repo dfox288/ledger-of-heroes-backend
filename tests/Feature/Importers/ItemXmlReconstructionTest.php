@@ -2,14 +2,16 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\AbilityScore;
 use App\Models\Item;
 use App\Services\Importers\ItemImporter;
 use App\Services\Parsers\ItemXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ItemXmlReconstructionTest extends TestCase
 {
     use RefreshDatabase;
@@ -603,9 +605,9 @@ XML;
         $this->assertCount(1, $item->prerequisites);
 
         $prerequisite = $item->prerequisites->first();
-        $this->assertEquals(\App\Models\Item::class, $prerequisite->reference_type);
+        $this->assertEquals(Item::class, $prerequisite->reference_type);
         $this->assertEquals($item->id, $prerequisite->reference_id);
-        $this->assertEquals(\App\Models\AbilityScore::class, $prerequisite->prerequisite_type);
+        $this->assertEquals(AbilityScore::class, $prerequisite->prerequisite_type);
         $this->assertEquals(15, $prerequisite->minimum_value);
         $this->assertEquals(1, $prerequisite->group_id);
         $this->assertNull($prerequisite->description);

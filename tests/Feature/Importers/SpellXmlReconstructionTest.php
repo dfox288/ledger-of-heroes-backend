@@ -6,10 +6,11 @@ use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Services\Importers\SpellImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class SpellXmlReconstructionTest extends TestCase
 {
     use RefreshDatabase;

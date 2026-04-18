@@ -2,13 +2,15 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\Background;
 use App\Services\Importers\BackgroundImporter;
 use App\Services\Parsers\BackgroundXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class BackgroundXmlReconstructionTest extends TestCase
 {
     use RefreshDatabase;
@@ -286,7 +288,7 @@ XML;
         }
 
         // Verify polymorphic relationship
-        $this->assertEquals(\App\Models\Background::class, $background->languageChoices->first()->reference_type);
+        $this->assertEquals(Background::class, $background->languageChoices->first()->reference_type);
         $this->assertEquals($background->id, $background->languageChoices->first()->reference_id);
     }
 }

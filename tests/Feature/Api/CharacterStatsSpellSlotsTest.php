@@ -5,7 +5,9 @@ namespace Tests\Feature\Api;
 use App\Enums\SpellSlotType;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterSpell;
 use App\Models\CharacterSpellSlot;
+use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
@@ -153,9 +155,9 @@ class CharacterStatsSpellSlotsTest extends TestCase
             ->create();
 
         // Prepare some spells
-        $spells = \App\Models\Spell::factory()->count(2)->create(['level' => 1]);
+        $spells = Spell::factory()->count(2)->create(['level' => 1]);
         foreach ($spells as $spell) {
-            \App\Models\CharacterSpell::create([
+            CharacterSpell::create([
                 'character_id' => $character->id,
                 'spell_slug' => $spell->slug,
                 'preparation_status' => 'prepared',

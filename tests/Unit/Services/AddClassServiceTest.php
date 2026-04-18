@@ -9,6 +9,7 @@ use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
+use App\Models\ClassFeature;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
@@ -182,18 +183,18 @@ class AddClassServiceTest extends TestCase
         $fighter = CharacterClass::factory()->create(['name' => 'Fighter', 'parent_class_id' => null]);
 
         // Create mandatory features at level 1 for the class
-        $secondWind = \App\Models\ClassFeature::factory()
+        $secondWind = ClassFeature::factory()
             ->forClass($fighter)
             ->atLevel(1)
             ->create(['feature_name' => 'Second Wind', 'is_optional' => false]);
 
-        $fightingStyle = \App\Models\ClassFeature::factory()
+        $fightingStyle = ClassFeature::factory()
             ->forClass($fighter)
             ->atLevel(1)
             ->optional()
             ->create(['feature_name' => 'Fighting Style']);
 
-        $actionSurge = \App\Models\ClassFeature::factory()
+        $actionSurge = ClassFeature::factory()
             ->forClass($fighter)
             ->atLevel(2)
             ->create(['feature_name' => 'Action Surge', 'is_optional' => false]);

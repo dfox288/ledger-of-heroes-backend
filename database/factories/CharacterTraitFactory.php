@@ -7,7 +7,7 @@ use App\Models\Race;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterTrait>
+ * @extends Factory<CharacterTrait>
  */
 class CharacterTraitFactory extends Factory
 {

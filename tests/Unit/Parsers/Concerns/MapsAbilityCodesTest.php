@@ -4,10 +4,11 @@ namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\MapsAbilityCodes;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class MapsAbilityCodesTest extends TestCase
 {
     use MapsAbilityCodes;

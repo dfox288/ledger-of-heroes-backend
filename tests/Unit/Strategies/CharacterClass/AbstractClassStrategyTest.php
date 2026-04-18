@@ -3,10 +3,11 @@
 namespace Tests\Unit\Strategies\CharacterClass;
 
 use App\Services\Importers\Strategies\AbstractImportStrategy;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class AbstractClassStrategyTest extends TestCase
 {
     private ConcreteTestStrategy $strategy;

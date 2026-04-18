@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Race>
+ * @extends Factory<Race>
  */
 class RaceFactory extends Factory
 {

@@ -3,9 +3,11 @@
 namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\DefaultStrategy;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class DefaultStrategyTest extends TestCase
 {
@@ -17,7 +19,7 @@ class DefaultStrategyTest extends TestCase
         $this->strategy = new DefaultStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_always_applies(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'beast']));
@@ -25,7 +27,7 @@ class DefaultStrategyTest extends TestCase
         $this->assertTrue($this->strategy->appliesTo(['type' => 'anything']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_traits_unmodified(): void
     {
         $traits = [
@@ -37,7 +39,7 @@ class DefaultStrategyTest extends TestCase
         $this->assertEquals($traits, $enhanced);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_actions_unmodified(): void
     {
         $actions = [

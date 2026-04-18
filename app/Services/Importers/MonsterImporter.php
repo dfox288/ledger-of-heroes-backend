@@ -7,11 +7,13 @@ use App\Models\CreatureType;
 use App\Models\Monster;
 use App\Models\MonsterAction;
 use App\Models\MonsterLegendaryAction;
+use App\Models\Size;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use App\Services\Importers\Concerns\ImportsConditions;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use App\Services\Importers\Concerns\ImportsSenses;
 use App\Services\Importers\Strategies\Monster\AberrationStrategy;
+use App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy;
 use App\Services\Importers\Strategies\Monster\BeastStrategy;
 use App\Services\Importers\Strategies\Monster\CelestialStrategy;
 use App\Services\Importers\Strategies\Monster\ConstructStrategy;
@@ -62,7 +64,7 @@ class MonsterImporter extends BaseImporter
         ];
     }
 
-    protected function selectStrategy(array $monsterData): \App\Services\Importers\Strategies\Monster\AbstractMonsterStrategy
+    protected function selectStrategy(array $monsterData): AbstractMonsterStrategy
     {
         foreach ($this->strategies as $strategy) {
             if ($strategy->appliesTo($monsterData)) {
@@ -189,7 +191,7 @@ class MonsterImporter extends BaseImporter
     protected function createOrUpdateMonster(array $monsterData): Monster
     {
         // Lookup size
-        $size = $this->cachedFind(\App\Models\Size::class, 'code', strtoupper($monsterData['size']));
+        $size = $this->cachedFind(Size::class, 'code', strtoupper($monsterData['size']));
 
         // Generate source-prefixed slug
         $sources = $monsterData['sources'] ?? [];

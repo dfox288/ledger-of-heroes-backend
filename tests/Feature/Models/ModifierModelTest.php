@@ -3,13 +3,15 @@
 namespace Tests\Feature\Models;
 
 use App\Models\AbilityScore;
+use App\Models\EntityChoice;
 use App\Models\Modifier;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ModifierModelTest extends TestCase
 {
     use RefreshDatabase;
@@ -58,7 +60,7 @@ class ModifierModelTest extends TestCase
         $race = Race::factory()->create();
 
         // Choice modifiers are now stored in entity_choices table
-        $entityChoice = \App\Models\EntityChoice::create([
+        $entityChoice = EntityChoice::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'choice_type' => 'ability_score',

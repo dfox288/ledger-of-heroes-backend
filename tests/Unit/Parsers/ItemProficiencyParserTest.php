@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\Concerns\ParsesItemProficiencies;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemProficiencyParserTest extends TestCase
 {
     private object $parser;

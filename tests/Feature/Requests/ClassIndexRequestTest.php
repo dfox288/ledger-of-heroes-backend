@@ -6,10 +6,15 @@ use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\ProficiencyType;
 use App\Models\Skill;
+use Database\Seeders\AbilityScoreSeeder;
+use Database\Seeders\ProficiencyTypeSeeder;
+use Database\Seeders\SkillSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ClassIndexRequestTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,17 +25,17 @@ class ClassIndexRequestTest extends TestCase
 
         // Only seed if database is empty
         if (AbilityScore::count() === 0) {
-            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+            $this->seed(AbilityScoreSeeder::class);
         }
         if (ProficiencyType::count() === 0) {
-            $this->seed(\Database\Seeders\ProficiencyTypeSeeder::class);
+            $this->seed(ProficiencyTypeSeeder::class);
         }
         if (Skill::count() === 0) {
-            $this->seed(\Database\Seeders\SkillSeeder::class);
+            $this->seed(SkillSeeder::class);
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_whitelists_sortable_columns(): void
     {
         CharacterClass::factory()->create(['name' => 'Barbarian']);
@@ -48,7 +53,7 @@ class ClassIndexRequestTest extends TestCase
         $response->assertJsonValidationErrors('sort_by');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_per_page_limit(): void
     {
         CharacterClass::factory()->create(['name' => 'Paladin']);
@@ -71,7 +76,7 @@ class ClassIndexRequestTest extends TestCase
         $response->assertJsonValidationErrors('per_page');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_q_max_length(): void
     {
         CharacterClass::factory()->create(['name' => 'Druid']);

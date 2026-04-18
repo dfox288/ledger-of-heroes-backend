@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Http\Controllers\Api\CreatureTypeController;
 use App\Models\CreatureType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -13,7 +14,7 @@ use Tests\TestCase;
 /**
  * Tests for CreatureTypeController.
  *
- * @see \App\Http\Controllers\Api\CreatureTypeController
+ * @see CreatureTypeController
  */
 #[Group('feature-db')]
 class CreatureTypeApiTest extends TestCase

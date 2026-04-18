@@ -4,10 +4,11 @@ namespace Tests\Unit\Exceptions\Import;
 
 use App\Exceptions\Import\FileNotFoundException;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class FileNotFoundExceptionTest extends TestCase
 {
     #[Test]

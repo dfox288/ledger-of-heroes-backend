@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Http\Resources\Concerns\FormatsRelatedModels;
 use App\Models\Character;
 use App\Services\CharacterStatCalculator;
+use App\Services\CounterService;
 use App\Services\MulticlassSpellSlotCalculator;
 use App\Services\ProficiencyCheckerService;
 use Illuminate\Http\Request;
@@ -334,7 +335,7 @@ class CharacterResource extends JsonResource
      */
     private function getCountersData(): array
     {
-        $counterService = app(\App\Services\CounterService::class);
+        $counterService = app(CounterService::class);
         $counters = $counterService->getCountersForCharacter($this->resource);
 
         return [

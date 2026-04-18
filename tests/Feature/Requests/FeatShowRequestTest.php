@@ -4,14 +4,16 @@ namespace Tests\Feature\Requests;
 
 use App\Models\Feat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class FeatShowRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_includable_relationships()
     {
         $feat = Feat::factory()->create();
@@ -34,7 +36,7 @@ class FeatShowRequestTest extends TestCase
             ->assertJsonValidationErrors(['include.0']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_selectable_fields()
     {
         $feat = Feat::factory()->create();
@@ -53,7 +55,7 @@ class FeatShowRequestTest extends TestCase
             ->assertJsonValidationErrors(['fields.0']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_all_defined_includable_relationships()
     {
         $feat = Feat::factory()->create();
@@ -78,7 +80,7 @@ class FeatShowRequestTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_all_defined_selectable_fields()
     {
         $feat = Feat::factory()->create();
@@ -99,7 +101,7 @@ class FeatShowRequestTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_works_without_include_or_fields_parameters()
     {
         $feat = Feat::factory()->create();

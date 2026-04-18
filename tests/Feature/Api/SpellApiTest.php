@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\CharacterClass;
+use App\Models\EntitySource;
+use App\Models\Source;
 use App\Models\Spell;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -90,12 +93,9 @@ class SpellApiTest extends TestCase
     #[Test]
     public function spell_includes_classes_in_response()
     {
-        // Find a spell that has classes
-        $spell = Spell::has('classes')->first();
-
-        if (! $spell) {
-            $this->markTestSkipped('No spells with classes in fixtures');
-        }
+        $spell = Spell::factory()->create(['slug' => 'test:spell-classes-'.uniqid()]);
+        $class = CharacterClass::firstOrFail();
+        $spell->classes()->attach($class->id);
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 
@@ -114,8 +114,6 @@ class SpellApiTest extends TestCase
                     ],
                 ],
             ]);
-
-        // Verify spell has at least one class
         $this->assertGreaterThan(0, count($response->json('data.classes')));
     }
 
@@ -146,12 +144,12 @@ class SpellApiTest extends TestCase
     #[Test]
     public function spell_includes_sources_as_resource()
     {
-        // Find a spell with sources
-        $spell = Spell::has('sources')->first();
-
-        if (! $spell) {
-            $this->markTestSkipped('No spells with sources in fixtures');
-        }
+        $spell = Spell::factory()->create(['slug' => 'test:spell-sources-'.uniqid()]);
+        $source = Source::firstOrFail();
+        EntitySource::factory()->forEntity(Spell::class, $spell->id)->create([
+            'source_id' => $source->id,
+            'pages' => '250',
+        ]);
 
         $response = $this->getJson("/api/v1/spells/{$spell->id}");
 

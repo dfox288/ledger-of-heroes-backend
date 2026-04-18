@@ -3,6 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Background;
+use App\Models\CharacterTrait;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
+use App\Models\Proficiency;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -141,76 +145,54 @@ class BackgroundApiTest extends TestCase
     #[Test]
     public function background_traits_include_data_tables()
     {
-        // Find a background with traits that have data tables
-        $bg = Background::whereHas('traits.dataTables')->first();
-
-        if (! $bg) {
-            $this->markTestSkipped('No backgrounds with data table traits in imported data');
-        }
+        $bg = Background::factory()->create(['slug' => 'test:bg-data-tables-'.uniqid()]);
+        $trait = CharacterTrait::factory()->forEntity(Background::class, $bg->id)->create();
+        $table = EntityDataTable::factory()->forEntity(CharacterTrait::class, $trait->id)->create();
+        EntityDataTableEntry::factory()->forTable($table)->create();
 
         $response = $this->getJson("/api/v1/backgrounds/{$bg->id}");
 
         $response->assertStatus(200);
 
         $traits = $response->json('data.traits');
-        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['data_tables']));
-
-        if ($traitsWithTables->isNotEmpty()) {
-            $traitWithTable = $traitsWithTables->first();
-            $this->assertArrayHasKey('data_tables', $traitWithTable);
-            $this->assertArrayHasKey('table_name', $traitWithTable['data_tables'][0]);
-            $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
-        }
+        $traitWithTable = collect($traits)->first(fn ($t) => ! empty($t['data_tables']));
+        $this->assertNotNull($traitWithTable, 'Expected a trait with at least one data_table');
+        $this->assertArrayHasKey('table_name', $traitWithTable['data_tables'][0]);
+        $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
     }
 
     #[Test]
     public function background_exposes_top_level_data_tables_for_convenience()
     {
-        // Find a background with traits that have data tables (e.g., Acolyte has Personality Trait, Ideal, Bond, Flaw)
-        $bg = Background::whereHas('traits.dataTables')->first();
-
-        if (! $bg) {
-            $this->markTestSkipped('No backgrounds with data table traits in imported data');
-        }
+        // Seed a Background with two traits, each having one data table — verifies
+        // the top-level data_tables field flattens tables from all traits.
+        $bg = Background::factory()->create(['slug' => 'test:bg-flattened-tables-'.uniqid()]);
+        $trait1 = CharacterTrait::factory()->forEntity(Background::class, $bg->id)->create();
+        $trait2 = CharacterTrait::factory()->forEntity(Background::class, $bg->id)->create();
+        $t1 = EntityDataTable::factory()->forEntity(CharacterTrait::class, $trait1->id)->create();
+        $t2 = EntityDataTable::factory()->forEntity(CharacterTrait::class, $trait2->id)->create();
+        EntityDataTableEntry::factory()->forTable($t1)->create();
+        EntityDataTableEntry::factory()->forTable($t2)->create();
 
         $response = $this->getJson("/api/v1/backgrounds/{$bg->id}");
 
         $response->assertStatus(200);
 
-        // Verify top-level data_tables field exists and contains flattened tables from all traits
         $dataTables = $response->json('data.data_tables');
-        $this->assertNotNull($dataTables, 'data_tables should exist at top level');
         $this->assertIsArray($dataTables);
-        $this->assertNotEmpty($dataTables, 'data_tables should contain flattened tables from traits');
+        $this->assertCount(2, $dataTables, 'data_tables should contain flattened tables from both traits');
 
-        // Verify expected structure for roll tables
         $firstTable = $dataTables[0];
         $this->assertArrayHasKey('table_name', $firstTable);
         $this->assertArrayHasKey('dice_type', $firstTable);
         $this->assertArrayHasKey('entries', $firstTable);
-
-        // Acolyte should have 4 tables: Personality Trait, Ideal, Bond, Flaw
-        if ($bg->name === 'Acolyte') {
-            $this->assertCount(4, $dataTables);
-            $tableNames = collect($dataTables)->pluck('table_name')->all();
-            $this->assertContains('Personality Trait', $tableNames);
-            $this->assertContains('Ideal', $tableNames);
-            $this->assertContains('Bond', $tableNames);
-            $this->assertContains('Flaw', $tableNames);
-        }
     }
 
     #[Test]
     public function background_proficiencies_include_skill_resource()
     {
-        // Find a background with skill proficiencies
-        $bg = Background::whereHas('proficiencies', function ($q) {
-            $q->where('proficiency_type', 'skill')->whereNotNull('skill_id');
-        })->first();
-
-        if (! $bg) {
-            $this->markTestSkipped('No backgrounds with skill proficiencies in imported data');
-        }
+        $bg = Background::factory()->create(['slug' => 'test:bg-skill-prof-'.uniqid()]);
+        Proficiency::factory()->forEntity(Background::class, $bg->id)->skill('Insight')->create();
 
         $response = $this->getJson("/api/v1/backgrounds/{$bg->id}");
 

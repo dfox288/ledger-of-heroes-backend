@@ -6,7 +6,7 @@ use App\Models\Size;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Size>
+ * @extends Factory<Size>
  */
 class SizeFactory extends Factory
 {

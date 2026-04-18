@@ -4,11 +4,13 @@ namespace Tests\Unit\Strategies\CharacterClass;
 
 use App\Models\AbilityScore;
 use App\Services\Importers\Strategies\CharacterClass\BaseClassStrategy;
+use Database\Seeders\AbilityScoreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class BaseClassStrategyTest extends TestCase
 {
     use RefreshDatabase;
@@ -21,8 +23,8 @@ class BaseClassStrategyTest extends TestCase
         $this->strategy = new BaseClassStrategy;
 
         // Seed necessary lookup data only once
-        if (\App\Models\AbilityScore::count() === 0) {
-            $this->seed(\Database\Seeders\AbilityScoreSeeder::class);
+        if (AbilityScore::count() === 0) {
+            $this->seed(AbilityScoreSeeder::class);
         }
     }
 

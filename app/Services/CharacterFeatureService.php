@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\CharacterClassPivot;
 use App\Models\CharacterFeature;
 use App\Models\CharacterSpell;
 use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
+use Illuminate\Database\Eloquent\Collection;
 
 class CharacterFeatureService
 {
@@ -209,7 +211,7 @@ class CharacterFeatureService
      * Only the variant matching the character's subclass_choices is included.
      *
      * @param  ClassFeature  $feature  The feature to check
-     * @param  \App\Models\CharacterClassPivot  $characterClass  The character's class pivot with subclass_choices
+     * @param  CharacterClassPivot  $characterClass  The character's class pivot with subclass_choices
      * @return bool True if the feature should be included, false if it should be skipped
      */
     private function shouldIncludeVariantFeature(ClassFeature $feature, $characterClass): bool
@@ -443,7 +445,7 @@ class CharacterFeatureService
     /**
      * Get all features for a character with their related feature data.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getCharacterFeatures(Character $character)
     {

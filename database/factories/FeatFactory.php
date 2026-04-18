@@ -2,12 +2,16 @@
 
 namespace Database\Factories;
 
+use App\Models\EntityCondition;
+use App\Models\EntitySource;
 use App\Models\Feat;
+use App\Models\Modifier;
+use App\Models\Proficiency;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Feat>
+ * @extends Factory<Feat>
  */
 class FeatFactory extends Factory
 {
@@ -58,7 +62,7 @@ class FeatFactory extends Factory
     public function withSources(): static
     {
         return $this->afterCreating(function (Feat $feat) {
-            \App\Models\EntitySource::factory()
+            EntitySource::factory()
                 ->forEntity(Feat::class, $feat->id)
                 ->fromSource('PHB')
                 ->create();
@@ -71,7 +75,7 @@ class FeatFactory extends Factory
     public function withModifiers(): static
     {
         return $this->afterCreating(function (Feat $feat) {
-            \App\Models\Modifier::factory()
+            Modifier::factory()
                 ->forEntity(Feat::class, $feat->id)
                 ->create([
                     'modifier_category' => 'ability_score',
@@ -86,7 +90,7 @@ class FeatFactory extends Factory
     public function withProficiencies(): static
     {
         return $this->afterCreating(function (Feat $feat) {
-            \App\Models\Proficiency::factory()
+            Proficiency::factory()
                 ->forEntity(Feat::class, $feat->id)
                 ->create();
         });
@@ -98,7 +102,7 @@ class FeatFactory extends Factory
     public function withConditions(): static
     {
         return $this->afterCreating(function (Feat $feat) {
-            \App\Models\EntityCondition::factory()
+            EntityCondition::factory()
                 ->forEntity(Feat::class, $feat->id)
                 ->create([
                     'effect_type' => 'advantage',

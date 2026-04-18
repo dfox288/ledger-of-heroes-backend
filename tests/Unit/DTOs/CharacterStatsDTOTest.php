@@ -5,6 +5,8 @@ namespace Tests\Unit\DTOs;
 use App\DTOs\CharacterStatsDTO;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\ClassFeature;
+use App\Models\Feat;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
@@ -319,12 +321,12 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         // Add Resilient (Wisdom) feat
-        $resilientWis = \App\Models\Feat::factory()->create([
+        $resilientWis = Feat::factory()->create([
             'name' => 'Resilient (Wisdom)',
             'slug' => 'test:resilient-wisdom',
         ]);
         $character->features()->create([
-            'feature_type' => \App\Models\Feat::class,
+            'feature_type' => Feat::class,
             'feature_id' => $resilientWis->id,
             'feature_slug' => $resilientWis->slug,
             'source' => 'asi_or_feat',
@@ -356,24 +358,24 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         // Add both Resilient (Dexterity) and Resilient (Wisdom)
-        $resilientDex = \App\Models\Feat::factory()->create([
+        $resilientDex = Feat::factory()->create([
             'name' => 'Resilient (Dexterity)',
             'slug' => 'test:resilient-dexterity',
         ]);
-        $resilientWis = \App\Models\Feat::factory()->create([
+        $resilientWis = Feat::factory()->create([
             'name' => 'Resilient (Wisdom)',
             'slug' => 'test:resilient-wisdom',
         ]);
 
         $character->features()->createMany([
             [
-                'feature_type' => \App\Models\Feat::class,
+                'feature_type' => Feat::class,
                 'feature_id' => $resilientDex->id,
                 'feature_slug' => $resilientDex->slug,
                 'source' => 'asi_or_feat',
             ],
             [
-                'feature_type' => \App\Models\Feat::class,
+                'feature_type' => Feat::class,
                 'feature_id' => $resilientWis->id,
                 'feature_slug' => $resilientWis->slug,
                 'source' => 'asi_or_feat',
@@ -397,7 +399,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         // Create fighting style feature
-        $archeryStyle = \App\Models\ClassFeature::factory()->create([
+        $archeryStyle = ClassFeature::factory()->create([
             'class_id' => $fighter->id,
             'feature_name' => 'Fighting Style: Archery',
             'level' => 1,
@@ -413,7 +415,7 @@ class CharacterStatsDTOTest extends TestCase
 
         // Assign the fighting style to the character
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $archeryStyle->id,
             'feature_slug' => 'test:fighter-fs:fighting-style-archery',
             'source' => 'class',
@@ -433,7 +435,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:fighter-archery',
         ]);
 
-        $archeryStyle = \App\Models\ClassFeature::factory()->create([
+        $archeryStyle = ClassFeature::factory()->create([
             'class_id' => $fighter->id,
             'feature_name' => 'Fighting Style: Archery',
             'level' => 1,
@@ -448,7 +450,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $archeryStyle->id,
             'feature_slug' => 'test:fighter-archery:fighting-style-archery',
             'source' => 'class',
@@ -467,7 +469,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:fighter-dueling',
         ]);
 
-        $duelingStyle = \App\Models\ClassFeature::factory()->create([
+        $duelingStyle = ClassFeature::factory()->create([
             'class_id' => $fighter->id,
             'feature_name' => 'Fighting Style: Dueling',
             'level' => 1,
@@ -482,7 +484,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $duelingStyle->id,
             'feature_slug' => 'test:fighter-dueling:fighting-style-dueling',
             'source' => 'class',
@@ -505,7 +507,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         // Create Jack of All Trades feature
-        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+        $jackOfAllTrades = ClassFeature::factory()->create([
             'class_id' => $bard->id,
             'feature_name' => 'Jack of All Trades',
             'level' => 2,
@@ -526,7 +528,7 @@ class CharacterStatsDTOTest extends TestCase
 
         // Assign Jack of All Trades feature
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $jackOfAllTrades->id,
             'feature_slug' => 'test:bard-jat:jack-of-all-trades',
             'source' => 'class',
@@ -550,7 +552,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:bard-jat-prof',
         ]);
 
-        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+        $jackOfAllTrades = ClassFeature::factory()->create([
             'class_id' => $bard->id,
             'feature_name' => 'Jack of All Trades',
             'level' => 2,
@@ -575,7 +577,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $jackOfAllTrades->id,
             'feature_slug' => 'test:bard-jat-prof:jack-of-all-trades',
             'source' => 'class',
@@ -599,7 +601,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:bard-jat-init',
         ]);
 
-        $jackOfAllTrades = \App\Models\ClassFeature::factory()->create([
+        $jackOfAllTrades = ClassFeature::factory()->create([
             'class_id' => $bard->id,
             'feature_name' => 'Jack of All Trades',
             'level' => 2,
@@ -617,7 +619,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $jackOfAllTrades->id,
             'feature_slug' => 'test:bard-jat-init:jack-of-all-trades',
             'source' => 'class',
@@ -640,7 +642,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:rogue-rt',
         ]);
 
-        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+        $reliableTalent = ClassFeature::factory()->create([
             'class_id' => $rogue->id,
             'feature_name' => 'Reliable Talent',
             'level' => 11,
@@ -665,7 +667,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $reliableTalent->id,
             'feature_slug' => 'test:rogue-rt:reliable-talent',
             'source' => 'class',
@@ -687,7 +689,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:rogue-rt-np',
         ]);
 
-        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+        $reliableTalent = ClassFeature::factory()->create([
             'class_id' => $rogue->id,
             'feature_name' => 'Reliable Talent',
             'level' => 11,
@@ -705,7 +707,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $reliableTalent->id,
             'feature_slug' => 'test:rogue-rt-np:reliable-talent',
             'source' => 'class',
@@ -740,7 +742,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:rogue-minroll',
         ]);
 
-        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+        $reliableTalent = ClassFeature::factory()->create([
             'class_id' => $rogue->id,
             'feature_name' => 'Reliable Talent',
             'level' => 11,
@@ -765,7 +767,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $reliableTalent->id,
             'feature_slug' => 'test:rogue-minroll:reliable-talent',
             'source' => 'class',
@@ -789,7 +791,7 @@ class CharacterStatsDTOTest extends TestCase
             'slug' => 'test:rogue-minroll-neg',
         ]);
 
-        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+        $reliableTalent = ClassFeature::factory()->create([
             'class_id' => $rogue->id,
             'feature_name' => 'Reliable Talent',
             'level' => 11,
@@ -814,7 +816,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $reliableTalent->id,
             'feature_slug' => 'test:rogue-minroll-neg:reliable-talent',
             'source' => 'class',
@@ -861,7 +863,7 @@ class CharacterStatsDTOTest extends TestCase
             'parent_class_id' => $bard->id,
         ]);
 
-        $silverTongue = \App\Models\ClassFeature::factory()->create([
+        $silverTongue = ClassFeature::factory()->create([
             'class_id' => $eloquenceCollege->id,
             'feature_name' => 'Silver Tongue',
             'level' => 3,
@@ -880,7 +882,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $silverTongue->id,
             'feature_slug' => 'test:bard-eloquence:silver-tongue',
             'source' => 'class',
@@ -913,7 +915,7 @@ class CharacterStatsDTOTest extends TestCase
             'parent_class_id' => $bard->id,
         ]);
 
-        $silverTongue = \App\Models\ClassFeature::factory()->create([
+        $silverTongue = ClassFeature::factory()->create([
             'class_id' => $eloquenceCollege->id,
             'feature_name' => 'Silver Tongue',
             'level' => 3,
@@ -932,7 +934,7 @@ class CharacterStatsDTOTest extends TestCase
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $silverTongue->id,
             'feature_slug' => 'test:bard-eloquence-other:silver-tongue',
             'source' => 'class',
@@ -966,13 +968,13 @@ class CharacterStatsDTOTest extends TestCase
             'parent_class_id' => $bard->id,
         ]);
 
-        $reliableTalent = \App\Models\ClassFeature::factory()->create([
+        $reliableTalent = ClassFeature::factory()->create([
             'class_id' => $rogue->id,
             'feature_name' => 'Reliable Talent',
             'level' => 11,
         ]);
 
-        $silverTongue = \App\Models\ClassFeature::factory()->create([
+        $silverTongue = ClassFeature::factory()->create([
             'class_id' => $eloquenceCollege->id,
             'feature_name' => 'Silver Tongue',
             'level' => 3,
@@ -1007,14 +1009,14 @@ class CharacterStatsDTOTest extends TestCase
 
         // Add both features
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $reliableTalent->id,
             'feature_slug' => 'test:rogue-multi:reliable-talent',
             'source' => 'class',
         ]);
 
         $character->features()->create([
-            'feature_type' => \App\Models\ClassFeature::class,
+            'feature_type' => ClassFeature::class,
             'feature_id' => $silverTongue->id,
             'feature_slug' => 'test:bard-eloquence-multi:silver-tongue',
             'source' => 'class',

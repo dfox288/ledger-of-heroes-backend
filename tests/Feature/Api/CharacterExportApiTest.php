@@ -6,10 +6,13 @@ use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterCondition;
 use App\Models\CharacterEquipment;
+use App\Models\CharacterFeature;
 use App\Models\CharacterLanguage;
 use App\Models\CharacterNote;
 use App\Models\CharacterProficiency;
 use App\Models\CharacterSpell;
+use App\Models\CharacterTrait;
+use App\Models\ClassFeature;
 use App\Models\Condition;
 use App\Models\FeatureSelection;
 use App\Models\Item;
@@ -357,7 +360,7 @@ describe('Character Export', function () {
         $class = CharacterClass::factory()->create(['slug' => 'phb:barbarian', 'name' => 'Barbarian']);
 
         // Create a class feature with limited uses (like Rage)
-        $classFeature = \App\Models\ClassFeature::create([
+        $classFeature = ClassFeature::create([
             'class_id' => $class->id,
             'feature_name' => 'Rage',
             'level' => 1,
@@ -366,7 +369,7 @@ describe('Character Export', function () {
         ]);
 
         // Create the character feature link with uses tracking
-        \App\Models\CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => 'App\\Models\\ClassFeature',
             'feature_id' => $classFeature->id,
@@ -1124,7 +1127,7 @@ describe('Feature Export', function () {
         $race = Race::factory()->create(['slug' => 'test:dhampir', 'name' => 'Dhampir']);
 
         // Create a trait attached to the race
-        $trait = \App\Models\CharacterTrait::create([
+        $trait = CharacterTrait::create([
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Vampiric Bite',
@@ -1137,7 +1140,7 @@ describe('Feature Export', function () {
         ]);
 
         // Link the trait to the character
-        \App\Models\CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => 'App\\Models\\CharacterTrait',
             'feature_id' => $trait->id,
@@ -1165,7 +1168,7 @@ describe('Feature Export', function () {
         $background = Background::factory()->create(['slug' => 'test:soldier', 'name' => 'Soldier']);
 
         // Create a trait attached to the background
-        $trait = \App\Models\CharacterTrait::create([
+        $trait = CharacterTrait::create([
             'reference_type' => 'App\\Models\\Background',
             'reference_id' => $background->id,
             'name' => 'Military Rank',
@@ -1178,7 +1181,7 @@ describe('Feature Export', function () {
         ]);
 
         // Link the trait to the character
-        \App\Models\CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => 'App\\Models\\CharacterTrait',
             'feature_id' => $trait->id,
@@ -1205,7 +1208,7 @@ describe('Feature Export', function () {
         $class = CharacterClass::factory()->create(['slug' => 'test:warlock', 'name' => 'Warlock']);
 
         // Create a trait attached to the race (simulating what would exist in DB)
-        $trait = \App\Models\CharacterTrait::create([
+        $trait = CharacterTrait::create([
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Hellish Resistance',
@@ -1275,7 +1278,7 @@ describe('Feature Export', function () {
         $class = CharacterClass::factory()->create(['slug' => 'test:paladin', 'name' => 'Paladin']);
 
         // Create a trait attached to the race
-        $trait = \App\Models\CharacterTrait::create([
+        $trait = CharacterTrait::create([
             'reference_type' => 'App\\Models\\Race',
             'reference_id' => $race->id,
             'name' => 'Breath Weapon',
@@ -1297,7 +1300,7 @@ describe('Feature Export', function () {
             'is_primary' => true,
         ]);
 
-        \App\Models\CharacterFeature::create([
+        CharacterFeature::create([
             'character_id' => $character->id,
             'feature_type' => 'App\\Models\\CharacterTrait',
             'feature_id' => $trait->id,

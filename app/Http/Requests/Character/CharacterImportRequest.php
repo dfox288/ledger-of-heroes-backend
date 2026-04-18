@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Character;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 /**
  * Validate character import request data.
@@ -179,9 +180,9 @@ class CharacterImportRequest extends FormRequest
     /**
      * Add custom validation to ensure proficiency fields are mutually exclusive.
      */
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function (\Illuminate\Validation\Validator $validator) {
+        $validator->after(function (Validator $validator) {
             $proficiencies = $this->input('character.proficiencies', []);
 
             // Skill proficiencies should not have a 'type' field

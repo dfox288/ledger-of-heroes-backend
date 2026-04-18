@@ -7,10 +7,11 @@ use App\Models\CharacterTrait;
 use App\Models\Modifier;
 use App\Models\Proficiency;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class PolymorphicFactoriesTest extends TestCase
 {
     use RefreshDatabase;

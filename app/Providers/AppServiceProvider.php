@@ -30,9 +30,24 @@ use App\Models\Spell;
 use App\Models\SpellSchool;
 use App\Observers\CharacterObserver;
 use App\Services\CharacterChoiceService;
+use App\Services\ChoiceHandlers\AbilityScoreChoiceHandler;
+use App\Services\ChoiceHandlers\AsiChoiceHandler;
+use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
+use App\Services\ChoiceHandlers\EquipmentModeChoiceHandler;
+use App\Services\ChoiceHandlers\ExpertiseChoiceHandler;
+use App\Services\ChoiceHandlers\FeatChoiceHandler;
+use App\Services\ChoiceHandlers\HitPointRollChoiceHandler;
+use App\Services\ChoiceHandlers\LanguageChoiceHandler;
+use App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler;
+use App\Services\ChoiceHandlers\ProficiencyChoiceHandler;
+use App\Services\ChoiceHandlers\SizeChoiceHandler;
+use App\Services\ChoiceHandlers\SpellChoiceHandler;
+use App\Services\ChoiceHandlers\SubclassChoiceHandler;
+use App\Services\ChoiceHandlers\SubclassVariantChoiceHandler;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use MeiliSearch\Client;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,8 +57,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Bind Meilisearch Client
-        $this->app->singleton(\MeiliSearch\Client::class, function ($app) {
-            return new \MeiliSearch\Client(
+        $this->app->singleton(Client::class, function ($app) {
+            return new Client(
                 config('scout.meilisearch.host'),
                 config('scout.meilisearch.key')
             );
@@ -54,22 +69,22 @@ class AppServiceProvider extends ServiceProvider
             $service = new CharacterChoiceService;
 
             // Register choice handlers
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ProficiencyChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\LanguageChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentModeChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\EquipmentChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\ExpertiseChoiceHandler::class));
+            $service->registerHandler($app->make(ProficiencyChoiceHandler::class));
+            $service->registerHandler($app->make(LanguageChoiceHandler::class));
+            $service->registerHandler($app->make(EquipmentModeChoiceHandler::class));
+            $service->registerHandler($app->make(EquipmentChoiceHandler::class));
+            $service->registerHandler($app->make(ExpertiseChoiceHandler::class));
             // FightingStyleChoiceHandler removed - fighting styles now handled by OptionalFeatureChoiceHandler
             // via "Fighting Styles Known" counter (Issue #491)
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SubclassChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SubclassVariantChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SpellChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\HitPointRollChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\AbilityScoreChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\FeatChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\SizeChoiceHandler::class));
-            $service->registerHandler($app->make(\App\Services\ChoiceHandlers\AsiChoiceHandler::class));
+            $service->registerHandler($app->make(SubclassChoiceHandler::class));
+            $service->registerHandler($app->make(SubclassVariantChoiceHandler::class));
+            $service->registerHandler($app->make(OptionalFeatureChoiceHandler::class));
+            $service->registerHandler($app->make(SpellChoiceHandler::class));
+            $service->registerHandler($app->make(HitPointRollChoiceHandler::class));
+            $service->registerHandler($app->make(AbilityScoreChoiceHandler::class));
+            $service->registerHandler($app->make(FeatChoiceHandler::class));
+            $service->registerHandler($app->make(SizeChoiceHandler::class));
+            $service->registerHandler($app->make(AsiChoiceHandler::class));
 
             return $service;
         });

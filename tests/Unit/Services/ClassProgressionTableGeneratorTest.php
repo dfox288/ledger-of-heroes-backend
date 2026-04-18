@@ -2,16 +2,20 @@
 
 namespace Tests\Unit\Services;
 
+use App\Enums\DataTableType;
 use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\ClassFeature;
 use App\Models\ClassLevelProgression;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Services\ClassProgressionTableGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ClassProgressionTableGeneratorTest extends TestCase
 {
     use RefreshDatabase;
@@ -593,30 +597,30 @@ class ClassProgressionTableGeneratorTest extends TestCase
         ]);
 
         // Create an EntityDataTable with progression type
-        $table = \App\Models\EntityDataTable::create([
+        $table = EntityDataTable::create([
             'reference_type' => ClassFeature::class,
             'reference_id' => $feature->id,
             'table_name' => 'Extra Damage',
             'dice_type' => 'd6',
-            'table_type' => \App\Enums\DataTableType::PROGRESSION,
+            'table_type' => DataTableType::PROGRESSION,
         ]);
 
         // Create entries with level values
-        \App\Models\EntityDataTableEntry::create([
+        EntityDataTableEntry::create([
             'entity_data_table_id' => $table->id,
             'roll_min' => 1, 'roll_max' => 1,
             'result_text' => '1d6',
             'level' => 1,
             'sort_order' => 0,
         ]);
-        \App\Models\EntityDataTableEntry::create([
+        EntityDataTableEntry::create([
             'entity_data_table_id' => $table->id,
             'roll_min' => 3, 'roll_max' => 3,
             'result_text' => '2d6',
             'level' => 3,
             'sort_order' => 1,
         ]);
-        \App\Models\EntityDataTableEntry::create([
+        EntityDataTableEntry::create([
             'entity_data_table_id' => $table->id,
             'roll_min' => 5, 'roll_max' => 5,
             'result_text' => '3d6',
@@ -663,15 +667,15 @@ class ClassProgressionTableGeneratorTest extends TestCase
         ]);
 
         // Create progression table
-        $table = \App\Models\EntityDataTable::create([
+        $table = EntityDataTable::create([
             'reference_type' => ClassFeature::class,
             'reference_id' => $feature->id,
             'table_name' => 'Martial Arts',
             'dice_type' => 'd4',
-            'table_type' => \App\Enums\DataTableType::PROGRESSION,
+            'table_type' => DataTableType::PROGRESSION,
         ]);
 
-        \App\Models\EntityDataTableEntry::create([
+        EntityDataTableEntry::create([
             'entity_data_table_id' => $table->id,
             'roll_min' => 1, 'roll_max' => 1,
             'result_text' => '1d4',

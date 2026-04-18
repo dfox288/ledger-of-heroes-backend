@@ -7,9 +7,11 @@ use App\Models\Character;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class MediaResourceTest extends TestCase
 {
     use RefreshDatabase;
@@ -34,7 +36,7 @@ class MediaResourceTest extends TestCase
         return $newPath;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_media_with_basic_fields(): void
     {
         $character = Character::factory()->create();
@@ -57,7 +59,7 @@ class MediaResourceTest extends TestCase
         $this->assertEquals('portrait', $array['collection']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_urls_array_with_original(): void
     {
         $character = Character::factory()->create();
@@ -74,7 +76,7 @@ class MediaResourceTest extends TestCase
         $this->assertIsString($array['urls']['original']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_null_thumb_when_conversion_does_not_exist(): void
     {
         $character = Character::factory()->create();
@@ -89,7 +91,7 @@ class MediaResourceTest extends TestCase
         $this->assertNull($array['urls']['thumb']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_null_medium_when_conversion_does_not_exist(): void
     {
         $character = Character::factory()->create();
@@ -104,7 +106,7 @@ class MediaResourceTest extends TestCase
         $this->assertNull($array['urls']['medium']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_formats_created_at_as_iso8601(): void
     {
         $character = Character::factory()->create();
@@ -120,7 +122,7 @@ class MediaResourceTest extends TestCase
         $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/', $array['created_at']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_file_metadata(): void
     {
         $character = Character::factory()->create();
@@ -138,7 +140,7 @@ class MediaResourceTest extends TestCase
         $this->assertIsInt($array['size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_media_from_different_collections(): void
     {
         $character = Character::factory()->create();

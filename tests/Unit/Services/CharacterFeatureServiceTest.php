@@ -6,9 +6,11 @@ use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterFeature;
+use App\Models\CharacterSpell;
 use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
 use App\Models\Race;
+use App\Models\Spell;
 use App\Services\CharacterFeatureService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -469,7 +471,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create the Light spell
-        $lightSpell = \App\Models\Spell::factory()->create([
+        $lightSpell = Spell::factory()->create([
             'name' => 'Light',
             'slug' => 'light',
             'level' => 0,
@@ -528,19 +530,19 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create spells at various level requirements
-        $burningHands = \App\Models\Spell::factory()->create([
+        $burningHands = Spell::factory()->create([
             'name' => 'Burning Hands',
             'slug' => 'burning-hands',
             'level' => 1,
         ]);
 
-        $scorchingRay = \App\Models\Spell::factory()->create([
+        $scorchingRay = Spell::factory()->create([
             'name' => 'Scorching Ray',
             'slug' => 'scorching-ray',
             'level' => 2,
         ]);
 
-        $fireball = \App\Models\Spell::factory()->create([
+        $fireball = Spell::factory()->create([
             'name' => 'Fireball',
             'slug' => 'fireball',
             'level' => 3,
@@ -606,7 +608,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create the Heroism spell
-        $heroism = \App\Models\Spell::factory()->create([
+        $heroism = Spell::factory()->create([
             'name' => 'Heroism',
             'slug' => 'test-heroism-'.uniqid(),
             'level' => 1,
@@ -626,7 +628,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Pre-existing heroism spell from another source (Divine Soul origin grants this)
-        \App\Models\CharacterSpell::create([
+        CharacterSpell::create([
             'character_id' => $character->id,
             'spell_slug' => $heroism->slug,
             'source' => 'class', // From Divine Soul Sorcerer origin
@@ -684,7 +686,7 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create a domain spell
-        $bane = \App\Models\Spell::factory()->create([
+        $bane = Spell::factory()->create([
             'name' => 'Bane',
             'slug' => 'test-bane-'.uniqid(),
             'level' => 1,
@@ -771,8 +773,8 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create spells for each terrain
-        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid()]);
-        $mirrorImage = \App\Models\Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid()]);
+        $holdPerson = Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid()]);
+        $mirrorImage = Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid()]);
 
         $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);
         $coastFeature->spells()->attach($mirrorImage->id, ['level_requirement' => 3, 'is_cantrip' => false]);
@@ -850,10 +852,10 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create spells for each terrain
-        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
-        $spikeGrowth = \App\Models\Spell::factory()->create(['name' => 'Spike Growth', 'slug' => 'test-spike-growth-'.uniqid(), 'level' => 2]);
-        $mirrorImage = \App\Models\Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid(), 'level' => 2]);
-        $mistyStep = \App\Models\Spell::factory()->create(['name' => 'Misty Step', 'slug' => 'test-misty-step-'.uniqid(), 'level' => 2]);
+        $holdPerson = Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
+        $spikeGrowth = Spell::factory()->create(['name' => 'Spike Growth', 'slug' => 'test-spike-growth-'.uniqid(), 'level' => 2]);
+        $mirrorImage = Spell::factory()->create(['name' => 'Mirror Image', 'slug' => 'test-mirror-image-'.uniqid(), 'level' => 2]);
+        $mistyStep = Spell::factory()->create(['name' => 'Misty Step', 'slug' => 'test-misty-step-'.uniqid(), 'level' => 2]);
 
         // Arctic gets Hold Person + Spike Growth
         $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);
@@ -929,9 +931,9 @@ class CharacterFeatureServiceTest extends TestCase
         ]);
 
         // Create spells at various level requirements
-        $holdPerson = \App\Models\Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
-        $sleetStorm = \App\Models\Spell::factory()->create(['name' => 'Sleet Storm', 'slug' => 'test-sleet-storm-'.uniqid(), 'level' => 3]);
-        $iceStorm = \App\Models\Spell::factory()->create(['name' => 'Ice Storm', 'slug' => 'test-ice-storm-'.uniqid(), 'level' => 4]);
+        $holdPerson = Spell::factory()->create(['name' => 'Hold Person', 'slug' => 'test-hold-person-'.uniqid(), 'level' => 2]);
+        $sleetStorm = Spell::factory()->create(['name' => 'Sleet Storm', 'slug' => 'test-sleet-storm-'.uniqid(), 'level' => 3]);
+        $iceStorm = Spell::factory()->create(['name' => 'Ice Storm', 'slug' => 'test-ice-storm-'.uniqid(), 'level' => 4]);
 
         // Attach spells with different level requirements
         $arcticFeature->spells()->attach($holdPerson->id, ['level_requirement' => 3, 'is_cantrip' => false]);

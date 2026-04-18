@@ -3,13 +3,15 @@
 namespace Tests\Unit\Services;
 
 use App\Services\Search\GlobalSearchService;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class GlobalSearchServiceTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_across_multiple_models(): void
     {
         $service = new GlobalSearchService;
@@ -21,7 +23,7 @@ class GlobalSearchServiceTest extends TestCase
         $this->assertCount(2, $results);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_limits_results_per_type(): void
     {
         $service = new GlobalSearchService;
@@ -32,7 +34,7 @@ class GlobalSearchServiceTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_all_types_by_default(): void
     {
         $service = new GlobalSearchService;
@@ -46,7 +48,7 @@ class GlobalSearchServiceTest extends TestCase
         $this->assertArrayHasKey('feats', $results);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_available_types(): void
     {
         $service = new GlobalSearchService;

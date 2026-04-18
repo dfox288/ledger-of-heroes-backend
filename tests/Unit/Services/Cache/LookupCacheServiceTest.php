@@ -7,9 +7,11 @@ use App\Services\Cache\LookupCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class LookupCacheServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -24,7 +26,7 @@ class LookupCacheServiceTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_caches_spell_schools_on_first_request(): void
     {
         Cache::flush();
@@ -36,7 +38,7 @@ class LookupCacheServiceTest extends TestCase
         $this->assertTrue(Cache::has('lookups:spell-schools:all'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_cached_spell_schools_on_subsequent_requests(): void
     {
         Cache::flush();
@@ -56,7 +58,7 @@ class LookupCacheServiceTest extends TestCase
         $this->assertEquals(0, $secondQueryCount); // No DB queries
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_caches_all_lookup_types(): void
     {
         Cache::flush();
@@ -79,7 +81,7 @@ class LookupCacheServiceTest extends TestCase
         $this->assertTrue(Cache::has('lookups:proficiency-types:all'));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_one_hour_ttl_for_lookups(): void
     {
         // Skip if not using Redis
@@ -98,7 +100,7 @@ class LookupCacheServiceTest extends TestCase
         $this->assertLessThan(3610, $ttl);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_clears_all_lookup_caches(): void
     {
         $service = new LookupCacheService;

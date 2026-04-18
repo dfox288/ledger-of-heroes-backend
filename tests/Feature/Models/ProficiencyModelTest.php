@@ -6,10 +6,11 @@ use App\Models\Proficiency;
 use App\Models\Race;
 use App\Models\Skill;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ProficiencyModelTest extends TestCase
 {
     use RefreshDatabase;

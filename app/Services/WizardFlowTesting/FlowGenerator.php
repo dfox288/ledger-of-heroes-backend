@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\WizardFlowTesting;
 
+use App\Models\Race;
+
 /**
  * Generates wizard flow step sequences for testing.
  * Supports linear flows, chaos mode (random switches), and parameterized patterns.
@@ -146,7 +148,7 @@ class FlowGenerator
      */
     public function allRacesWithChaos(CharacterRandomizer $randomizer): array
     {
-        $races = \App\Models\Race::whereNull('parent_race_id')->get();
+        $races = Race::whereNull('parent_race_id')->get();
         $flows = [];
 
         foreach ($races as $race) {

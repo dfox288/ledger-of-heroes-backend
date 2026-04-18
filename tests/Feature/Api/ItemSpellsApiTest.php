@@ -2,18 +2,21 @@
 
 namespace Tests\Feature\Api;
 
+use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ItemSpellsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_serializes_spells_with_charge_costs_correctly()
     {
         // Create item and spell
@@ -42,7 +45,7 @@ class ItemSpellsApiTest extends TestCase
 
         // Load spells relationship and serialize
         $staff->load('spells');
-        $resource = new \App\Http\Resources\ItemResource($staff);
+        $resource = new ItemResource($staff);
         $response = $resource->toArray(request());
 
         $this->assertEquals('Staff of Testing', $response['name']);
@@ -58,7 +61,7 @@ class ItemSpellsApiTest extends TestCase
         $this->assertEquals('1 per spell level', $spells[0]['charges_cost_formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_spells_array_for_items_without_spells()
     {
         $wand = Item::factory()->create([
@@ -68,7 +71,7 @@ class ItemSpellsApiTest extends TestCase
         ]);
 
         $wand->load('spells');
-        $resource = new \App\Http\Resources\ItemResource($wand);
+        $resource = new ItemResource($wand);
         $response = $resource->toArray(request());
 
         $this->assertEquals('Wand of Testing', $response['name']);

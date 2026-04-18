@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Monster;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -31,13 +33,13 @@ use Tests\TestCase;
  *
  * See MonsterController PHPDoc for comprehensive filter examples.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class MonsterEnhancedFilteringApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

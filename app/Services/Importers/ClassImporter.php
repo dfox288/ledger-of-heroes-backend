@@ -3,6 +3,7 @@
 namespace App\Services\Importers;
 
 use App\Enums\RequirementLogic;
+use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\EntityChoice;
 use App\Models\EntityCounter;
@@ -308,7 +309,7 @@ class ClassImporter extends BaseImporter
         // Otherwise inherit from parent
         $spellcastingAbilityId = $parentClass->spellcasting_ability_id;
         if (! empty($subclassData['spellcasting_ability'])) {
-            $ability = \App\Models\AbilityScore::where('name', $subclassData['spellcasting_ability'])->first();
+            $ability = AbilityScore::where('name', $subclassData['spellcasting_ability'])->first();
             $spellcastingAbilityId = $ability?->id;
         }
 
@@ -761,7 +762,7 @@ class ClassImporter extends BaseImporter
         foreach ($requirements as $req) {
             $abilityCode = $abilityCodeMap[$req['ability']] ?? null;
             $abilityScore = $abilityCode
-                ? \App\Models\AbilityScore::where('code', $abilityCode)->first()
+                ? AbilityScore::where('code', $abilityCode)->first()
                 : null;
 
             // Format display name: "Strength 13" etc.

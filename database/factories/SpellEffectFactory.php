@@ -8,7 +8,7 @@ use App\Models\SpellEffect;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SpellEffect>
+ * @extends Factory<SpellEffect>
  */
 class SpellEffectFactory extends Factory
 {

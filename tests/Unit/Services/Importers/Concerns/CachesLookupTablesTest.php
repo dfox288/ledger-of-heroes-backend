@@ -2,14 +2,17 @@
 
 namespace Tests\Unit\Services\Importers\Concerns;
 
+use App\Exceptions\Lookup\EntityNotFoundException;
 use App\Models\DamageType;
 use App\Models\ItemType;
 use App\Models\Source;
 use App\Services\Importers\Concerns\CachesLookupTables;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class CachesLookupTablesTest extends TestCase
 {
     use RefreshDatabase;
@@ -29,7 +32,7 @@ class CachesLookupTablesTest extends TestCase
         $this->importer = new TestImporterWithCache;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_caches_lookup_by_id()
     {
         $source = Source::where('code', 'PHB')->first();
@@ -44,7 +47,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertEquals($source->id, $result1->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_caches_lookup_by_code()
     {
         // First call - hits database
@@ -57,7 +60,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertEquals('PHB', $result1->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_id_only_when_requested()
     {
         $itemType = ItemType::where('code', 'W')->first();
@@ -68,7 +71,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertEquals($itemType->id, $result);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_missing_records_when_using_first()
     {
         $result = $this->importer->testCachedFind(Source::class, 'code', 'NONEXISTENT', useFail: false);
@@ -76,26 +79,26 @@ class CachesLookupTablesTest extends TestCase
         $this->assertNull($result);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_throws_exception_for_missing_records_when_using_first_or_fail()
     {
         // Now throws EntityNotFoundException instead of ModelNotFoundException
-        $this->expectException(\App\Exceptions\Lookup\EntityNotFoundException::class);
+        $this->expectException(EntityNotFoundException::class);
 
         $this->importer->testCachedFind(Source::class, 'code', 'NONEXISTENT', useFail: true);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_throws_entity_not_found_exception_with_context()
     {
-        $this->expectException(\App\Exceptions\Lookup\EntityNotFoundException::class);
+        $this->expectException(EntityNotFoundException::class);
         $this->expectExceptionMessage('Source not found');
         $this->expectExceptionCode(404);
 
         $this->importer->testCachedFind(Source::class, 'code', 'NONEXISTENT', useFail: true);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_caches_null_results()
     {
         // First call - hits database
@@ -108,7 +111,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertNull($result2);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_multiple_model_types()
     {
         $source = $this->importer->testCachedFind(Source::class, 'code', 'PHB');
@@ -120,7 +123,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertInstanceOf(DamageType::class, $damageType);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_normalizes_cache_keys_by_uppercasing_value()
     {
         // Test with lowercase
@@ -137,7 +140,7 @@ class CachesLookupTablesTest extends TestCase
         $this->assertSame($result3, $result4);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_nullable_id_for_missing_records()
     {
         $result = $this->importer->testCachedFindId(Source::class, 'code', 'NONEXISTENT', useFail: false);

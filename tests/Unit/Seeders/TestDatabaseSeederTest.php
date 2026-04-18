@@ -3,7 +3,9 @@
 namespace Tests\Unit\Seeders;
 
 use Database\Seeders\TestDatabaseSeeder;
+use Illuminate\Database\Seeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TestDatabaseSeederTest extends TestCase
@@ -12,15 +14,15 @@ class TestDatabaseSeederTest extends TestCase
 
     protected $seed = false; // Don't auto-seed, we're testing the seeder
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_exists_and_is_runnable(): void
     {
         $seeder = new TestDatabaseSeeder;
 
-        $this->assertInstanceOf(\Illuminate\Database\Seeder::class, $seeder);
+        $this->assertInstanceOf(Seeder::class, $seeder);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_seeds_lookup_tables(): void
     {
         $this->seed(TestDatabaseSeeder::class);
@@ -31,7 +33,7 @@ class TestDatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('sizes', ['name' => 'Medium']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_calls_all_fixture_seeders(): void
     {
         $this->seed(TestDatabaseSeeder::class);

@@ -7,16 +7,18 @@ use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Race;
 use App\Models\Skill;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class FeatPrerequisitesApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function feat_includes_ability_score_prerequisite_in_response()

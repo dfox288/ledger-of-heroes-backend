@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 
 /**
  * Resource for multiclass ability score requirements.
@@ -41,7 +42,7 @@ class MulticlassRequirementResource extends JsonResource
     /**
      * Create a collection with type metadata for frontend.
      *
-     * @param  \Illuminate\Support\Collection  $requirements
+     * @param  Collection  $requirements
      * @return array{type: string, requirements: array}
      */
     public static function collectionWithType($requirements): array

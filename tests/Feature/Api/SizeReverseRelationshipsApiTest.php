@@ -5,13 +5,15 @@ namespace Tests\Feature\Api;
 use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Size;
+use Database\Seeders\LookupSeeder;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class SizeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function it_returns_races_for_size(): void

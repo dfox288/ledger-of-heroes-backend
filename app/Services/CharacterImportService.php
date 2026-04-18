@@ -18,6 +18,7 @@ use App\Models\CharacterNote;
 use App\Models\CharacterProficiency;
 use App\Models\CharacterSpell;
 use App\Models\CharacterSpellSlot;
+use App\Models\CharacterTrait;
 use App\Models\ClassFeature;
 use App\Models\Condition;
 use App\Models\FeatureSelection;
@@ -551,7 +552,7 @@ class CharacterImportService
         }
 
         // Find the trait by parent entity and name
-        $trait = \App\Models\CharacterTrait::where('reference_type', $entityClass)
+        $trait = CharacterTrait::where('reference_type', $entityClass)
             ->where('reference_id', $entity->id)
             ->where('name', $traitName)
             ->first();

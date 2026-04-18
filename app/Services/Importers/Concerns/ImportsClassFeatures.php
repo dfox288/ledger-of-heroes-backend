@@ -3,14 +3,18 @@
 namespace App\Services\Importers\Concerns;
 
 use App\Enums\DataTableType;
+use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
 use App\Models\ClassFeatureSpecialTag;
 use App\Models\EntityChoice;
 use App\Models\EntityDataTable;
 use App\Models\EntityDataTableEntry;
+use App\Models\EntitySpell;
 use App\Models\Modifier;
 use App\Models\Proficiency;
+use App\Models\Skill;
+use App\Models\Spell;
 use App\Services\Parsers\Traits\ParsesChoices;
 
 /**
@@ -300,7 +304,7 @@ trait ImportsClassFeatures
 
             // Add ability_code if present (for ability_score category)
             if (isset($modifierData['ability_code'])) {
-                $abilityScore = \App\Models\AbilityScore::where('code', strtoupper($modifierData['ability_code']))->first();
+                $abilityScore = AbilityScore::where('code', strtoupper($modifierData['ability_code']))->first();
                 if ($abilityScore) {
                     $uniqueKeys['ability_score_id'] = $abilityScore->id;
                     $values['ability_score_id'] = $abilityScore->id;
@@ -486,7 +490,7 @@ trait ImportsClassFeatures
 
         foreach ($spellNames as $spellName) {
             // Look up the spell by name (case-insensitive)
-            $spell = \App\Models\Spell::whereRaw('LOWER(name) = ?', [strtolower($spellName)])->first();
+            $spell = Spell::whereRaw('LOWER(name) = ?', [strtolower($spellName)])->first();
 
             if (! $spell) {
                 // Spell not found - skip silently (spell may not be imported yet)
@@ -494,7 +498,7 @@ trait ImportsClassFeatures
             }
 
             // Use updateOrCreate to prevent duplicates on re-import
-            \App\Models\EntitySpell::updateOrCreate(
+            EntitySpell::updateOrCreate(
                 [
                     'reference_type' => ClassFeature::class,
                     'reference_id' => $feature->id,
@@ -547,7 +551,7 @@ trait ImportsClassFeatures
 
         foreach ($skillNames as $skillName) {
             // Look up the skill to get its slug
-            $skill = \App\Models\Skill::whereRaw('LOWER(name) = ?', [strtolower($skillName)])->first();
+            $skill = Skill::whereRaw('LOWER(name) = ?', [strtolower($skillName)])->first();
             $skillSlug = $skill?->slug ?? strtolower(str_replace(' ', '-', $skillName));
 
             $this->createRestrictedProficiencyChoice(
@@ -717,13 +721,13 @@ trait ImportsClassFeatures
         $secondaryAbilityName = $matches[2] ?? null;
 
         // Look up ability score IDs
-        $dex = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $dex = AbilityScore::where('code', 'DEX')->first();
         $secondaryAbilityScoreId = null;
 
         if ($secondaryAbilityName) {
             // Map ability name to code: Constitution -> CON, Wisdom -> WIS
             $abilityCode = strtoupper(substr($secondaryAbilityName, 0, 3));
-            $secondaryAbility = \App\Models\AbilityScore::where('code', $abilityCode)->first();
+            $secondaryAbility = AbilityScore::where('code', $abilityCode)->first();
             $secondaryAbilityScoreId = $secondaryAbility?->id;
         }
 

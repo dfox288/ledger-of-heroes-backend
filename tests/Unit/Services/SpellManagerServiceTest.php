@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Exceptions\SpellManagementException;
+use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\ClassFeature;
 use App\Models\Spell;
 use App\Services\SpellManagerService;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,7 +22,7 @@ class SpellManagerServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     private SpellManagerService $service;
 
@@ -538,7 +541,7 @@ class SpellManagerServiceTest extends TestCase
             'is_primary' => true,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage("not available for this character's class");
 
         $this->service->learnSpell($character, $spell);
@@ -573,7 +576,7 @@ class SpellManagerServiceTest extends TestCase
             'is_primary' => true,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('Maximum spell level');
 
         $this->service->learnSpell($character, $spell);
@@ -615,7 +618,7 @@ class SpellManagerServiceTest extends TestCase
             'level_acquired' => 1,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('already known');
 
         $this->service->learnSpell($character, $spell);
@@ -667,7 +670,7 @@ class SpellManagerServiceTest extends TestCase
             'level' => 3,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('not known by this character');
 
         $this->service->forgetSpell($character, $spell);
@@ -686,7 +689,7 @@ class SpellManagerServiceTest extends TestCase
             'name' => 'Wizard',
             'slug' => 'test:wizard',
             'parent_class_id' => null,
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'INT')->first()?->id,
         ]);
 
         CharacterClassPivot::factory()->create([
@@ -731,7 +734,7 @@ class SpellManagerServiceTest extends TestCase
             'level_acquired' => 1,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('Cantrips cannot be prepared');
 
         $this->service->prepareSpell($character, $cantrip);
@@ -748,7 +751,7 @@ class SpellManagerServiceTest extends TestCase
             'level' => 3,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('not known by this character');
 
         $this->service->prepareSpell($character, $spell);
@@ -792,7 +795,7 @@ class SpellManagerServiceTest extends TestCase
             'level' => 3,
         ]);
 
-        $this->expectException(\App\Exceptions\SpellManagementException::class);
+        $this->expectException(SpellManagementException::class);
         $this->expectExceptionMessage('not known by this character');
 
         $this->service->unprepareSpell($character, $spell);
@@ -822,7 +825,7 @@ class SpellManagerServiceTest extends TestCase
             'name' => 'Wizard',
             'slug' => 'test:wizard',
             'parent_class_id' => null,
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'INT')->first()?->id,
         ]);
 
         $character = Character::factory()->create(['intelligence' => 16]);
@@ -854,7 +857,7 @@ class SpellManagerServiceTest extends TestCase
             'slug' => 'test:wizard',
             'parent_class_id' => null,
             'spell_preparation_method' => 'spellbook',
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'INT')->first()?->id,
         ]);
 
         $cleric = CharacterClass::factory()->create([
@@ -862,7 +865,7 @@ class SpellManagerServiceTest extends TestCase
             'slug' => 'test:cleric',
             'parent_class_id' => null,
             'spell_preparation_method' => 'prepared',
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'WIS')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'WIS')->first()?->id,
         ]);
 
         // Spell that's on BOTH class lists (like Protection from Evil and Good)
@@ -935,7 +938,7 @@ class SpellManagerServiceTest extends TestCase
             'slug' => 'test:wizard',
             'parent_class_id' => null,
             'spell_preparation_method' => 'spellbook',
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'INT')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'INT')->first()?->id,
         ]);
 
         $cleric = CharacterClass::factory()->create([
@@ -943,7 +946,7 @@ class SpellManagerServiceTest extends TestCase
             'slug' => 'test:cleric',
             'parent_class_id' => null,
             'spell_preparation_method' => 'prepared',
-            'spellcasting_ability_id' => \App\Models\AbilityScore::where('code', 'WIS')->first()?->id,
+            'spellcasting_ability_id' => AbilityScore::where('code', 'WIS')->first()?->id,
         ]);
 
         $spell = Spell::factory()->create([

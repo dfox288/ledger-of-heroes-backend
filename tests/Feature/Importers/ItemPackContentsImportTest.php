@@ -6,14 +6,17 @@ use App\Models\EntityItem;
 use App\Models\Item;
 use App\Models\ItemType;
 use App\Services\Importers\Concerns\ImportsPackContents;
+use Database\Seeders\ItemTypeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
  * Tests for the ImportsPackContents trait that links equipment packs
  * to their contained items.
  */
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ItemPackContentsImportTest extends TestCase
 {
     use RefreshDatabase;
@@ -26,13 +29,13 @@ class ItemPackContentsImportTest extends TestCase
 
         // Seed item types
         if (ItemType::count() === 0) {
-            $this->seed(\Database\Seeders\ItemTypeSeeder::class);
+            $this->seed(ItemTypeSeeder::class);
         }
 
         $this->gearType = ItemType::where('code', 'G')->first();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_links_pack_contents_to_existing_items(): void
     {
         // Create the pack with description
@@ -88,7 +91,7 @@ class ItemPackContentsImportTest extends TestCase
         $this->assertEquals(10, $torchContent->quantity);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_items_that_do_not_exist_in_database(): void
     {
         // Create the pack with description including non-existent item
@@ -120,7 +123,7 @@ class ItemPackContentsImportTest extends TestCase
         $this->assertEquals($backpack->id, $contents->first()->item_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_clears_existing_contents_before_importing(): void
     {
         // Create pack
@@ -170,7 +173,7 @@ class ItemPackContentsImportTest extends TestCase
         $this->assertEquals(1, $contents->first()->quantity);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_nothing_for_items_without_includes_section(): void
     {
         // Create a regular item (not a pack)
@@ -192,7 +195,7 @@ class ItemPackContentsImportTest extends TestCase
         $this->assertCount(0, $item->fresh()->contents);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_matches_items_case_insensitively(): void
     {
         $pack = Item::factory()->create([

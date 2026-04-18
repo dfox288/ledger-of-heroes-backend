@@ -13,6 +13,7 @@ use App\Models\Feat;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Services\AbilityBonusService;
+use App\Services\FeatChoiceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -410,7 +411,7 @@ class AbilityBonusServiceTest extends TestCase
         $character = Character::factory()->create(['race_slug' => $race->slug]);
 
         // Select the feat via the FeatChoiceService (simulates the real workflow)
-        $featChoiceService = app(\App\Services\FeatChoiceService::class);
+        $featChoiceService = app(FeatChoiceService::class);
         $featChoiceService->makeChoice($character, 'race', $feat->slug);
 
         // Verify the feat bonus appears

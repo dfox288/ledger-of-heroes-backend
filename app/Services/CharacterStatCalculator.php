@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\ItemTypeCode;
+use App\Models\AbilityScore;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Feat;
 use App\Models\Item;
 use App\Models\Modifier;
+use Illuminate\Support\Str;
 
 class CharacterStatCalculator
 {
@@ -105,7 +108,7 @@ class CharacterStatCalculator
     /**
      * Classes that know spells instead of preparing (returns null for preparation limit).
      *
-     * @see \App\Models\CharacterClass::getSpellPreparationMethodAttribute() for canonical source
+     * @see CharacterClass::getSpellPreparationMethodAttribute() for canonical source
      */
     private const KNOWN_CASTERS = ['sorcerer', 'bard', 'warlock', 'ranger'];
 
@@ -283,8 +286,8 @@ class CharacterStatCalculator
         }
 
         // Find ac_unarmored modifiers for any of the character's classes
-        $unarmoredModifier = \App\Models\Modifier::where('modifier_category', 'ac_unarmored')
-            ->where('reference_type', \App\Models\CharacterClass::class)
+        $unarmoredModifier = Modifier::where('modifier_category', 'ac_unarmored')
+            ->where('reference_type', CharacterClass::class)
             ->whereIn('reference_id', function ($query) use ($classSlugs) {
                 $query->select('id')
                     ->from('classes')
@@ -322,7 +325,7 @@ class CharacterStatCalculator
      */
     private function getCharacterAbilityScore(Character $character, int $abilityScoreId): int
     {
-        $abilityScore = \App\Models\AbilityScore::find($abilityScoreId);
+        $abilityScore = AbilityScore::find($abilityScoreId);
         if ($abilityScore === null) {
             return 10;
         }
@@ -381,7 +384,7 @@ class CharacterStatCalculator
      * @param  int  $abilityModifier  The spellcasting ability modifier
      * @return int|null Preparation limit, or null for known casters
      *
-     * @see \App\Models\CharacterClass::getSpellPreparationMethodAttribute()
+     * @see CharacterClass::getSpellPreparationMethodAttribute()
      */
     public function getPreparationLimit(string $classSlug, int $level, int $abilityModifier): ?int
     {
@@ -417,11 +420,11 @@ class CharacterStatCalculator
      * spell slot counts directly from the CharacterClass's levelProgression
      * relationship, supporting any class including those not in hardcoded lists.
      *
-     * @param  \App\Models\CharacterClass  $class  The class with levelProgression loaded
+     * @param  CharacterClass  $class  The class with levelProgression loaded
      * @param  int  $level  The character's level in this class
      * @return array<int, int> Spell slots indexed by spell level (1-9)
      */
-    public function getSpellSlotsFromClass(\App\Models\CharacterClass $class, int $level): array
+    public function getSpellSlotsFromClass(CharacterClass $class, int $level): array
     {
         // Load progression if not already loaded
         if (! $class->relationLoaded('levelProgression')) {
@@ -472,12 +475,12 @@ class CharacterStatCalculator
      * - 'prepared': ability modifier + level (Cleric, Druid, Artificer)
      *               or ability modifier + half level (Paladin, Ranger)
      *
-     * @param  \App\Models\CharacterClass  $class  The class to check
+     * @param  CharacterClass  $class  The class to check
      * @param  int  $level  The character's level in this class
      * @param  int  $abilityModifier  The spellcasting ability modifier
      * @return int|null Preparation limit, or null for known casters
      */
-    public function getPreparationLimitFromClass(\App\Models\CharacterClass $class, int $level, int $abilityModifier): ?int
+    public function getPreparationLimitFromClass(CharacterClass $class, int $level, int $abilityModifier): ?int
     {
         $prepMethod = $class->spell_preparation_method;
 
@@ -689,7 +692,7 @@ class CharacterStatCalculator
         $baseName = preg_replace('/\s*\+\d+$/', '', $item->name);
 
         // Generate the expected proficiency slug (e.g., "core:longsword")
-        $weaponSlug = 'core:'.\Illuminate\Support\Str::slug($baseName);
+        $weaponSlug = 'core:'.Str::slug($baseName);
 
         // Load proficiencies if not loaded
         $character->loadMissing('proficiencies');

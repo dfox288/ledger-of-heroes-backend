@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\BackgroundXmlParser;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class BackgroundXmlParserTest extends TestCase
 {
     private BackgroundXmlParser $parser;

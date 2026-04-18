@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\ElementalStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class ElementalStrategyTest extends TestCase
 {
@@ -18,14 +20,14 @@ class ElementalStrategyTest extends TestCase
         $this->strategy = new ElementalStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_elemental_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'elemental']));
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Elemental']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_elemental_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'fiend']));
@@ -33,7 +35,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'aberration']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_fire_elemental_subtype(): void
     {
         $monsterData = [
@@ -52,7 +54,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertArrayHasKey('fire_elementals', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_water_elemental_subtype(): void
     {
         $monsterData = [
@@ -70,7 +72,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertArrayHasKey('water_elementals', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_earth_elemental_subtype(): void
     {
         $monsterData = [
@@ -89,7 +91,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertArrayHasKey('earth_elementals', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_air_elemental_subtype(): void
     {
         $monsterData = [
@@ -107,7 +109,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertArrayHasKey('air_elementals', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_poison_immunity(): void
     {
         $monsterData = [
@@ -124,7 +126,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertContains('poison_immune', $tags);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_elemental_metrics(): void
     {
         $monsterData = [
@@ -141,7 +143,7 @@ class ElementalStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['elementals_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

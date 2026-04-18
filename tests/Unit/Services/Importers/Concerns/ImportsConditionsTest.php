@@ -4,13 +4,15 @@ namespace Tests\Unit\Services\Importers\Concerns;
 
 use App\Models\Condition;
 use App\Models\EntityCondition;
+use App\Models\Feat;
 use App\Models\Race;
 use App\Services\Importers\Concerns\ImportsConditions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ImportsConditionsTest extends TestCase
 {
     use ImportsConditions;
@@ -130,7 +132,7 @@ class ImportsConditionsTest extends TestCase
     #[Test]
     public function it_works_with_feats()
     {
-        $feat = \App\Models\Feat::factory()->create();
+        $feat = Feat::factory()->create();
 
         $conditionsData = [
             [

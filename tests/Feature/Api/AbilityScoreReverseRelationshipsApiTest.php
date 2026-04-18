@@ -4,13 +4,15 @@ namespace Tests\Feature\Api;
 
 use App\Models\AbilityScore;
 use App\Models\Spell;
+use Database\Seeders\TestDatabaseSeeder;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class AbilityScoreReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     #[Test]
     public function it_returns_spells_for_ability_score()

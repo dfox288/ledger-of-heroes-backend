@@ -5,10 +5,11 @@ namespace Tests\Unit\Strategies\CharacterClass;
 use App\Models\CharacterClass;
 use App\Services\Importers\Strategies\CharacterClass\SubclassStrategy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SubclassStrategyTest extends TestCase
 {
     use RefreshDatabase;

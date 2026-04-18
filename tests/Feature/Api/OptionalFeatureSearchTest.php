@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\OptionalFeature;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
@@ -13,13 +15,13 @@ use Tests\TestCase;
  *
  * These tests use fixture data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class OptionalFeatureSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

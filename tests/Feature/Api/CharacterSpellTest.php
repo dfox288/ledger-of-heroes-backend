@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\SpellSlotType;
+use App\Models\AbilityScore;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterSpell;
 use App\Models\CharacterSpellSlot;
+use App\Models\DamageType;
 use App\Models\Spell;
 use App\Models\SpellEffect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -212,7 +215,7 @@ class CharacterSpellTest extends TestCase
         ]);
 
         // Attach DEX saving throw
-        $dex = \App\Models\AbilityScore::where('code', 'DEX')->first();
+        $dex = AbilityScore::where('code', 'DEX')->first();
         $spell->savingThrows()->attach($dex->id, [
             'save_effect' => 'half damage',
             'is_initial_save' => true,
@@ -799,7 +802,7 @@ class CharacterSpellTest extends TestCase
             'spell_level' => 1,
             'max_slots' => 4,
             'used_slots' => 2,
-            'slot_type' => \App\Enums\SpellSlotType::STANDARD,
+            'slot_type' => SpellSlotType::STANDARD,
         ]);
 
         CharacterSpellSlot::create([
@@ -807,7 +810,7 @@ class CharacterSpellTest extends TestCase
             'spell_level' => 2,
             'max_slots' => 2,
             'used_slots' => 1,
-            'slot_type' => \App\Enums\SpellSlotType::STANDARD,
+            'slot_type' => SpellSlotType::STANDARD,
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
@@ -849,7 +852,7 @@ class CharacterSpellTest extends TestCase
             'spell_level' => 3,
             'max_slots' => 2,
             'used_slots' => 1,
-            'slot_type' => \App\Enums\SpellSlotType::PACT_MAGIC,
+            'slot_type' => SpellSlotType::PACT_MAGIC,
         ]);
 
         $response = $this->getJson("/api/v1/characters/{$character->id}/spell-slots");
@@ -1295,7 +1298,7 @@ class CharacterSpellTest extends TestCase
      */
     private function createCantripScalingEffects(Spell $spell, string $damageTypeName): void
     {
-        $damageType = \App\Models\DamageType::where('name', $damageTypeName)->first();
+        $damageType = DamageType::where('name', $damageTypeName)->first();
 
         $tiers = [
             ['level' => 0, 'dice' => '1d10'],

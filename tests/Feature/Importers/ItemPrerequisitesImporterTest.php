@@ -7,14 +7,16 @@ use App\Models\EntityPrerequisite;
 use App\Models\Item;
 use App\Services\Importers\ItemImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ItemPrerequisitesImporterTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_item_with_strength_requirement_as_prerequisite()
     {
         // Arrange: XML with strength requirement
@@ -56,7 +58,7 @@ XML;
         $this->assertEquals(1, $prerequisite->group_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_create_prerequisite_for_item_without_strength_requirement()
     {
         // Arrange: XML without strength requirement
@@ -89,7 +91,7 @@ XML;
         $this->assertEquals(0, $prerequisiteCount);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_updates_prerequisites_on_reimport()
     {
         // Arrange: Create item with strength 13
@@ -146,7 +148,7 @@ XML;
         $this->assertEquals(15, $item->strength_requirement);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_removes_prerequisites_when_strength_requirement_removed()
     {
         // Arrange: Create item with strength requirement

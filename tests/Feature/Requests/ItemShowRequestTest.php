@@ -4,12 +4,14 @@ namespace Tests\Feature\Requests;
 
 use App\Http\Requests\ItemShowRequest;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ItemShowRequestTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_whitelists_includable_relationships()
     {
         $request = new ItemShowRequest;
@@ -41,7 +43,7 @@ class ItemShowRequestTest extends TestCase
         $this->assertArrayHasKey('include.0', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_whitelists_selectable_fields()
     {
         $request = new ItemShowRequest;
@@ -78,7 +80,7 @@ class ItemShowRequestTest extends TestCase
         $this->assertArrayHasKey('fields.0', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_multiple_includes()
     {
         $request = new ItemShowRequest;
@@ -91,7 +93,7 @@ class ItemShowRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_multiple_fields()
     {
         $request = new ItemShowRequest;
@@ -104,7 +106,7 @@ class ItemShowRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_include_must_be_array()
     {
         $request = new ItemShowRequest;
@@ -118,7 +120,7 @@ class ItemShowRequestTest extends TestCase
         $this->assertArrayHasKey('include', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_fields_must_be_array()
     {
         $request = new ItemShowRequest;

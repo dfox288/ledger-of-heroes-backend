@@ -3,11 +3,13 @@
 namespace Tests\Feature\Api;
 
 use App\Models\SpellSchool;
+use Database\Seeders\SpellSchoolSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class SpellSchoolApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -17,8 +19,8 @@ class SpellSchoolApiTest extends TestCase
         parent::setUp();
 
         // Only seed if not already seeded (prevents duplicate key errors)
-        if (\App\Models\SpellSchool::count() === 0) {
-            $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+        if (SpellSchool::count() === 0) {
+            $this->seed(SpellSchoolSeeder::class);
         }
     }
 

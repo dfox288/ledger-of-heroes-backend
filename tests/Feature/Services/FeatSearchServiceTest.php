@@ -6,7 +6,11 @@ use App\DTOs\FeatSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Feat;
 use App\Services\FeatSearchService;
+use Database\Seeders\TestDatabaseSeeder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Scout\Builder;
 use MeiliSearch\Client;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +21,7 @@ class FeatSearchServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     private FeatSearchService $service;
 
@@ -71,7 +75,7 @@ class FeatSearchServiceTest extends TestCase
     {
         $builder = $this->service->buildScoutQuery('alert');
 
-        $this->assertInstanceOf(\Laravel\Scout\Builder::class, $builder);
+        $this->assertInstanceOf(Builder::class, $builder);
     }
 
     #[Test]
@@ -110,7 +114,7 @@ class FeatSearchServiceTest extends TestCase
         $builder = $this->service->buildDatabaseQuery($dto);
 
         $results = $builder->get();
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $results);
+        $this->assertInstanceOf(Collection::class, $results);
     }
 
     #[Test]
@@ -127,7 +131,7 @@ class FeatSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertGreaterThan(0, $result->total());
     }
 
@@ -148,7 +152,7 @@ class FeatSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $names = $result->pluck('name')->toArray();
         $this->assertContains($feat->name, $names);
     }
@@ -167,7 +171,7 @@ class FeatSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
 
         foreach ($result->items() as $feat) {
             $this->assertInstanceOf(Feat::class, $feat);
@@ -224,7 +228,7 @@ class FeatSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertEquals(0, $result->count());
     }
 

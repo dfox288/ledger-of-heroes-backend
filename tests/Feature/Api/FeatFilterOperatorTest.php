@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Feat;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -11,19 +14,19 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class FeatFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     // ============================================================
     // Integer Operators (id field) - 7 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_equals(): void
     {
         $feat = Feat::where('name', 'Alert')->first();
@@ -36,7 +39,7 @@ class FeatFilterOperatorTest extends TestCase
         $response->assertJsonPath('data.0.name', 'Alert');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_not_equals(): void
     {
         $feat = Feat::where('name', 'Alert')->first();
@@ -50,7 +53,7 @@ class FeatFilterOperatorTest extends TestCase
         $this->assertNotContains($feat->id, $returnedIds, 'Alert should not be in results');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_greater_than(): void
     {
         // Get a feat ID in the middle range
@@ -66,7 +69,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_greater_than_or_equal(): void
     {
         $feats = Feat::orderBy('id')->get();
@@ -81,7 +84,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_less_than(): void
     {
         $feats = Feat::orderBy('id')->get();
@@ -96,7 +99,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_less_than_or_equal(): void
     {
         $feats = Feat::orderBy('id')->get();
@@ -111,7 +114,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_id_with_to_range(): void
     {
         $feats = Feat::orderBy('id')->get();
@@ -132,7 +135,7 @@ class FeatFilterOperatorTest extends TestCase
     // String Operators (slug field) - 2 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_equals(): void
     {
         $response = $this->getJson('/api/v1/feats?filter=slug = "phb:alert"');
@@ -142,7 +145,7 @@ class FeatFilterOperatorTest extends TestCase
         $response->assertJsonPath('data.0.name', 'Alert');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_slug_with_not_equals(): void
     {
         $response = $this->getJson('/api/v1/feats?filter=slug != "phb:alert"');
@@ -157,7 +160,7 @@ class FeatFilterOperatorTest extends TestCase
     // Boolean Operators (has_prerequisites field) - 4 tests
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_prerequisites_with_equals_true(): void
     {
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = true');
@@ -171,7 +174,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_prerequisites_with_equals_false(): void
     {
         $response = $this->getJson('/api/v1/feats?filter=has_prerequisites = false');
@@ -184,7 +187,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_prerequisites_with_not_equals_true(): void
     {
         // != true should return feats without prerequisites
@@ -198,7 +201,7 @@ class FeatFilterOperatorTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_has_prerequisites_with_not_equals_false(): void
     {
         // != false should return feats with prerequisites
@@ -217,7 +220,7 @@ class FeatFilterOperatorTest extends TestCase
     // Skipped: No imported feats have tags in the test data
     // ============================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_tag_slugs_with_in(): void
     {
         // PHB feats don't have tags, so we verify the filter returns empty
@@ -227,7 +230,7 @@ class FeatFilterOperatorTest extends TestCase
         $this->assertEquals(0, $response->json('meta.total'), 'No imported feats have tags');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_by_tag_slugs_with_not_in(): void
     {
         // All feats have no tags, so NOT IN [combat] returns all feats

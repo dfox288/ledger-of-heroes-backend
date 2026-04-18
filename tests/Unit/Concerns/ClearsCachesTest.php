@@ -7,12 +7,14 @@ use App\Services\Importers\Concerns\ImportsSenses;
 use App\Services\Parsers\Concerns\LookupsGameEntities;
 use App\Services\Parsers\Concerns\MatchesLanguages;
 use App\Services\Parsers\Concerns\MatchesProficiencyTypes;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ClearsCachesTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function clears_caches_class_has_clear_all_method(): void
     {
         $this->assertTrue(
@@ -25,7 +27,7 @@ class ClearsCachesTest extends TestCase
         $this->assertTrue($reflection->isStatic(), 'clearAll must be static');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function concerns_have_unique_clear_cache_methods(): void
     {
         // Each trait has its own uniquely-named clearXxxCache method to avoid collisions
@@ -54,7 +56,7 @@ class ClearsCachesTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function clear_all_calls_all_cache_clear_methods(): void
     {
         // Verify clearAll doesn't throw an exception
@@ -64,7 +66,7 @@ class ClearsCachesTest extends TestCase
         $this->assertTrue(true, 'clearAll should complete without error');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function get_caching_concerns_returns_all_concerns(): void
     {
         $concerns = ClearsCaches::getCachingConcerns();
@@ -80,7 +82,7 @@ class ClearsCachesTest extends TestCase
         $this->assertEquals('clearLanguagesCache', $concerns[MatchesLanguages::class]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function individual_clear_cache_methods_are_callable(): void
     {
         // Verify each individual clear method can be called without error

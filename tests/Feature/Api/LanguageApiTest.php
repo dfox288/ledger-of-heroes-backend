@@ -3,11 +3,13 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Language;
+use Database\Seeders\LanguageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class LanguageApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -15,7 +17,7 @@ class LanguageApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\LanguageSeeder::class);
+        $this->seed(LanguageSeeder::class);
     }
 
     #[Test]

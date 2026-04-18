@@ -3,6 +3,7 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\FeatXmlParser;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -13,7 +14,7 @@ use Tests\TestCase;
  * such as climbing not costing extra movement, or standing from prone
  * costing less movement than normal.
  */
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesMovementModifiersTest extends TestCase
 {
     private FeatXmlParser $parser;

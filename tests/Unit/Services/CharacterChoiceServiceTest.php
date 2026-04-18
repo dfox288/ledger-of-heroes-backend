@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\DTOs\PendingChoice;
 use App\Exceptions\ChoiceNotFoundException;
+use App\Exceptions\ChoiceNotUndoableException;
 use App\Models\Character;
 use App\Services\CharacterChoiceService;
 use App\Services\ChoiceHandlers\ChoiceTypeHandler;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 describe('CharacterChoiceService', function () {
     beforeEach(function () {
@@ -494,7 +496,7 @@ describe('CharacterChoiceService', function () {
 
     it('resolves a choice using the correct handler', function () {
         // Mock DB::transaction to simply execute the callback
-        Illuminate\Support\Facades\DB::shouldReceive('transaction')
+        DB::shouldReceive('transaction')
             ->once()
             ->andReturnUsing(fn ($callback) => $callback());
 
@@ -692,7 +694,7 @@ describe('CharacterChoiceService', function () {
         $this->service->registerHandler($handler);
 
         expect(fn () => $this->service->undoChoice($this->character, 'proficiency|class|rogue|1|skills'))
-            ->toThrow(\App\Exceptions\ChoiceNotUndoableException::class);
+            ->toThrow(ChoiceNotUndoableException::class);
     });
 
     it('parses choice ID with slug format containing colons', function () {

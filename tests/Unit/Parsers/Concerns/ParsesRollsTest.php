@@ -3,11 +3,12 @@
 namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\ParsesRolls;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesRollsTest extends TestCase
 {
     use ParsesRolls;

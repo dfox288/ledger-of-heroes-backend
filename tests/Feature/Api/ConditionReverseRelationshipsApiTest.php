@@ -5,10 +5,11 @@ namespace Tests\Feature\Api;
 use App\Models\Condition;
 use App\Models\Monster;
 use App\Models\Spell;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ConditionReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
     // ========================================

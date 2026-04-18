@@ -8,7 +8,7 @@ use App\Models\Spell;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntitySource>
+ * @extends Factory<EntitySource>
  */
 class EntitySourceFactory extends Factory
 {

@@ -4,10 +4,11 @@ namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\Concerns\ParsesCharges;
 use App\Services\Parsers\Concerns\ParsesItemSpells;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class LuckBladeChargesTest extends TestCase
 {

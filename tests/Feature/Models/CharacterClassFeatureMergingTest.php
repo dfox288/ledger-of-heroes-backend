@@ -4,16 +4,18 @@ namespace Tests\Feature\Models;
 
 use App\Models\CharacterClass;
 use App\Models\ClassFeature;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class CharacterClassFeatureMergingTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     protected CharacterClass $baseClass;
 

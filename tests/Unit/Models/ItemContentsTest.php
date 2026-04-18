@@ -6,9 +6,11 @@ use App\Models\EntityItem;
 use App\Models\Item;
 use App\Models\ItemType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemContentsTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,7 +27,7 @@ class ItemContentsTest extends TestCase
         );
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_collection_when_pack_has_no_contents(): void
     {
         $pack = Item::factory()->create([
@@ -36,7 +38,7 @@ class ItemContentsTest extends TestCase
         $this->assertCount(0, $pack->contents);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_contents_for_a_pack(): void
     {
         $pack = Item::factory()->create([
@@ -76,7 +78,7 @@ class ItemContentsTest extends TestCase
         $this->assertTrue($contents->contains('item_id', $bedroll->id));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_contents_with_quantities(): void
     {
         $pack = Item::factory()->create([
@@ -117,7 +119,7 @@ class ItemContentsTest extends TestCase
         $this->assertEquals(10, $rationsEntry->quantity);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_eager_loads_item_relationship_on_contents(): void
     {
         $pack = Item::factory()->create([
@@ -145,7 +147,7 @@ class ItemContentsTest extends TestCase
         $this->assertEquals('Backpack', $content->item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_packs_this_item_is_contained_in_via_contained_in_relationship(): void
     {
         $explorersPack = Item::factory()->create([

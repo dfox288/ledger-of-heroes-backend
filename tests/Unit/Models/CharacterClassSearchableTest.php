@@ -7,14 +7,16 @@ use App\Models\CharacterClass;
 use App\Models\EntitySource;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class CharacterClassSearchableTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
         $source = Source::firstOrCreate(['code' => 'PHB'], ['name' => 'Player\'s Handbook']);
@@ -42,7 +44,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals(['PHB'], $searchable['source_codes']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_defines_searchable_relationships(): void
     {
         $class = new CharacterClass;
@@ -51,7 +53,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertContains('sources.source', $class->searchableWith());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_correct_search_index_name(): void
     {
         $class = new CharacterClass;
@@ -60,7 +62,7 @@ class CharacterClassSearchableTest extends TestCase
 
     // Computed Accessor Tests - Hit Die Inheritance
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_hit_die_returns_own_hit_die_for_base_class(): void
     {
         $baseClass = CharacterClass::factory()->create([
@@ -72,7 +74,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals(10, $baseClass->effective_hit_die);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_hit_die_inherits_from_parent_when_zero(): void
     {
         $baseClass = CharacterClass::factory()->create([
@@ -90,7 +92,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals(8, $subclass->effective_hit_die);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function hit_points_computed_returns_data_for_subclass_with_inherited_hit_die(): void
     {
         $baseClass = CharacterClass::factory()->create([
@@ -115,7 +117,7 @@ class CharacterClassSearchableTest extends TestCase
 
     // Computed Accessor Tests - Spellcasting Ability Inheritance
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_spellcasting_ability_returns_own_ability_for_base_class(): void
     {
         $wisdom = AbilityScore::firstOrCreate(
@@ -133,7 +135,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals('WIS', $baseClass->effective_spellcasting_ability->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_spellcasting_ability_inherits_from_parent_when_null(): void
     {
         $wisdom = AbilityScore::firstOrCreate(
@@ -157,7 +159,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertEquals('WIS', $subclass->effective_spellcasting_ability->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_spellcasting_ability_returns_null_for_non_caster(): void
     {
         $baseClass = CharacterClass::factory()->create([
@@ -169,7 +171,7 @@ class CharacterClassSearchableTest extends TestCase
         $this->assertNull($baseClass->effective_spellcasting_ability);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function effective_spellcasting_ability_returns_null_for_subclass_of_non_caster(): void
     {
         $baseClass = CharacterClass::factory()->create([

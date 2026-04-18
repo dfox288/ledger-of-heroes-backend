@@ -6,7 +6,7 @@ use App\Models\EntityCondition;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityCondition>
+ * @extends Factory<EntityCondition>
  */
 class EntityConditionFactory extends Factory
 {

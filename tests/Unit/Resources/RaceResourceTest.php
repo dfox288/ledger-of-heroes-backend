@@ -8,14 +8,16 @@ use App\Models\Modifier;
 use App\Models\Proficiency;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class RaceResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_transforms_basic_race_fields(): void
     {
         $race = Race::factory()->create([
@@ -45,7 +47,7 @@ class RaceResourceTest extends TestCase
         $this->assertNotNull($array['size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_parent_race_when_is_subrace(): void
     {
         $parentRace = Race::factory()->create([
@@ -70,7 +72,7 @@ class RaceResourceTest extends TestCase
         $this->assertEquals('Elf', $array['parent_race']['name']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_traits_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -92,7 +94,7 @@ class RaceResourceTest extends TestCase
         $this->assertEquals('Darkvision', $array['traits'][0]['name']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_modifiers_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -114,7 +116,7 @@ class RaceResourceTest extends TestCase
         $this->assertCount(1, $array['modifiers']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_proficiencies_when_loaded(): void
     {
         $race = Race::factory()->create();
@@ -137,7 +139,7 @@ class RaceResourceTest extends TestCase
         $this->assertCount(1, $array['proficiencies']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_subraces_when_loaded(): void
     {
         $parentRace = Race::factory()->create([
@@ -166,7 +168,7 @@ class RaceResourceTest extends TestCase
         $this->assertCount(2, $array['subraces']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_inherited_data_for_subraces_with_loaded_parent(): void
     {
         $parentRace = Race::factory()->create([
@@ -212,7 +214,7 @@ class RaceResourceTest extends TestCase
         $this->assertEquals('Darkvision', $array['inherited_data']['traits'][0]['name']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_null_values_for_unloaded_parent_relationships_in_inherited_data(): void
     {
         $parentRace = Race::factory()->create([
@@ -242,7 +244,7 @@ class RaceResourceTest extends TestCase
         $this->assertNull($array['inherited_data']['senses']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_all_inherited_relationship_types(): void
     {
         $parentRace = Race::factory()->create([
@@ -295,7 +297,7 @@ class RaceResourceTest extends TestCase
         $this->assertNotNull($array['inherited_data']['senses']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_tags_when_loaded(): void
     {
         $race = Race::factory()->create();

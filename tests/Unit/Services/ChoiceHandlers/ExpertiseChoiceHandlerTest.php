@@ -5,6 +5,7 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterProficiency;
 use App\Services\ChoiceHandlers\ExpertiseChoiceHandler;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 beforeEach(function () {
     $this->handler = new ExpertiseChoiceHandler;
@@ -57,7 +58,7 @@ it('returns expertise choices for Rogue level 1', function () {
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
     // Mock existing expertise selections (source = class, choice_group = expertise_1)
-    $expertiseProficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertiseProficienciesQuery = Mockery::mock(HasMany::class);
     $expertiseProficienciesQuery->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -68,7 +69,7 @@ it('returns expertise choices for Rogue level 1', function () {
         ->andReturn(collect()); // No selections yet
 
     // Mock proficiencies query for getting all proficiencies
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('get')
         ->andReturn($proficiencies);
 
@@ -114,7 +115,7 @@ it('returns expertise choices for Rogue level 6 (second set)', function () {
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
     // Mock expertise_1 selections (level 1 choices)
-    $expertise1Query = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertise1Query = Mockery::mock(HasMany::class);
     $expertise1Query->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -125,7 +126,7 @@ it('returns expertise choices for Rogue level 6 (second set)', function () {
         ->andReturn(collect([$proficiency1, $proficiency2])); // 2 selected at level 1
 
     // Mock expertise_6 selections (level 6 choices)
-    $expertise6Query = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertise6Query = Mockery::mock(HasMany::class);
     $expertise6Query->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -136,7 +137,7 @@ it('returns expertise choices for Rogue level 6 (second set)', function () {
         ->andReturn(collect()); // No selections yet at level 6
 
     // Mock proficiencies query for getting all proficiencies
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('get')
         ->andReturn($proficiencies);
 
@@ -176,7 +177,7 @@ it('returns expertise choices for Bard level 3', function () {
     $proficiencies = collect([$proficiency1, $proficiency2, $proficiency3, $proficiency4]);
 
     // Mock existing expertise selections
-    $expertiseProficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertiseProficienciesQuery = Mockery::mock(HasMany::class);
     $expertiseProficienciesQuery->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -187,7 +188,7 @@ it('returns expertise choices for Bard level 3', function () {
         ->andReturn(collect()); // No selections yet
 
     // Mock proficiencies query for getting all proficiencies
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('get')
         ->andReturn($proficiencies);
 
@@ -227,7 +228,7 @@ it('returns no choices when all expertise selections are complete', function () 
     $proficiency4 = (object) ['id' => 4, 'skill_slug' => 'core:investigation', 'proficiency_type_slug' => null, 'expertise' => true];
 
     // Mock both expertise choices complete
-    $expertise1Query = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertise1Query = Mockery::mock(HasMany::class);
     $expertise1Query->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -237,7 +238,7 @@ it('returns no choices when all expertise selections are complete', function () 
     $expertise1Query->shouldReceive('get')
         ->andReturn(collect([$proficiency1, $proficiency2])); // 2 selected
 
-    $expertise6Query = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $expertise6Query = Mockery::mock(HasMany::class);
     $expertise6Query->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -290,7 +291,7 @@ it('resolves expertise choice by updating expertise flag on proficiencies', func
         ->with(['expertise' => true, 'source' => 'class', 'choice_group' => 'expertise_1'])
         ->andReturn(true);
 
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('where')
         ->andReturnSelf();
     $proficienciesQuery->shouldReceive('get')
@@ -346,7 +347,7 @@ it('throws exception when selected proficiency does not exist', function () {
     );
 
     // Mock proficiencies query returning fewer items than selected
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('where')
         ->andReturnSelf();
     $proficienciesQuery->shouldReceive('get')
@@ -397,7 +398,7 @@ it('undoes choice by clearing expertise flag', function () {
     );
 
     // Mock proficiencies relationship
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();

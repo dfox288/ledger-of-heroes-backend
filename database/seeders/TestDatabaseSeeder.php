@@ -2,6 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Background;
+use App\Models\CharacterClass;
+use App\Models\Feat;
+use App\Models\Item;
+use App\Models\Monster;
+use App\Models\OptionalFeature;
+use App\Models\Race;
+use App\Models\Spell;
 use Illuminate\Database\Seeder;
 
 class TestDatabaseSeeder extends Seeder
@@ -66,14 +74,14 @@ class TestDatabaseSeeder extends Seeder
     protected function indexSearchableModels(): void
     {
         $models = [
-            \App\Models\Spell::class,
-            \App\Models\Monster::class,
-            \App\Models\CharacterClass::class,
-            \App\Models\Race::class,
-            \App\Models\Item::class,
-            \App\Models\Feat::class,
-            \App\Models\Background::class,
-            \App\Models\OptionalFeature::class,
+            Spell::class,
+            Monster::class,
+            CharacterClass::class,
+            Race::class,
+            Item::class,
+            Feat::class,
+            Background::class,
+            OptionalFeature::class,
         ];
 
         foreach ($models as $model) {

@@ -7,14 +7,16 @@ use App\Models\Source;
 use App\Models\Spell;
 use App\Models\SpellSchool;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SpellSearchableTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
         $school = SpellSchool::firstOrCreate(['code' => 'EV'], ['name' => 'Evocation']);
@@ -62,7 +64,7 @@ class SpellSearchableTest extends TestCase
         $this->assertIsArray($searchable['classes']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_defines_searchable_relationships(): void
     {
         $spell = new Spell;
@@ -73,7 +75,7 @@ class SpellSearchableTest extends TestCase
         $this->assertContains('classes', $spell->searchableWith());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_correct_search_index_name(): void
     {
         $spell = new Spell;
@@ -82,7 +84,7 @@ class SpellSearchableTest extends TestCase
         $this->assertEquals('test_spells', $spell->searchableAs());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_material_cost_fields_in_searchable_array(): void
     {
         // material_cost_gp and material_consumed are now real columns,
@@ -102,7 +104,7 @@ class SpellSearchableTest extends TestCase
         $this->assertTrue($searchable['material_consumed']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_aoe_fields_in_searchable_array(): void
     {
         $spell = Spell::factory()->create([
@@ -118,7 +120,7 @@ class SpellSearchableTest extends TestCase
         $this->assertEquals(20, $searchable['aoe_size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_new_fields_in_filterable_attributes(): void
     {
         $spell = new Spell;

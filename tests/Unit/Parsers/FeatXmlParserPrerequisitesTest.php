@@ -8,10 +8,11 @@ use App\Models\Race;
 use App\Models\Skill;
 use App\Services\Parsers\FeatXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class FeatXmlParserPrerequisitesTest extends TestCase
 {
     use RefreshDatabase;

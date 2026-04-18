@@ -9,7 +9,7 @@ use App\Models\OptionalFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FeatureSelection>
+ * @extends Factory<FeatureSelection>
  */
 class FeatureSelectionFactory extends Factory
 {

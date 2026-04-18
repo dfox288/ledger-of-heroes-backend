@@ -3,21 +3,36 @@
 use App\Http\Controllers\Api\AbilityScoreController;
 use App\Http\Controllers\Api\AlignmentController;
 use App\Http\Controllers\Api\ArmorTypeController;
+use App\Http\Controllers\Api\AsiChoiceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackgroundController;
 use App\Http\Controllers\Api\CharacterAvailableFeatsController;
 use App\Http\Controllers\Api\CharacterChoiceController;
+use App\Http\Controllers\Api\CharacterClassController;
+use App\Http\Controllers\Api\CharacterConditionController;
 use App\Http\Controllers\Api\CharacterController;
 use App\Http\Controllers\Api\CharacterCurrencyController;
+use App\Http\Controllers\Api\CharacterDeathSaveController;
+use App\Http\Controllers\Api\CharacterEquipmentController;
 use App\Http\Controllers\Api\CharacterExperienceController;
 use App\Http\Controllers\Api\CharacterExportController;
+use App\Http\Controllers\Api\CharacterFeatureController;
 use App\Http\Controllers\Api\CharacterHpController;
+use App\Http\Controllers\Api\CharacterLanguageController;
+use App\Http\Controllers\Api\CharacterNoteController;
+use App\Http\Controllers\Api\CharacterOptionalFeatureController;
+use App\Http\Controllers\Api\CharacterProficiencyController;
+use App\Http\Controllers\Api\CharacterReviveController;
+use App\Http\Controllers\Api\CharacterSpellController;
 use App\Http\Controllers\Api\CharacterValidationController;
 use App\Http\Controllers\Api\ClassController;
 use App\Http\Controllers\Api\ConditionController;
+use App\Http\Controllers\Api\CounterController;
 use App\Http\Controllers\Api\CreatureTypeController;
 use App\Http\Controllers\Api\DamageTypeController;
 use App\Http\Controllers\Api\FeatController;
+use App\Http\Controllers\Api\FeatureSelectionController;
+use App\Http\Controllers\Api\HitDiceController;
 use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\ItemPropertyController;
 use App\Http\Controllers\Api\ItemTypeController;
@@ -27,15 +42,20 @@ use App\Http\Controllers\Api\MonsterController;
 use App\Http\Controllers\Api\MonsterTypeController;
 use App\Http\Controllers\Api\OptionalFeatureController;
 use App\Http\Controllers\Api\OptionalFeatureTypeController;
+use App\Http\Controllers\Api\PartyController;
+use App\Http\Controllers\Api\PartyEncounterMonsterController;
+use App\Http\Controllers\Api\PartyEncounterPresetController;
 use App\Http\Controllers\Api\ProficiencyTypeController;
 use App\Http\Controllers\Api\RaceController;
 use App\Http\Controllers\Api\RarityController;
+use App\Http\Controllers\Api\RestController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\SourceController;
 use App\Http\Controllers\Api\SpellController;
 use App\Http\Controllers\Api\SpellSchoolController;
+use App\Http\Controllers\Api\SpellSlotController;
 use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 
@@ -283,39 +303,39 @@ Route::prefix('v1')->group(function () {
 
     // Character Spell Management
     Route::prefix('characters/{character}')->name('characters.')->group(function () {
-        Route::get('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'index'])
+        Route::get('spells', [CharacterSpellController::class, 'index'])
             ->name('spells.index');
-        Route::get('available-spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'available'])
+        Route::get('available-spells', [CharacterSpellController::class, 'available'])
             ->name('spells.available');
         Route::get('available-feats', CharacterAvailableFeatsController::class)
             ->name('feats.available');
-        Route::post('spells', [\App\Http\Controllers\Api\CharacterSpellController::class, 'store'])
+        Route::post('spells', [CharacterSpellController::class, 'store'])
             ->name('spells.store');
-        Route::delete('spells/{spellIdOrSlug}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'destroy'])
+        Route::delete('spells/{spellIdOrSlug}', [CharacterSpellController::class, 'destroy'])
             ->name('spells.destroy');
-        Route::patch('spells/{characterSpellId}', [\App\Http\Controllers\Api\CharacterSpellController::class, 'update'])
+        Route::patch('spells/{characterSpellId}', [CharacterSpellController::class, 'update'])
             ->where('characterSpellId', '[0-9]+')
             ->name('spells.update');
-        Route::patch('spells/{spellIdOrSlug}/prepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'prepare'])
+        Route::patch('spells/{spellIdOrSlug}/prepare', [CharacterSpellController::class, 'prepare'])
             ->name('spells.prepare');
-        Route::patch('spells/{spellIdOrSlug}/unprepare', [\App\Http\Controllers\Api\CharacterSpellController::class, 'unprepare'])
+        Route::patch('spells/{spellIdOrSlug}/unprepare', [CharacterSpellController::class, 'unprepare'])
             ->name('spells.unprepare');
-        Route::get('spell-slots', [\App\Http\Controllers\Api\CharacterSpellController::class, 'slots'])
+        Route::get('spell-slots', [CharacterSpellController::class, 'slots'])
             ->name('spell-slots');
-        Route::post('spell-slots/use', [\App\Http\Controllers\Api\SpellSlotController::class, 'use'])
+        Route::post('spell-slots/use', [SpellSlotController::class, 'use'])
             ->name('spell-slots.use');
-        Route::patch('spell-slots/{level}', [\App\Http\Controllers\Api\SpellSlotController::class, 'update'])
+        Route::patch('spell-slots/{level}', [SpellSlotController::class, 'update'])
             ->where('level', '[1-9]')
             ->name('spell-slots.update');
 
         // Character Equipment Management
-        Route::get('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'index'])
+        Route::get('equipment', [CharacterEquipmentController::class, 'index'])
             ->name('equipment.index');
-        Route::post('equipment', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'store'])
+        Route::post('equipment', [CharacterEquipmentController::class, 'store'])
             ->name('equipment.store');
-        Route::patch('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'update'])
+        Route::patch('equipment/{equipment}', [CharacterEquipmentController::class, 'update'])
             ->name('equipment.update');
-        Route::delete('equipment/{equipment}', [\App\Http\Controllers\Api\CharacterEquipmentController::class, 'destroy'])
+        Route::delete('equipment/{equipment}', [CharacterEquipmentController::class, 'destroy'])
             ->name('equipment.destroy');
 
         // Unified Choice System
@@ -329,57 +349,57 @@ Route::prefix('v1')->group(function () {
             ->name('choices.undo');
 
         // Character Proficiencies
-        Route::get('proficiencies', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'index'])
+        Route::get('proficiencies', [CharacterProficiencyController::class, 'index'])
             ->name('proficiencies.index');
-        Route::post('proficiencies/sync', [\App\Http\Controllers\Api\CharacterProficiencyController::class, 'sync'])
+        Route::post('proficiencies/sync', [CharacterProficiencyController::class, 'sync'])
             ->name('proficiencies.sync');
 
         // Character Languages
-        Route::get('languages', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'index'])
+        Route::get('languages', [CharacterLanguageController::class, 'index'])
             ->name('languages.index');
-        Route::post('languages/sync', [\App\Http\Controllers\Api\CharacterLanguageController::class, 'sync'])
+        Route::post('languages/sync', [CharacterLanguageController::class, 'sync'])
             ->name('languages.sync');
 
         // Character Features
-        Route::get('features', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'index'])
+        Route::get('features', [CharacterFeatureController::class, 'index'])
             ->name('features.index');
-        Route::post('features/sync', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'sync'])
+        Route::post('features/sync', [CharacterFeatureController::class, 'sync'])
             ->name('features.sync');
-        Route::delete('features/{source}', [\App\Http\Controllers\Api\CharacterFeatureController::class, 'clear'])
+        Route::delete('features/{source}', [CharacterFeatureController::class, 'clear'])
             ->name('features.clear');
 
         // Character Optional Features (Invocations, Infusions, Metamagic with full details)
-        Route::get('optional-features', [\App\Http\Controllers\Api\CharacterOptionalFeatureController::class, 'index'])
+        Route::get('optional-features', [CharacterOptionalFeatureController::class, 'index'])
             ->name('optional-features.index');
 
         // ASI Choice (Feat or Ability Score Increase)
-        Route::post('asi-choice', \App\Http\Controllers\Api\AsiChoiceController::class)
+        Route::post('asi-choice', AsiChoiceController::class)
             ->name('asi-choice');
 
         // Character Classes (Multiclass Support)
-        Route::get('classes', [\App\Http\Controllers\Api\CharacterClassController::class, 'index'])
+        Route::get('classes', [CharacterClassController::class, 'index'])
             ->name('classes.index');
-        Route::post('classes', [\App\Http\Controllers\Api\CharacterClassController::class, 'store'])
+        Route::post('classes', [CharacterClassController::class, 'store'])
             ->name('classes.store');
-        Route::delete('classes/{classIdOrSlug}', [\App\Http\Controllers\Api\CharacterClassController::class, 'destroy'])
+        Route::delete('classes/{classIdOrSlug}', [CharacterClassController::class, 'destroy'])
             ->name('classes.destroy');
-        Route::put('classes/{classIdOrSlug}', [\App\Http\Controllers\Api\CharacterClassController::class, 'replace'])
+        Route::put('classes/{classIdOrSlug}', [CharacterClassController::class, 'replace'])
             ->name('classes.replace');
-        Route::post('classes/{classIdOrSlug}/level-up', [\App\Http\Controllers\Api\CharacterClassController::class, 'levelUp'])
+        Route::post('classes/{classIdOrSlug}/level-up', [CharacterClassController::class, 'levelUp'])
             ->name('classes.level-up');
-        Route::put('classes/{classIdOrSlug}/subclass', [\App\Http\Controllers\Api\CharacterClassController::class, 'setSubclass'])
+        Route::put('classes/{classIdOrSlug}/subclass', [CharacterClassController::class, 'setSubclass'])
             ->name('classes.set-subclass');
 
         // Character Notes (Personality traits, ideals, bonds, flaws, backstory, custom notes)
-        Route::get('notes', [\App\Http\Controllers\Api\CharacterNoteController::class, 'index'])
+        Route::get('notes', [CharacterNoteController::class, 'index'])
             ->name('notes.index');
-        Route::post('notes', [\App\Http\Controllers\Api\CharacterNoteController::class, 'store'])
+        Route::post('notes', [CharacterNoteController::class, 'store'])
             ->name('notes.store');
-        Route::get('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'show'])
+        Route::get('notes/{note}', [CharacterNoteController::class, 'show'])
             ->name('notes.show');
-        Route::match(['put', 'patch'], 'notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'update'])
+        Route::match(['put', 'patch'], 'notes/{note}', [CharacterNoteController::class, 'update'])
             ->name('notes.update');
-        Route::delete('notes/{note}', [\App\Http\Controllers\Api\CharacterNoteController::class, 'destroy'])
+        Route::delete('notes/{note}', [CharacterNoteController::class, 'destroy'])
             ->name('notes.destroy');
 
         // HP Modification (D&D rules: damage, healing, temp HP)
@@ -391,54 +411,54 @@ Route::prefix('v1')->group(function () {
             ->name('currency.modify');
 
         // Death Saves
-        Route::post('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'store'])
+        Route::post('death-saves', [CharacterDeathSaveController::class, 'store'])
             ->name('death-saves.store');
-        Route::post('death-saves/stabilize', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'stabilize'])
+        Route::post('death-saves/stabilize', [CharacterDeathSaveController::class, 'stabilize'])
             ->name('death-saves.stabilize');
-        Route::delete('death-saves', [\App\Http\Controllers\Api\CharacterDeathSaveController::class, 'reset'])
+        Route::delete('death-saves', [CharacterDeathSaveController::class, 'reset'])
             ->name('death-saves.reset');
 
         // Revival
-        Route::post('revive', \App\Http\Controllers\Api\CharacterReviveController::class)
+        Route::post('revive', CharacterReviveController::class)
             ->name('revive');
 
         // Hit Dice
-        Route::get('hit-dice', [\App\Http\Controllers\Api\HitDiceController::class, 'index'])
+        Route::get('hit-dice', [HitDiceController::class, 'index'])
             ->name('hit-dice.index');
-        Route::post('hit-dice/spend', [\App\Http\Controllers\Api\HitDiceController::class, 'spend'])
+        Route::post('hit-dice/spend', [HitDiceController::class, 'spend'])
             ->name('hit-dice.spend');
-        Route::post('hit-dice/recover', [\App\Http\Controllers\Api\HitDiceController::class, 'recover'])
+        Route::post('hit-dice/recover', [HitDiceController::class, 'recover'])
             ->name('hit-dice.recover');
 
         // Rest Mechanics
-        Route::post('short-rest', [\App\Http\Controllers\Api\RestController::class, 'shortRest'])
+        Route::post('short-rest', [RestController::class, 'shortRest'])
             ->name('short-rest');
-        Route::post('long-rest', [\App\Http\Controllers\Api\RestController::class, 'longRest'])
+        Route::post('long-rest', [RestController::class, 'longRest'])
             ->name('long-rest');
 
         // Counters (Class Resources: Rage, Ki, Action Surge, etc.)
-        Route::get('counters', [\App\Http\Controllers\Api\CounterController::class, 'index'])
+        Route::get('counters', [CounterController::class, 'index'])
             ->name('counters.index');
-        Route::patch('counters/{id}', [\App\Http\Controllers\Api\CounterController::class, 'update'])
+        Route::patch('counters/{id}', [CounterController::class, 'update'])
             ->name('counters.update')
             ->whereNumber('id');
 
         // Feature Selections (Invocations, Maneuvers, Metamagic, etc.)
-        Route::get('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'index'])
+        Route::get('feature-selections', [FeatureSelectionController::class, 'index'])
             ->name('feature-selections.index');
-        Route::get('available-feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'available'])
+        Route::get('available-feature-selections', [FeatureSelectionController::class, 'available'])
             ->name('feature-selections.available');
-        Route::post('feature-selections', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'store'])
+        Route::post('feature-selections', [FeatureSelectionController::class, 'store'])
             ->name('feature-selections.store');
-        Route::delete('feature-selections/{featureIdOrSlug}', [\App\Http\Controllers\Api\FeatureSelectionController::class, 'destroy'])
+        Route::delete('feature-selections/{featureIdOrSlug}', [FeatureSelectionController::class, 'destroy'])
             ->name('feature-selections.destroy');
 
         // Conditions
-        Route::get('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'index'])
+        Route::get('conditions', [CharacterConditionController::class, 'index'])
             ->name('conditions.index');
-        Route::post('conditions', [\App\Http\Controllers\Api\CharacterConditionController::class, 'store'])
+        Route::post('conditions', [CharacterConditionController::class, 'store'])
             ->name('conditions.store');
-        Route::delete('conditions/{conditionIdOrSlug}', [\App\Http\Controllers\Api\CharacterConditionController::class, 'destroy'])
+        Route::delete('conditions/{conditionIdOrSlug}', [CharacterConditionController::class, 'destroy'])
             ->name('conditions.destroy');
     });
 
@@ -451,36 +471,36 @@ Route::prefix('v1')->group(function () {
     | TODO: Re-add auth:sanctum middleware when auth is implemented.
     |
     */
-    Route::apiResource('parties', \App\Http\Controllers\Api\PartyController::class);
-    Route::post('parties/{party}/characters', [\App\Http\Controllers\Api\PartyController::class, 'addCharacter'])
+    Route::apiResource('parties', PartyController::class);
+    Route::post('parties/{party}/characters', [PartyController::class, 'addCharacter'])
         ->name('parties.characters.store');
-    Route::delete('parties/{party}/characters/{character}', [\App\Http\Controllers\Api\PartyController::class, 'removeCharacter'])
+    Route::delete('parties/{party}/characters/{character}', [PartyController::class, 'removeCharacter'])
         ->name('parties.characters.destroy');
-    Route::get('parties/{party}/stats', [\App\Http\Controllers\Api\PartyController::class, 'stats'])
+    Route::get('parties/{party}/stats', [PartyController::class, 'stats'])
         ->name('parties.stats');
 
     // Party Encounter Monsters (DM Screen initiative tracker)
-    Route::get('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'index'])
+    Route::get('parties/{party}/monsters', [PartyEncounterMonsterController::class, 'index'])
         ->name('parties.monsters.index');
-    Route::post('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'store'])
+    Route::post('parties/{party}/monsters', [PartyEncounterMonsterController::class, 'store'])
         ->name('parties.monsters.store');
-    Route::patch('parties/{party}/monsters/{encounterMonster}', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'update'])
+    Route::patch('parties/{party}/monsters/{encounterMonster}', [PartyEncounterMonsterController::class, 'update'])
         ->name('parties.monsters.update');
-    Route::delete('parties/{party}/monsters/{encounterMonster}', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'destroy'])
+    Route::delete('parties/{party}/monsters/{encounterMonster}', [PartyEncounterMonsterController::class, 'destroy'])
         ->name('parties.monsters.destroy');
-    Route::delete('parties/{party}/monsters', [\App\Http\Controllers\Api\PartyEncounterMonsterController::class, 'clear'])
+    Route::delete('parties/{party}/monsters', [PartyEncounterMonsterController::class, 'clear'])
         ->name('parties.monsters.clear');
 
     // Party Encounter Presets (save/load monster groups)
-    Route::get('parties/{party}/encounter-presets', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'index'])
+    Route::get('parties/{party}/encounter-presets', [PartyEncounterPresetController::class, 'index'])
         ->name('parties.encounter-presets.index');
-    Route::post('parties/{party}/encounter-presets', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'store'])
+    Route::post('parties/{party}/encounter-presets', [PartyEncounterPresetController::class, 'store'])
         ->name('parties.encounter-presets.store');
-    Route::patch('parties/{party}/encounter-presets/{encounterPreset}', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'update'])
+    Route::patch('parties/{party}/encounter-presets/{encounterPreset}', [PartyEncounterPresetController::class, 'update'])
         ->name('parties.encounter-presets.update');
-    Route::delete('parties/{party}/encounter-presets/{encounterPreset}', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'destroy'])
+    Route::delete('parties/{party}/encounter-presets/{encounterPreset}', [PartyEncounterPresetController::class, 'destroy'])
         ->name('parties.encounter-presets.destroy');
-    Route::post('parties/{party}/encounter-presets/{encounterPreset}/load', [\App\Http\Controllers\Api\PartyEncounterPresetController::class, 'load'])
+    Route::post('parties/{party}/encounter-presets/{encounterPreset}/load', [PartyEncounterPresetController::class, 'load'])
         ->name('parties.encounter-presets.load');
 
     /*

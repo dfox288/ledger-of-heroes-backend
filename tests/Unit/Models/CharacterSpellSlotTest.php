@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Enums\SpellSlotType;
 use App\Models\Character;
 use App\Models\CharacterSpellSlot;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -115,7 +116,7 @@ class CharacterSpellSlotTest extends TestCase
             'slot_type' => SpellSlotType::STANDARD,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         CharacterSpellSlot::factory()->create([
             'character_id' => $character->id,

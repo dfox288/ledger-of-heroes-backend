@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\DTOs\OptionalFeatureSearchDTO;
 use App\Models\OptionalFeature;
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Builder;
 
 /**
  * Service for searching and filtering D&D optional features
@@ -34,7 +36,7 @@ final class OptionalFeatureSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -68,7 +70,7 @@ final class OptionalFeatureSearchService extends AbstractSearchService
      *
      * @param  OptionalFeatureSearchDTO|object  $dto
      */
-    public function buildScoutQuery(object $dto): \Laravel\Scout\Builder
+    public function buildScoutQuery(object $dto): Builder
     {
         return OptionalFeature::search($dto->searchQuery ?? '');
     }

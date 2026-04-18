@@ -5,15 +5,18 @@ namespace Tests\Unit\Models;
 use App\Models\Character;
 use App\Models\Party;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class PartyTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_belongs_to_a_user(): void
     {
         $user = User::factory()->create();
@@ -23,7 +26,7 @@ class PartyTest extends TestCase
         $this->assertEquals($user->id, $party->user->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_belongs_to_many_characters(): void
     {
         $party = Party::factory()->create();
@@ -35,7 +38,7 @@ class PartyTest extends TestCase
         $this->assertInstanceOf(Character::class, $party->characters->first());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_timestamps(): void
     {
         $party = Party::factory()->create();
@@ -44,7 +47,7 @@ class PartyTest extends TestCase
         $this->assertNotNull($party->updated_at);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_has_fillable_attributes(): void
     {
         $party = new Party;
@@ -54,7 +57,7 @@ class PartyTest extends TestCase
         $this->assertContains('user_id', $party->getFillable());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function characters_pivot_includes_joined_at_and_display_order(): void
     {
         $party = Party::factory()->create();
@@ -71,7 +74,7 @@ class PartyTest extends TestCase
         $this->assertEquals(1, $pivot->display_order);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function character_can_be_in_multiple_parties(): void
     {
         $character = Character::factory()->create();
@@ -86,7 +89,7 @@ class PartyTest extends TestCase
         $this->assertCount(2, $character->parties);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_can_get_parties_for_a_character(): void
     {
         $character = Character::factory()->create();
@@ -97,7 +100,7 @@ class PartyTest extends TestCase
         $this->assertInstanceOf(Party::class, $character->parties->first());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_prevents_duplicate_character_in_same_party(): void
     {
         $party = Party::factory()->create();
@@ -105,11 +108,11 @@ class PartyTest extends TestCase
 
         $party->characters()->attach($character);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         $party->characters()->attach($character);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_cascades_delete_on_party_deletion(): void
     {
         $party = Party::factory()->create();
@@ -124,7 +127,7 @@ class PartyTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_cascades_delete_on_character_deletion(): void
     {
         $party = Party::factory()->create();
@@ -139,7 +142,7 @@ class PartyTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function pivot_includes_timestamps(): void
     {
         $party = Party::factory()->create();

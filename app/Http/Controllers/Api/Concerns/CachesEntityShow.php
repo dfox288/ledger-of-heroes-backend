@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Concerns;
 
 use App\Services\Cache\EntityCacheService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Trait CachesEntityShow
@@ -39,7 +40,7 @@ trait CachesEntityShow
      * 3. Load relationships (from include param or defaults)
      * 4. Return API resource
      *
-     * @param  \Illuminate\Foundation\Http\FormRequest  $request  Validated request
+     * @param  FormRequest  $request  Validated request
      * @param  Model  $entity  Entity from route model binding
      * @param  EntityCacheService  $cache  Cache service
      * @param  string  $cacheMethod  Cache method name (getSpell, getClass, etc.)

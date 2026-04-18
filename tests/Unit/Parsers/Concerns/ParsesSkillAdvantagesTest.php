@@ -3,10 +3,11 @@
 namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\ParsesSkillAdvantages;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesSkillAdvantagesTest extends TestCase
 {
     use ParsesSkillAdvantages;

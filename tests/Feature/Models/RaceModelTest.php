@@ -2,12 +2,18 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\Condition;
 use App\Models\EntityLanguage;
 use App\Models\EntitySense;
+use App\Models\EntitySpell;
 use App\Models\Language;
 use App\Models\Race;
 use App\Models\Sense;
+use App\Models\Spell;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -16,7 +22,7 @@ use Tests\TestCase;
  *
  * @see https://github.com/dfox288/ledger-of-heroes/issues/581
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class RaceModelTest extends TestCase
 {
     use RefreshDatabase;
@@ -63,19 +69,19 @@ class RaceModelTest extends TestCase
     public function race_has_conditions_relationship(): void
     {
         $race = Race::factory()->create();
-        $condition = \App\Models\Condition::firstOrCreate(
+        $condition = Condition::firstOrCreate(
             ['slug' => 'poisoned'],
             ['name' => 'Poisoned', 'description' => 'Test condition']
         );
 
-        \Illuminate\Support\Facades\DB::table('entity_conditions')->insert([
+        DB::table('entity_conditions')->insert([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'condition_id' => $condition->id,
             'effect_type' => 'advantage',
         ]);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $race->conditions);
+        $this->assertInstanceOf(Collection::class, $race->conditions);
         $this->assertCount(1, $race->fresh()->conditions);
     }
 
@@ -83,16 +89,16 @@ class RaceModelTest extends TestCase
     public function race_has_spells_relationship(): void
     {
         $race = Race::factory()->create();
-        $spell = \App\Models\Spell::factory()->create();
+        $spell = Spell::factory()->create();
 
-        \App\Models\EntitySpell::create([
+        EntitySpell::create([
             'reference_type' => Race::class,
             'reference_id' => $race->id,
             'spell_id' => $spell->id,
             'is_cantrip' => true,
         ]);
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $race->spells);
+        $this->assertInstanceOf(Collection::class, $race->spells);
         $this->assertCount(1, $race->fresh()->spells);
     }
 

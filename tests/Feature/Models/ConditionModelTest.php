@@ -6,11 +6,13 @@ use App\Models\Condition;
 use App\Models\EntityCondition;
 use App\Models\Feat;
 use App\Models\Race;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ConditionModelTest extends TestCase
 {
     use RefreshDatabase;
@@ -55,7 +57,7 @@ class ConditionModelTest extends TestCase
             'description' => 'First unique test condition.',
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         Condition::create([
             'name' => 'Unique Test (Duplicate)',

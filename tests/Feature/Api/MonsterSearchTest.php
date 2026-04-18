@@ -3,18 +3,20 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Monster;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class MonsterSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {

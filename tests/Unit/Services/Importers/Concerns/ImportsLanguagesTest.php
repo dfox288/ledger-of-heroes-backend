@@ -9,10 +9,11 @@ use App\Models\Language;
 use App\Models\Race;
 use App\Services\Importers\Concerns\ImportsLanguages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ImportsLanguagesTest extends TestCase
 {
     use ImportsLanguages;

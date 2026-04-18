@@ -5,16 +5,18 @@ namespace Tests\Feature\Api;
 use App\Models\CharacterClass;
 use App\Models\Spell;
 use App\Models\SpellSchool;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ClassSpellListTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function it_returns_spells_for_a_class()

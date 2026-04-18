@@ -15,8 +15,9 @@ use App\Models\FeatureSelection;
 use App\Models\OptionalFeature;
 use App\Services\ChoiceHandlers\OptionalFeatureChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     $this->handler = new OptionalFeatureChoiceHandler;

@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\ShapechangerStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class ShapechangerStrategyTest extends TestCase
 {
@@ -18,7 +20,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->strategy = new ShapechangerStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_shapechanger_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'humanoid (shapechanger)']));
@@ -26,7 +28,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertTrue($this->strategy->appliesTo(['type' => 'aberration (shapechanger)']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_shapechanger_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'humanoid']));
@@ -34,7 +36,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'elemental']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_lycanthrope_subtype(): void
     {
         $traits = [
@@ -58,7 +60,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertArrayHasKey('lycanthropes', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_doppelganger_subtype(): void
     {
         $traits = [
@@ -82,7 +84,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertArrayHasKey('doppelgangers', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_mimic_subtype(): void
     {
         $traits = [
@@ -110,7 +112,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertArrayHasKey('mimics', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_shapechanger_metrics(): void
     {
         $monsterData = [
@@ -126,7 +128,7 @@ class ShapechangerStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['shapechangers_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

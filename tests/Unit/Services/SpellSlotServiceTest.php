@@ -9,6 +9,7 @@ use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\CharacterSpellSlot;
 use App\Services\SpellSlotService;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -23,7 +24,7 @@ class SpellSlotServiceTest extends TestCase
      * Use TestDatabaseSeeder to load class fixtures (Wizard, Warlock, etc.)
      * needed for multiclass and caster tests.
      */
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     private SpellSlotService $service;
 

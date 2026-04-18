@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Background;
+use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Builder;
 
 /**
  * Service for searching and filtering D&D backgrounds
@@ -40,7 +42,7 @@ final class BackgroundSearchService extends AbstractSearchService
     /**
      * Get the fully qualified model class name
      *
-     * @return class-string<\Illuminate\Database\Eloquent\Model>
+     * @return class-string<Model>
      */
     protected function getModelClass(): string
     {
@@ -75,7 +77,7 @@ final class BackgroundSearchService extends AbstractSearchService
      *
      * @param  string|object  $searchQueryOrDto  Search query string or DTO object
      */
-    public function buildScoutQuery(string|object $searchQueryOrDto): \Laravel\Scout\Builder
+    public function buildScoutQuery(string|object $searchQueryOrDto): Builder
     {
         $searchQuery = is_string($searchQueryOrDto) ? $searchQueryOrDto : ($searchQueryOrDto->searchQuery ?? '');
 

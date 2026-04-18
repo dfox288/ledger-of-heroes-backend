@@ -4,10 +4,11 @@ namespace Tests\Unit\Exceptions\Lookup;
 
 use App\Exceptions\Lookup\EntityNotFoundException;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class EntityNotFoundExceptionTest extends TestCase
 {
     #[Test]

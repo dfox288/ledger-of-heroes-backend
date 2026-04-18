@@ -3,10 +3,13 @@
 namespace Tests\Feature\Console;
 
 use App\Models\Monster;
+use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ImportMonstersCommandTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,12 +19,12 @@ class ImportMonstersCommandTest extends TestCase
         parent::setUp();
 
         // Create required lookup data
-        \App\Models\Size::firstOrCreate(['code' => 'L'], ['name' => 'Large']);
-        \App\Models\Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
-        \App\Models\Size::firstOrCreate(['code' => 'S'], ['name' => 'Small']);
+        Size::firstOrCreate(['code' => 'L'], ['name' => 'Large']);
+        Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
+        Size::firstOrCreate(['code' => 'S'], ['name' => 'Small']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_monsters_from_xml_file_via_command(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -33,7 +36,7 @@ class ImportMonstersCommandTest extends TestCase
         $this->assertEquals(3, Monster::count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_displays_strategy_statistics(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -46,7 +49,7 @@ class ImportMonstersCommandTest extends TestCase
             ->assertExitCode(0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_error_for_missing_file(): void
     {
         $this->artisan('import:monsters', ['file' => 'non-existent.xml'])
@@ -54,7 +57,7 @@ class ImportMonstersCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_displays_success_message_with_count(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');
@@ -64,7 +67,7 @@ class ImportMonstersCommandTest extends TestCase
             ->assertExitCode(0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_displays_log_file_location(): void
     {
         $xmlPath = base_path('tests/Fixtures/xml/monsters/test-monsters.xml');

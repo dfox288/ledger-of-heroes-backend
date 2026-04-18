@@ -2,11 +2,13 @@
 
 namespace Database\Seeders\Testing;
 
+use App\Models\AbilityScore;
 use App\Models\CharacterClass;
 use App\Models\EntityPrerequisite;
 use App\Models\EntitySource;
 use App\Models\OptionalFeature;
 use App\Models\Source;
+use App\Models\Spell;
 use App\Models\SpellSchool;
 
 class OptionalFeatureFixtureSeeder extends FixtureSeeder
@@ -107,14 +109,14 @@ class OptionalFeatureFixtureSeeder extends FixtureSeeder
                 break;
 
             case 'Spell':
-                $prerequisiteType = \App\Models\Spell::class;
-                $spell = \App\Models\Spell::where('slug', $prerequisite['value'])->first();
+                $prerequisiteType = Spell::class;
+                $spell = Spell::where('slug', $prerequisite['value'])->first();
                 $prerequisiteId = $spell?->id;
                 break;
 
             case 'AbilityScore':
-                $prerequisiteType = \App\Models\AbilityScore::class;
-                $abilityScore = \App\Models\AbilityScore::where('code', $prerequisite['value'])->first();
+                $prerequisiteType = AbilityScore::class;
+                $abilityScore = AbilityScore::where('code', $prerequisite['value'])->first();
                 $prerequisiteId = $abilityScore?->id;
                 break;
         }

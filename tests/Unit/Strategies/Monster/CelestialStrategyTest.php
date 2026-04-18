@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\CelestialStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class CelestialStrategyTest extends TestCase
 {
@@ -18,14 +20,14 @@ class CelestialStrategyTest extends TestCase
         $this->strategy = new CelestialStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_celestial_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'celestial']));
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Celestial']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_celestial_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'fiend']));
@@ -33,7 +35,7 @@ class CelestialStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'undead']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_radiant_damage_in_actions(): void
     {
         $actions = [
@@ -57,7 +59,7 @@ class CelestialStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['radiant_attackers']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_healing_abilities(): void
     {
         $actions = [
@@ -81,7 +83,7 @@ class CelestialStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['healers_count']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_celestial_enhancement_metrics(): void
     {
         $monsterData = ['type' => 'celestial'];
@@ -94,7 +96,7 @@ class CelestialStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['celestials_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

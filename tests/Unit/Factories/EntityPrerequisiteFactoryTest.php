@@ -9,16 +9,18 @@ use App\Models\Item;
 use App\Models\ProficiencyType;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class EntityPrerequisiteFactoryTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $seed = true; // Auto-seed for all tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_prerequisite_with_default_values()
     {
         $prerequisite = EntityPrerequisite::factory()->create();
@@ -27,7 +29,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals(1, $prerequisite->group_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_ability_score_prerequisite()
     {
         $feat = Feat::factory()->create();
@@ -45,7 +47,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals(13, $prerequisite->minimum_value);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_race_prerequisite()
     {
         $feat = Feat::factory()->create();
@@ -60,7 +62,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals($race->id, $prerequisite->prerequisite_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_proficiency_prerequisite()
     {
         $feat = Feat::factory()->create();
@@ -75,7 +77,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals($profType->id, $prerequisite->prerequisite_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_free_form_feature_prerequisite()
     {
         $feat = Feat::factory()->create();
@@ -90,7 +92,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals('Spellcasting or Pact Magic feature', $prerequisite->description);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_sets_group_id_for_logical_grouping()
     {
         $feat = Feat::factory()->create();
@@ -113,7 +115,7 @@ class EntityPrerequisiteFactoryTest extends TestCase
         $this->assertEquals(1, $prereq2->group_id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_can_be_used_for_items()
     {
         $item = Item::factory()->create();

@@ -3,10 +3,11 @@
 namespace Tests\Unit\Enums;
 
 use App\Enums\RequirementLogic;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class RequirementLogicTest extends TestCase
 {
     #[Test]

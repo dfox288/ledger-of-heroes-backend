@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\CharacterTrait;
+use App\Models\ClassFeature;
 use App\Support\EntityTypeMapping;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Service for exporting characters as portable JSON.
@@ -262,22 +265,22 @@ class CharacterExportService
     {
         // Eager load characterClass for ClassFeature types to avoid N+1
         $classFeatures = $character->features
-            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\ClassFeature)
+            ->filter(fn ($cf) => $cf->feature instanceof ClassFeature)
             ->map(fn ($cf) => $cf->feature)
             ->filter();
 
         if ($classFeatures->isNotEmpty()) {
-            (new \Illuminate\Database\Eloquent\Collection($classFeatures))->loadMissing('characterClass');
+            (new Collection($classFeatures))->loadMissing('characterClass');
         }
 
         // Eager load reference for CharacterTrait types
         $characterTraits = $character->features
-            ->filter(fn ($cf) => $cf->feature instanceof \App\Models\CharacterTrait)
+            ->filter(fn ($cf) => $cf->feature instanceof CharacterTrait)
             ->map(fn ($cf) => $cf->feature)
             ->filter();
 
         if ($characterTraits->isNotEmpty()) {
-            (new \Illuminate\Database\Eloquent\Collection($characterTraits))->loadMissing('reference');
+            (new Collection($characterTraits))->loadMissing('reference');
         }
 
         return $character->features->map(function ($cf) {

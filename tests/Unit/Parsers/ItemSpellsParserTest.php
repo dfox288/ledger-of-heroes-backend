@@ -3,14 +3,16 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\Concerns\ParsesItemSpells;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemSpellsParserTest extends TestCase
 {
     use ParsesItemSpells;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_fixed_charge_cost()
     {
         $text = 'lesser restoration (2 charges)';
@@ -21,7 +23,7 @@ class ItemSpellsParserTest extends TestCase
         $this->assertNull($result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_variable_charge_cost_per_spell_level()
     {
         $text = 'cure wounds (1 charge per spell level, up to 4th)';
@@ -32,7 +34,7 @@ class ItemSpellsParserTest extends TestCase
         $this->assertSame('1 per spell level', $result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_free_spells_with_no_charges()
     {
         $text = 'detect magic (no charges)';
@@ -43,7 +45,7 @@ class ItemSpellsParserTest extends TestCase
         $this->assertNull($result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_expends_syntax()
     {
         $text = 'expend 3 charges to cast fireball';
@@ -54,7 +56,7 @@ class ItemSpellsParserTest extends TestCase
         $this->assertNull($result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_text_without_charge_costs()
     {
         $text = 'This is just regular text without costs';
@@ -65,7 +67,7 @@ class ItemSpellsParserTest extends TestCase
         $this->assertNull($result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_multiple_spells_from_staff_of_healing_description()
     {
         // This matches the ACTUAL XML format with a period before "or mass cure wounds"
@@ -97,7 +99,7 @@ TEXT;
         $this->assertNull($spells[2]['charges_cost_formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_spells_from_staff_of_fire_description()
     {
         $description = <<<'TEXT'
@@ -118,7 +120,7 @@ TEXT;
         $this->assertSame(4, $spells[2]['charges_cost_min']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_array_for_items_without_spells()
     {
         $description = 'This wand has 3 charges. It can force humanoids to smile.';
@@ -127,7 +129,7 @@ TEXT;
         $this->assertEmpty($spells);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_single_charge_syntax()
     {
         $text = 'detect thoughts (1 charge)';
@@ -138,7 +140,7 @@ TEXT;
         $this->assertNull($result['formula']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_at_will_usage()
     {
         $description = 'While wearing this hat, you can use an action to cast the disguise self spell from it at will.';
@@ -149,7 +151,7 @@ TEXT;
         $this->assertSame('at will', $spells[0]['usage_limit']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_at_will_with_on_yourself()
     {
         $description = 'While you wear these boots, you can use an action to cast the levitate spell on yourself at will.';
@@ -160,7 +162,7 @@ TEXT;
         $this->assertSame('at will', $spells[0]['usage_limit']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_usage_limit_when_not_specified()
     {
         // Staff of Fire has charge-based casting, not usage limits

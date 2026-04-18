@@ -6,14 +6,16 @@ use App\Http\Resources\FeatResource;
 use App\Models\Feat;
 use App\Models\Modifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class FeatResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_is_half_feat_in_response(): void
     {
         $feat = Feat::factory()->create(['name' => 'Actor']);
@@ -34,7 +36,7 @@ class FeatResourceTest extends TestCase
         $this->assertTrue($response['is_half_feat']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_parent_feat_slug_in_response(): void
     {
         $feat = Feat::factory()->create([
@@ -49,7 +51,7 @@ class FeatResourceTest extends TestCase
         $this->assertEquals('resilient', $response['parent_feat_slug']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_false_is_half_feat_for_non_half_feats(): void
     {
         $feat = Feat::factory()->create(['name' => 'Great Weapon Master']);
@@ -63,7 +65,7 @@ class FeatResourceTest extends TestCase
         $this->assertFalse($response['is_half_feat']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_parent_feat_slug_for_non_variant_feats(): void
     {
         $feat = Feat::factory()->create([

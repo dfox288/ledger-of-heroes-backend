@@ -3,14 +3,16 @@
 namespace Tests\Unit\Resources;
 
 use App\Http\Resources\TagResource;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Tags\Tag;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class TagResourceTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_serializes_tag_with_basic_attributes()
     {
         $tag = new Tag([
@@ -30,7 +32,7 @@ class TagResourceTest extends TestCase
         $this->assertEquals('touch-spells', $array['slug']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_serializes_tag_with_type()
     {
         $tag = new Tag([
@@ -51,7 +53,7 @@ class TagResourceTest extends TestCase
         $this->assertEquals('spell_list', $array['type']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_tag_with_no_type()
     {
         $tag = new Tag([

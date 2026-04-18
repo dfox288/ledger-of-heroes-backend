@@ -7,7 +7,7 @@ use App\Models\CharacterProficiency;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterProficiency>
+ * @extends Factory<CharacterProficiency>
  */
 class CharacterProficiencyFactory extends Factory
 {

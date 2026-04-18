@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Character;
 use App\Services\CharacterImportService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
@@ -145,7 +146,7 @@ class ImportFixtureCharactersCommand extends Command
                 }
 
                 // Check if already exists
-                if (\App\Models\Character::where('public_id', $publicId)->exists()) {
+                if (Character::where('public_id', $publicId)->exists()) {
                     if (! $force) {
                         $this->warn("  ⏭️  Skipped: {$publicId} (already exists, use --force to replace)");
                         $skipped++;
@@ -193,7 +194,7 @@ class ImportFixtureCharactersCommand extends Command
         $classTestPattern = ' L[0-9]+$';
         $multiclassPattern = ' [0-9]+ / ';  // Contains " X / " pattern
 
-        $characters = \App\Models\Character::where(function ($query) use ($classTestPattern, $multiclassPattern) {
+        $characters = Character::where(function ($query) use ($classTestPattern, $multiclassPattern) {
             $query->where('name', 'regexp', $classTestPattern)
                 ->orWhere('name', 'regexp', $multiclassPattern);
         })->get();

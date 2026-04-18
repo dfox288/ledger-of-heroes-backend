@@ -13,6 +13,7 @@ use App\Models\ProficiencyType;
 use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProficiencyTypeController extends Controller
 {
@@ -82,7 +83,7 @@ class ProficiencyTypeController extends Controller
         if (! $request->has('q') && ! $request->has('category') && ! $request->has('subcategory')) {
             $allProficiencyTypes = $cache->getProficiencyTypes();
             $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginated = new LengthAwarePaginator(
                 $allProficiencyTypes->forPage($currentPage, $perPage),
                 $allProficiencyTypes->count(),
                 $perPage,

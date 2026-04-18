@@ -3,24 +3,28 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Spell;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SpellTest extends TestCase
 {
     #[Test]
     public function spell_belongs_to_spell_school(): void
     {
         $spell = new Spell;
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $spell->spellSchool());
+        $this->assertInstanceOf(BelongsTo::class, $spell->spellSchool());
     }
 
     #[Test]
     public function spell_has_many_sources(): void
     {
         $spell = new Spell;
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\MorphMany::class, $spell->sources());
+        $this->assertInstanceOf(MorphMany::class, $spell->sources());
     }
 
     #[Test]
@@ -32,8 +36,8 @@ class SpellTest extends TestCase
 
     // Computed Accessor Tests
 
-    #[\PHPUnit\Framework\Attributes\Test]
-    #[\PHPUnit\Framework\Attributes\DataProvider('castingTimeTypeProvider')]
+    #[Test]
+    #[DataProvider('castingTimeTypeProvider')]
     public function casting_time_type_is_computed_from_casting_time(string $castingTime, string $expectedType): void
     {
         $spell = new Spell(['casting_time' => $castingTime]);

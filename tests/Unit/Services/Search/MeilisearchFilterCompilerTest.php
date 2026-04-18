@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services\Search;
 
 use App\Services\Search\MeilisearchFilterCompiler;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -18,7 +19,7 @@ use Tests\TestCase;
  * Keywords and operators (AND/OR/NOT/IN/IS/NULL/EMPTY/TO/true/false)
  * and numeric literals must pass through untouched.
  */
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class MeilisearchFilterCompilerTest extends TestCase
 {
     // ============================================================

@@ -3,10 +3,11 @@
 namespace Tests\Unit\Strategies\Race;
 
 use App\Services\Importers\Strategies\Race\BaseRaceStrategy;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class BaseRaceStrategyTest extends TestCase
 {

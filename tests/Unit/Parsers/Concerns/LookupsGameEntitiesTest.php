@@ -6,10 +6,11 @@ use App\Models\AbilityScore;
 use App\Models\Skill;
 use App\Services\Parsers\Concerns\LookupsGameEntities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class LookupsGameEntitiesTest extends TestCase
 {
     use LookupsGameEntities, RefreshDatabase;

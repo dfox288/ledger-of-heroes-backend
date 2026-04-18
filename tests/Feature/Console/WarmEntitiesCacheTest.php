@@ -11,9 +11,11 @@ use App\Models\Race;
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class WarmEntitiesCacheTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,7 +30,7 @@ class WarmEntitiesCacheTest extends TestCase
         Cache::flush();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_warms_all_entities_by_default(): void
     {
         // Arrange: Create sample entities
@@ -54,7 +56,7 @@ class WarmEntitiesCacheTest extends TestCase
         $this->assertTrue(Cache::has("entity:feat:{$feat->id}"));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_can_warm_specific_entity_type(): void
     {
         // Arrange: Create sample entities
@@ -70,7 +72,7 @@ class WarmEntitiesCacheTest extends TestCase
         $this->assertFalse(Cache::has("entity:item:{$item->id}"));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_can_warm_multiple_specific_entity_types(): void
     {
         // Arrange: Create sample entities
@@ -88,7 +90,7 @@ class WarmEntitiesCacheTest extends TestCase
         $this->assertFalse(Cache::has("entity:monster:{$monster->id}"));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_outputs_success_messages(): void
     {
         // Arrange: Create sample entities
@@ -105,7 +107,7 @@ class WarmEntitiesCacheTest extends TestCase
             ->assertExitCode(0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_database_gracefully(): void
     {
         // Act & Assert: Run command on empty database
@@ -117,7 +119,7 @@ class WarmEntitiesCacheTest extends TestCase
             ->assertExitCode(0);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_throws_exception_for_invalid_entity_type(): void
     {
         // Act & Assert: Run command with invalid type

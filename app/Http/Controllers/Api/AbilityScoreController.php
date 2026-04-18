@@ -172,7 +172,7 @@ class AbilityScoreController extends Controller
      * - Save DCs range from 13 (level 1) to 19+ (level 17+)
      *
      * @param  AbilityScore  $abilityScore  The ability score (by ID, code, or name)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function spells(AbilityScore $abilityScore)
     {

@@ -6,7 +6,11 @@ use App\DTOs\SpellSearchDTO;
 use App\Exceptions\Search\InvalidFilterSyntaxException;
 use App\Models\Spell;
 use App\Services\SpellSearchService;
+use Database\Seeders\TestDatabaseSeeder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Laravel\Scout\Builder;
 use MeiliSearch\Client;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +21,7 @@ class SpellSearchServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     private SpellSearchService $service;
 
@@ -80,7 +84,7 @@ class SpellSearchServiceTest extends TestCase
 
         $builder = $this->service->buildScoutQuery($dto);
 
-        $this->assertInstanceOf(\Laravel\Scout\Builder::class, $builder);
+        $this->assertInstanceOf(Builder::class, $builder);
     }
 
     #[Test]
@@ -121,7 +125,7 @@ class SpellSearchServiceTest extends TestCase
 
         // Execute query and check it works
         $results = $builder->get();
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $results);
+        $this->assertInstanceOf(Collection::class, $results);
     }
 
     #[Test]
@@ -138,7 +142,7 @@ class SpellSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertGreaterThan(0, $result->total());
     }
 
@@ -159,7 +163,7 @@ class SpellSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $names = $result->pluck('name')->toArray();
         $this->assertContains($spell->name, $names);
     }
@@ -178,7 +182,7 @@ class SpellSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
 
         foreach ($result->items() as $spell) {
             $this->assertEquals(0, $spell->level, 'All spells should be cantrips (level 0)');
@@ -199,7 +203,7 @@ class SpellSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
 
         foreach ($result->items() as $spell) {
             $this->assertEquals('EV', $spell->spellSchool->code, 'All spells should be Evocation');
@@ -257,7 +261,7 @@ class SpellSearchServiceTest extends TestCase
 
         $result = $this->service->searchWithMeilisearch($dto, $this->client);
 
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $result);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertEquals(0, $result->count());
     }
 

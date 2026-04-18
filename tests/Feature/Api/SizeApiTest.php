@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Size;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,12 +14,12 @@ use Tests\TestCase;
  *
  * These tests use LookupSeeder for stable size data.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class SizeApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function can_get_all_sizes()

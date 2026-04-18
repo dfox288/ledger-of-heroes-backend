@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use App\Models\MulticlassSpellSlot;
+use Database\Seeders\MulticlassSpellSlotSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function it_retrieves_spell_slots_for_caster_level(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(5);
 
@@ -28,7 +29,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function it_caps_at_level_20(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(25);
 
@@ -39,7 +40,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function it_returns_null_for_level_zero(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(0);
 
@@ -49,7 +50,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function it_returns_null_for_negative_level(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(-5);
 
@@ -59,7 +60,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function to_slots_array_returns_correct_structure(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(3);
         $array = $slots->toSlotsArray();
@@ -79,7 +80,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function to_slots_array_has_correct_values_for_level_1(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(1);
         $array = $slots->toSlotsArray();
@@ -93,7 +94,7 @@ class MulticlassSpellSlotTest extends TestCase
     #[Test]
     public function to_slots_array_has_correct_values_for_level_20(): void
     {
-        $this->seed(\Database\Seeders\MulticlassSpellSlotSeeder::class);
+        $this->seed(MulticlassSpellSlotSeeder::class);
 
         $slots = MulticlassSpellSlot::forCasterLevel(20);
         $array = $slots->toSlotsArray();

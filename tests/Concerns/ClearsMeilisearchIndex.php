@@ -4,6 +4,7 @@ namespace Tests\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Meilisearch\Client;
+use Meilisearch\Exceptions\ApiException;
 
 /**
  * Trait for clearing Meilisearch indexes in tests.
@@ -39,7 +40,7 @@ trait ClearsMeilisearchIndex
         try {
             $task = $client->index($indexName)->deleteAllDocuments();
             $client->waitForTask($task['taskUid'], $timeoutMs);
-        } catch (\Meilisearch\Exceptions\ApiException $e) {
+        } catch (ApiException $e) {
             // Index may not exist yet - that's fine
             if (! str_contains($e->getMessage(), 'not found')) {
                 throw $e;

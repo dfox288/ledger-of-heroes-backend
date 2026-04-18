@@ -8,7 +8,7 @@ use App\Models\Skill;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Proficiency>
+ * @extends Factory<Proficiency>
  */
 class ProficiencyFactory extends Factory
 {

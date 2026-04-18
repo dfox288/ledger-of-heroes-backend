@@ -4,6 +4,7 @@ namespace App\Services\Importers\Strategies\Monster;
 
 use App\Models\Monster;
 use App\Services\Importers\Strategies\AbstractImportStrategy;
+use Illuminate\Database\Eloquent\Model;
 
 abstract class AbstractMonsterStrategy extends AbstractImportStrategy
 {
@@ -53,7 +54,7 @@ abstract class AbstractMonsterStrategy extends AbstractImportStrategy
      *
      * @param  Monster  $entity
      */
-    public function afterCreate(\Illuminate\Database\Eloquent\Model $entity, array $data): void
+    public function afterCreate(Model $entity, array $data): void
     {
         // Override in strategies that need post-creation work
     }

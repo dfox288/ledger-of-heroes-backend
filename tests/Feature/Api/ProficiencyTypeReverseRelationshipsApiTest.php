@@ -7,13 +7,15 @@ use App\Models\CharacterClass;
 use App\Models\Proficiency;
 use App\Models\ProficiencyType;
 use App\Models\Race;
+use Database\Seeders\LookupSeeder;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ProficiencyTypeReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     // ========================================
     // Classes Endpoint Tests

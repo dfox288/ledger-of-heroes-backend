@@ -85,6 +85,6 @@ return new class extends Migration
     public function down(): void
     {
         // This migration is not reversible - requires re-import
-        throw new \RuntimeException('This migration cannot be reversed. Run migrate:fresh and re-import.');
+        throw new RuntimeException('This migration cannot be reversed. Run migrate:fresh and re-import.');
     }
 };

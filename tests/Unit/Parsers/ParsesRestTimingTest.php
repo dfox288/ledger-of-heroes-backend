@@ -4,10 +4,11 @@ namespace Tests\Unit\Parsers;
 
 use App\Enums\ResetTiming;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesRestTimingTest extends TestCase
 {
     use ParsesRestTiming;

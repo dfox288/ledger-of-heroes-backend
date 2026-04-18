@@ -8,7 +8,7 @@ use App\Support\NoteCategories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterNote>
+ * @extends Factory<CharacterNote>
  */
 class CharacterNoteFactory extends Factory
 {

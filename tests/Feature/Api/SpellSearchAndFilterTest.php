@@ -3,11 +3,14 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Spell;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 /**
  * Tests for spell search functionality and filter integration.
  *
@@ -25,7 +28,7 @@ class SpellSearchAndFilterTest extends TestCase
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -40,7 +43,7 @@ class SpellSearchAndFilterTest extends TestCase
     // SEARCH FUNCTIONALITY TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_spells_using_scout_when_available(): void
     {
         // Use fixture data - "Acid Splash" exists in TestDatabaseSeeder
@@ -57,7 +60,7 @@ class SpellSearchAndFilterTest extends TestCase
         $this->assertContains('Acid Splash', $names, 'Acid Splash should be in search results');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
         // Use fixture data - returns paginated results (default 15 per page)
@@ -68,7 +71,7 @@ class SpellSearchAndFilterTest extends TestCase
             ->assertJsonPath('meta.total', Spell::count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_special_characters_in_search(): void
     {
         // Use fixture data - Bigby's Hand exists in fixtures
@@ -78,7 +81,7 @@ class SpellSearchAndFilterTest extends TestCase
         $this->assertGreaterThanOrEqual(1, count($response->json('data')));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_query_minimum_length(): void
     {
         $response = $this->getJson('/api/v1/spells?q=a');
@@ -91,7 +94,7 @@ class SpellSearchAndFilterTest extends TestCase
     // COMBINED SEARCH + FILTER TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_combines_search_query_with_filter()
     {
         // Search for "fire" and filter to level <= 3
@@ -107,7 +110,7 @@ class SpellSearchAndFilterTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_meilisearch_results_by_level_with_search(): void
     {
         // Use fixture data - search for "animate" with level 3 filter
@@ -130,7 +133,7 @@ class SpellSearchAndFilterTest extends TestCase
     // BOOLEAN LOGIC (AND/OR) TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_combines_multiple_filters_with_and()
     {
         $response = $this->getJson('/api/v1/spells?filter=level <= 2 AND concentration = false');
@@ -143,7 +146,7 @@ class SpellSearchAndFilterTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_combines_multiple_filters_with_or()
     {
         $response = $this->getJson('/api/v1/spells?filter=school_code = EV OR school_code = C');
@@ -160,7 +163,7 @@ class SpellSearchAndFilterTest extends TestCase
     // FILTER VALIDATION AND ERROR HANDLING TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_filter_max_length()
     {
         $longFilter = str_repeat('level = 1 AND ', 100);
@@ -171,7 +174,7 @@ class SpellSearchAndFilterTest extends TestCase
         $response->assertJsonValidationErrors('filter');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_422_for_invalid_meilisearch_filter(): void
     {
         // This test assumes Meilisearch is running and will reject invalid filters
@@ -190,7 +193,7 @@ class SpellSearchAndFilterTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_provides_documentation_link_in_error_response(): void
     {
         $response = $this->getJson('/api/v1/spells?filter=invalid_syntax');
@@ -201,7 +204,7 @@ class SpellSearchAndFilterTest extends TestCase
         $this->assertStringContainsString('docs/meilisearch-filters', $data['documentation']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_meilisearch_error_message(): void
     {
         $response = $this->getJson('/api/v1/spells?filter=nonexistent_field = value');
@@ -216,7 +219,7 @@ class SpellSearchAndFilterTest extends TestCase
     // PAGINATION TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_paginates_filtered_results()
     {
         $response = $this->getJson('/api/v1/spells?filter=level <= 5&per_page=5&page=1');
@@ -233,7 +236,7 @@ class SpellSearchAndFilterTest extends TestCase
     // SORTING TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_sorts_filtered_results()
     {
         $response = $this->getJson('/api/v1/spells?filter=level <= 3&sort_by=level&sort_direction=desc');
@@ -251,7 +254,7 @@ class SpellSearchAndFilterTest extends TestCase
     // EMPTY RESULTS TESTS
     // ===================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_results_for_impossible_filter()
     {
         $response = $this->getJson('/api/v1/spells?filter=level = 99');

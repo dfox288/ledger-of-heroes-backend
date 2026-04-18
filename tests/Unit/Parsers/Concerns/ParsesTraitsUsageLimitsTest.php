@@ -6,6 +6,7 @@ use App\Enums\ResetTiming;
 use App\Services\Parsers\Concerns\ParsesRestTiming;
 use App\Services\Parsers\Concerns\ParsesTraits;
 use App\Services\Parsers\Concerns\ParsesUsageLimits;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ use Tests\TestCase;
  * These tests verify that ParsesTraits correctly extracts max_uses and resets_on
  * from trait descriptions for features like Breath Weapon, Relentless Endurance, etc.
  */
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesTraitsUsageLimitsTest extends TestCase
 {
     use ParsesRestTiming;
@@ -201,7 +202,7 @@ class ParsesTraitsUsageLimitsTest extends TestCase
     }
 
     // Mock parseRollElements for test isolation
-    protected function parseRollElements(\SimpleXMLElement $element): array
+    protected function parseRollElements(SimpleXMLElement $element): array
     {
         $rolls = [];
         foreach ($element->roll as $rollElement) {

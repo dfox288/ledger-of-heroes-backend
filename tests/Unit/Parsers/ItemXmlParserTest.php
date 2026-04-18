@@ -2,11 +2,14 @@
 
 namespace Tests\Unit\Parsers;
 
+use App\Models\AbilityScore;
+use App\Models\ProficiencyType;
 use App\Services\Parsers\ItemXmlParser;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemXmlParserTest extends TestCase
 {
     private ItemXmlParser $parser;
@@ -40,7 +43,7 @@ XML;
 
         // If database is seeded, should match (optional for unit tests)
         try {
-            if (\App\Models\ProficiencyType::count() > 0) {
+            if (ProficiencyType::count() > 0) {
                 $this->assertNotNull($items[0]['proficiencies'][0]['proficiency_type_id']);
             }
         } catch (\Exception $e) {
@@ -116,7 +119,7 @@ XML;
 
         // If database is seeded, should match Strength (optional for unit tests)
         try {
-            if (\App\Models\AbilityScore::count() > 0) {
+            if (AbilityScore::count() > 0) {
                 $this->assertNotNull($items[0]['modifiers'][0]['ability_score_id']);
             }
         } catch (\Exception $e) {

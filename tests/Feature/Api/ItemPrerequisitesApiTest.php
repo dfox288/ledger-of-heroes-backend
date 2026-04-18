@@ -6,17 +6,20 @@ use App\Models\AbilityScore;
 use App\Models\EntityPrerequisite;
 use App\Models\Item;
 use App\Models\ItemType;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ItemPrerequisitesApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_prerequisites_in_item_show_response()
     {
         // Arrange: Create item with strength requirement prerequisite
@@ -76,7 +79,7 @@ class ItemPrerequisitesApiTest extends TestCase
             ->assertJsonPath('data.prerequisites.0.group_id', 1);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_prerequisites_in_item_index_response()
     {
         // Arrange: Create items with and without prerequisites
@@ -141,7 +144,7 @@ class ItemPrerequisitesApiTest extends TestCase
         $this->assertCount(0, $leatherData['prerequisites']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_empty_prerequisites_array_for_items_without_requirements()
     {
         // Arrange: Create item without prerequisites
@@ -167,7 +170,7 @@ class ItemPrerequisitesApiTest extends TestCase
             ->assertJsonCount(0, 'data.prerequisites');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_eager_loads_prerequisites_to_avoid_n_plus_1_queries()
     {
         // Arrange: Create multiple items with prerequisites

@@ -7,7 +7,7 @@ use App\Models\Party;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EncounterPreset>
+ * @extends Factory<EncounterPreset>
  */
 class EncounterPresetFactory extends Factory
 {

@@ -12,6 +12,7 @@ use App\Services\Cache\LookupCacheService;
 use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SizeController extends Controller
 {
@@ -72,7 +73,7 @@ class SizeController extends Controller
         if (! $request->has('q')) {
             $allSizes = $cache->getSizes();
             $currentPage = $request->input('page', 1);
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginated = new LengthAwarePaginator(
                 $allSizes->forPage($currentPage, $perPage),
                 $allSizes->count(),
                 $perPage,
@@ -186,7 +187,7 @@ class SizeController extends Controller
      * - Gargantuan: 20ft × 20ft space (16 squares)
      * - **Squeezing:** Can squeeze through spaces half your width at half speed (Small through 1.25ft)
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function races(Request $request, Size $size)
     {
@@ -294,7 +295,7 @@ class SizeController extends Controller
      * - **Cavern/outdoor:** Only limitation is Gargantuan (20ft × 20ft minimum)
      * - **Flying creatures:** Size matters less (can maneuver in 3D space)
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function monsters(Request $request, Size $size)
     {

@@ -3,11 +3,12 @@
 namespace Tests\Unit\Parsers\Concerns;
 
 use App\Services\Parsers\Concerns\ParsesTraits;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use SimpleXMLElement;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ParsesTraitsTest extends TestCase
 {
     use ParsesTraits;
@@ -138,7 +139,7 @@ class ParsesTraitsTest extends TestCase
     }
 
     // Mock the parseRollElements method that will come from ParsesRolls trait
-    protected function parseRollElements(\SimpleXMLElement $element): array
+    protected function parseRollElements(SimpleXMLElement $element): array
     {
         $rolls = [];
         foreach ($element->roll as $rollElement) {

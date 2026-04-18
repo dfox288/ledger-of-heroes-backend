@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Item;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,13 +14,13 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class ItemFilterTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     #[Test]
     public function it_filters_items_by_minimum_strength_requirement()

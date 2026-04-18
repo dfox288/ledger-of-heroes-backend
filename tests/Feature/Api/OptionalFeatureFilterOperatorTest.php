@@ -3,7 +3,9 @@
 namespace Tests\Feature\Api;
 
 use App\Models\OptionalFeature;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,13 +14,13 @@ use Tests\TestCase;
  *
  * These tests use fixture data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class OptionalFeatureFilterOperatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     // ============================================================
     // Integer Operators (id field) - 7 tests

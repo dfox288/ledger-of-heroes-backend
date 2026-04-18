@@ -6,6 +6,7 @@ use App\Models\Background;
 use Database\Seeders\Testing\BackgroundFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BackgroundFixtureSeederTest extends TestCase
@@ -121,7 +122,7 @@ class BackgroundFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_backgrounds_from_fixture(): void
     {
         $this->assertDatabaseMissing('backgrounds', ['slug' => 'test-acolyte']);
@@ -140,7 +141,7 @@ class BackgroundFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_skill_proficiencies(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -168,7 +169,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertFalse($religionProf->is_choice);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_tool_proficiencies(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -199,7 +200,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertEquals(1, $gamingSet->quantity);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_language_proficiencies(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -220,7 +221,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertEquals(2, $langProf->quantity);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_background_features(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -237,7 +238,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertStringContainsString('respect of those who share your faith', $trait->description);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -252,7 +253,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertEquals('127', $background->sources->first()->pages);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_backgrounds_without_tool_proficiencies(): void
     {
         $seeder = new BackgroundFixtureSeeder;
@@ -268,7 +269,7 @@ class BackgroundFixtureSeederTest extends TestCase
         $this->assertCount(0, $toolProfs);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_backgrounds_without_language_proficiencies(): void
     {
         $seeder = new BackgroundFixtureSeeder;

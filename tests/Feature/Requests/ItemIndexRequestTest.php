@@ -4,12 +4,14 @@ namespace Tests\Feature\Requests;
 
 use App\Http\Requests\ItemIndexRequest;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ItemIndexRequestTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_per_page_limit()
     {
         $request = new ItemIndexRequest;
@@ -38,7 +40,7 @@ class ItemIndexRequestTest extends TestCase
         $this->assertArrayHasKey('per_page', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_whitelists_sortable_columns()
     {
         $request = new ItemIndexRequest;
@@ -63,7 +65,7 @@ class ItemIndexRequestTest extends TestCase
         $this->assertArrayHasKey('sort_by', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_sort_direction()
     {
         $request = new ItemIndexRequest;
@@ -90,7 +92,7 @@ class ItemIndexRequestTest extends TestCase
         $this->assertArrayHasKey('sort_direction', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_q_parameter()
     {
         $request = new ItemIndexRequest;
@@ -119,7 +121,7 @@ class ItemIndexRequestTest extends TestCase
         $this->assertArrayHasKey('q', $validator->errors()->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_filter_parameter()
     {
         $request = new ItemIndexRequest;

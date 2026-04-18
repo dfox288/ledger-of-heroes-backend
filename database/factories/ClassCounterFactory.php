@@ -6,11 +6,12 @@ use App\Models\CharacterClass;
 use App\Models\ClassCounter;
 use App\Models\Feat;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @deprecated Use EntityCounterFactory instead.
  *
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ClassCounter>
+ * @extends Factory<ClassCounter>
  */
 class ClassCounterFactory extends Factory
 {
@@ -77,7 +78,7 @@ class ClassCounterFactory extends Factory
      *
      * @param  array<string, mixed>|callable  $attributes
      */
-    public function create($attributes = [], ?\Illuminate\Database\Eloquent\Model $parent = null)
+    public function create($attributes = [], ?Model $parent = null)
     {
         // Transform legacy attributes if passed as array
         if (is_array($attributes)) {

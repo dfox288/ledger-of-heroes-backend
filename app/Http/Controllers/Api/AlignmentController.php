@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\LookupResource;
 use App\Models\Monster;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
@@ -65,7 +66,7 @@ class AlignmentController extends Controller
      *
      * @response AnonymousResourceCollection<LookupResource>
      *
-     * @return \Illuminate\Http\JsonResponse JSON response with alignment array [slug, name]
+     * @return JsonResponse JSON response with alignment array [slug, name]
      */
     #[QueryParameter('q', description: 'Search by alignment name (partial match)', example: 'good')]
     #[QueryParameter('per_page', description: 'Results per page, 1-100', example: '50')]

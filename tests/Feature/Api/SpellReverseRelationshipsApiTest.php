@@ -3,14 +3,16 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
+use App\Models\EntitySpell;
 use App\Models\Item;
 use App\Models\Monster;
 use App\Models\Race;
 use App\Models\Spell;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Api\Concerns\ReverseRelationshipTestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
 {
     // ========================================
@@ -133,8 +135,8 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $highElf = Race::factory()->create(['name' => 'High Elf', 'slug' => 'high-elf-'.uniqid()]);
         $human = Race::factory()->create(['name' => 'Human', 'slug' => 'human-'.uniqid()]);
 
-        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id, 'level_requirement' => 1]);
-        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $highElf->id, 'spell_id' => $spell->id, 'is_cantrip' => true]);
+        EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id, 'level_requirement' => 1]);
+        EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $highElf->id, 'spell_id' => $spell->id, 'is_cantrip' => true]);
 
         $this->assertReturnsRelatedEntities("/api/v1/spells/{$spell->slug}/races", 2, ['Drow', 'High Elf']);
     }
@@ -153,7 +155,7 @@ class SpellReverseRelationshipsApiTest extends ReverseRelationshipTestCase
         $spell = Spell::factory()->create(['name' => 'Test Spell']);
         $drow = Race::factory()->create(['name' => 'Drow']);
 
-        \App\Models\EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id]);
+        EntitySpell::create(['reference_type' => Race::class, 'reference_id' => $drow->id, 'spell_id' => $spell->id]);
 
         $this->assertAcceptsAlternativeIdentifier("/api/v1/spells/{$spell->id}/races");
     }

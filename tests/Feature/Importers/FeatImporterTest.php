@@ -2,14 +2,18 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Models\AbilityScore;
+use App\Models\DamageType;
 use App\Models\Feat;
+use App\Models\Spell;
 use App\Services\Importers\FeatImporter;
 use App\Services\Parsers\FeatXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class FeatImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -170,7 +174,7 @@ class FeatImporterTest extends TestCase
         // For unrestricted proficiency choices, we need to bypass the normal flow
         // by creating the feat first, then manually calling importEntityProficiencies
 
-        $feat = \App\Models\Feat::create([
+        $feat = Feat::create([
             'name' => 'Weapon Master',
             'slug' => 'weapon-master',
             'description' => 'You have practiced extensively with weapons.',
@@ -178,7 +182,7 @@ class FeatImporterTest extends TestCase
         ]);
 
         // Call the trait method directly with properly formatted data
-        $importer = new \App\Services\Importers\FeatImporter;
+        $importer = new FeatImporter;
         $reflection = new \ReflectionClass($importer);
         $method = $reflection->getMethod('importEntityProficiencies');
         $method->setAccessible(true);
@@ -278,13 +282,13 @@ class FeatImporterTest extends TestCase
     public function it_imports_feat_with_specific_spell()
     {
         // Create test spells
-        $mistyStep = \App\Models\Spell::factory()->create([
+        $mistyStep = Spell::factory()->create([
             'name' => 'Misty Step',
             'slug' => 'misty-step',
             'level' => 2,
         ]);
 
-        $charisma = \App\Models\AbilityScore::where('code', 'CHA')->first();
+        $charisma = AbilityScore::where('code', 'CHA')->first();
 
         $featData = [
             'name' => 'Fey Touched (Charisma)',
@@ -322,8 +326,8 @@ class FeatImporterTest extends TestCase
     public function it_clears_spells_on_reimport()
     {
         // Create test spells
-        $spell1 = \App\Models\Spell::factory()->create(['name' => 'Spell One', 'slug' => 'spell-one']);
-        $spell2 = \App\Models\Spell::factory()->create(['name' => 'Spell Two', 'slug' => 'spell-two']);
+        $spell1 = Spell::factory()->create(['name' => 'Spell One', 'slug' => 'spell-one']);
+        $spell2 = Spell::factory()->create(['name' => 'Spell Two', 'slug' => 'spell-two']);
 
         $featData = [
             'name' => 'Magic Feat',
@@ -429,8 +433,8 @@ class FeatImporterTest extends TestCase
     public function it_imports_feat_with_damage_resistances()
     {
         // Get damage types that exist in the database (seeded or from import)
-        $cold = \App\Models\DamageType::whereRaw('LOWER(name) = ?', ['cold'])->first();
-        $poison = \App\Models\DamageType::whereRaw('LOWER(name) = ?', ['poison'])->first();
+        $cold = DamageType::whereRaw('LOWER(name) = ?', ['cold'])->first();
+        $poison = DamageType::whereRaw('LOWER(name) = ?', ['poison'])->first();
 
         // Skip test if damage types not available
         if (! $cold || ! $poison) {

@@ -9,6 +9,7 @@ use App\Models\CharacterClass;
 use App\Services\WizardFlowTesting\CharacterRandomizer;
 use App\Services\WizardFlowTesting\FlowExecutor;
 use App\Services\WizardFlowTesting\FlowGenerator;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 /**
@@ -412,7 +413,7 @@ class MulticlassCharacterBuilder
      */
     private function makeRequest(string $method, string $uri, array $data = []): array
     {
-        $request = \Illuminate\Http\Request::create(
+        $request = Request::create(
             $uri,
             $method,
             $method === 'GET' ? $data : [],

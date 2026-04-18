@@ -3,9 +3,12 @@
 namespace Tests\Unit\Seeders;
 
 use App\Models\Feat;
+use App\Models\Race;
+use App\Models\Size;
 use Database\Seeders\Testing\FeatFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FeatFixtureSeederTest extends TestCase
@@ -118,7 +121,7 @@ class FeatFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_feats_from_fixture(): void
     {
         $this->assertDatabaseMissing('feats', ['slug' => 'test-feat-no-prerequisites']);
@@ -134,7 +137,7 @@ class FeatFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_ability_score_improvements(): void
     {
         $seeder = new FeatFixtureSeeder;
@@ -153,14 +156,14 @@ class FeatFixtureSeederTest extends TestCase
         $this->assertFalse($modifier->is_choice);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_race_prerequisites(): void
     {
         // Create the race that will be referenced as a prerequisite
-        $elf = \App\Models\Race::create([
+        $elf = Race::create([
             'name' => 'Elf',
             'slug' => 'elf',
-            'size_id' => \App\Models\Size::first()->id,
+            'size_id' => Size::first()->id,
             'speed' => 30,
         ]);
 
@@ -179,7 +182,7 @@ class FeatFixtureSeederTest extends TestCase
         $this->assertEquals('elf', $prereq->prerequisite->slug);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_ability_score_prerequisites(): void
     {
         $seeder = new FeatFixtureSeeder;
@@ -198,7 +201,7 @@ class FeatFixtureSeederTest extends TestCase
         $this->assertEquals(13, $prereq->minimum_value);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_ability_score_choice_modifiers(): void
     {
         $seeder = new FeatFixtureSeeder;
@@ -218,7 +221,7 @@ class FeatFixtureSeederTest extends TestCase
         $this->assertEquals(1, $modifier->choice_count);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new FeatFixtureSeeder;
@@ -233,7 +236,7 @@ class FeatFixtureSeederTest extends TestCase
         $this->assertEquals('165', $feat->sources->first()->pages);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_feats_without_source(): void
     {
         // Add a feat without source to fixture

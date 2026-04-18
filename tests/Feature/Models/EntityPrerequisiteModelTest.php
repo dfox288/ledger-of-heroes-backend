@@ -9,16 +9,18 @@ use App\Models\Item;
 use App\Models\ProficiencyType;
 use App\Models\Race;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class EntityPrerequisiteModelTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $seed = true;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function feat_has_prerequisites_relationship()
     {
         $feat = Feat::factory()->create();
@@ -34,7 +36,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertInstanceOf(EntityPrerequisite::class, $feat->prerequisites->first());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function item_has_prerequisites_relationship()
     {
         $item = Item::factory()->create();
@@ -47,7 +49,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertCount(1, $item->prerequisites);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function prerequisite_belongs_to_reference_entity()
     {
         $feat = Feat::factory()->create();
@@ -61,7 +63,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertEquals($feat->id, $prerequisite->reference->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function prerequisite_belongs_to_ability_score()
     {
         $feat = Feat::factory()->create();
@@ -76,7 +78,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertEquals($str->id, $prerequisite->prerequisite->id);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function prerequisite_belongs_to_race()
     {
         $feat = Feat::factory()->create();
@@ -91,7 +93,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertEquals('Elf', $prerequisite->prerequisite->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function prerequisite_belongs_to_proficiency_type()
     {
         $feat = Feat::factory()->create();
@@ -106,7 +108,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertEquals('Medium Armor', $prerequisite->prerequisite->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function prerequisite_supports_free_form_description()
     {
         $feat = Feat::factory()->create();
@@ -120,7 +122,7 @@ class EntityPrerequisiteModelTest extends TestCase
         $this->assertEquals('The ability to cast at least one spell', $prerequisite->description);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function feat_can_have_multiple_prerequisites_with_groups()
     {
         $feat = Feat::factory()->create();

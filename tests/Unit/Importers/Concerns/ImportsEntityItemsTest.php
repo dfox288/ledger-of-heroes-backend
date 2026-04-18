@@ -5,9 +5,11 @@ namespace Tests\Unit\Importers\Concerns;
 use App\Models\Item;
 use App\Services\Importers\Concerns\ImportsEntityItems;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ImportsEntityItemsTest extends TestCase
 {
     use RefreshDatabase;
@@ -43,7 +45,7 @@ class ImportsEntityItemsTest extends TestCase
         Item::factory()->create(['name' => 'Arrows']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_matches_exact_item_names()
     {
         $item = $this->traitUser->match('Rapier');
@@ -52,7 +54,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Rapier', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_removes_leading_articles()
     {
         $cases = [
@@ -68,7 +70,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_compound_items_with_and()
     {
         $item = $this->traitUser->match('a shortbow and quiver of arrows (20)');
@@ -77,7 +79,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Shortbow', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_removes_quantity_words()
     {
         $cases = [
@@ -93,7 +95,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_plurals()
     {
         // "javelins" should match "Javelin"
@@ -103,7 +105,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Javelin', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_case_insensitivity()
     {
         $cases = [
@@ -119,7 +121,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_possessives()
     {
         $item = $this->traitUser->match("a burglar's pack");
@@ -128,7 +130,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals("Burglar's Pack", $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_unmatched_items()
     {
         $item = $this->traitUser->match('any martial weapon');
@@ -136,7 +138,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertNull($item);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_complex_real_world_cases()
     {
         $cases = [
@@ -158,7 +160,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_items_with_parenthetical_content()
     {
         $item = $this->traitUser->match('a shortbow (25 arrows)');
@@ -167,7 +169,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Shortbow', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_items_with_commas()
     {
         // Create leather armor item
@@ -179,7 +181,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Leather Armor', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_fuzzy_match_with_starts_with()
     {
         // Create longbow item
@@ -192,7 +194,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Longbow', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_prefers_non_magic_items_in_fuzzy_match()
     {
         // Create both non-magic and magic versions
@@ -206,7 +208,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertFalse($item->is_magic);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_contains_fallback_when_starts_with_fails()
     {
         // Create an item where the match is in the middle
@@ -218,7 +220,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals("Alchemist's Supplies", $result->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_removes_multiple_quantity_words()
     {
         $cases = [
@@ -235,7 +237,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_item_descriptions_with_or()
     {
         // Should extract first item before "or"
@@ -245,7 +247,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Rapier', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_whitespace_variations()
     {
         $cases = [
@@ -261,7 +263,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_category_descriptions()
     {
         $categoryDescriptions = [
@@ -277,7 +279,7 @@ class ImportsEntityItemsTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_string()
     {
         // Empty string gets cleaned to empty, no match possible
@@ -291,7 +293,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertTrue($item === null || $item instanceof Item);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_single_character_descriptions()
     {
         // Single character 'a' is an article that gets removed, leaving empty string
@@ -302,7 +304,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertTrue($item === null || $item instanceof Item);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_logs_fuzzy_match_results()
     {
         // This test verifies logging behavior without asserting logs
@@ -313,7 +315,7 @@ class ImportsEntityItemsTest extends TestCase
         $this->assertEquals('Shortbow', $item->name);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_logs_warnings_for_unmatched_items()
     {
         // This test verifies logging behavior

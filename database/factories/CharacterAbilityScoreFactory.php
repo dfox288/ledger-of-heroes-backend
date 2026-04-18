@@ -7,7 +7,7 @@ use App\Models\CharacterAbilityScore;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CharacterAbilityScore>
+ * @extends Factory<CharacterAbilityScore>
  */
 class CharacterAbilityScoreFactory extends Factory
 {

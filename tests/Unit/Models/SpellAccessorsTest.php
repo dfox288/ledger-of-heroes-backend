@@ -4,6 +4,8 @@ namespace Tests\Unit\Models;
 
 use App\Models\Spell;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -16,7 +18,7 @@ use Tests\TestCase;
  * Edge cases with unusual formatting may not be parsed correctly.
  * See GitHub issues #27 and #28 for known limitations.
  */
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class SpellAccessorsTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,7 +27,7 @@ class SpellAccessorsTest extends TestCase
     // area_of_effect accessor tests
     // =========================================================================
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_cone_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
@@ -40,7 +42,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertEquals(15, $aoe['size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_sphere_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
@@ -55,7 +57,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertEquals(20, $aoe['size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_cube_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
@@ -70,7 +72,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertEquals(15, $aoe['size']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_line_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
@@ -86,7 +88,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertEquals(5, $aoe['width']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_parses_cylinder_area_of_effect(): void
     {
         $spell = Spell::factory()->create([
@@ -102,7 +104,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertEquals(40, $aoe['height']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_spells_without_area(): void
     {
         $spell = Spell::factory()->create([
@@ -113,7 +115,7 @@ class SpellAccessorsTest extends TestCase
         $this->assertNull($spell->area_of_effect);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_empty_description(): void
     {
         $spell = Spell::factory()->create([

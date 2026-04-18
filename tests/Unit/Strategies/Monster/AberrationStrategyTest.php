@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\AberrationStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class AberrationStrategyTest extends TestCase
 {
@@ -18,14 +20,14 @@ class AberrationStrategyTest extends TestCase
         $this->strategy = new AberrationStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_aberration_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'aberration']));
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Aberration']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_aberration_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'fiend']));
@@ -33,7 +35,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'elemental']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_telepathy(): void
     {
         $monsterData = [
@@ -51,7 +53,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertArrayHasKey('telepaths', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_psychic_damage_in_actions(): void
     {
         $actions = [
@@ -77,7 +79,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertArrayHasKey('psychic_attackers', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_mind_control_in_traits(): void
     {
         $traits = [
@@ -98,7 +100,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertArrayHasKey('mind_controllers', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_mind_control_in_actions(): void
     {
         $actions = [
@@ -124,7 +126,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertArrayHasKey('mind_controllers', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_antimagic_abilities(): void
     {
         $traits = [
@@ -145,7 +147,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertArrayHasKey('antimagic_users', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_aberration_metrics(): void
     {
         $monsterData = ['type' => 'aberration'];
@@ -159,7 +161,7 @@ class AberrationStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['aberrations_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

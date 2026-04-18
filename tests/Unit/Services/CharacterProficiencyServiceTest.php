@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Models\AbilityScore;
+use App\Models\Background;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterProficiency;
@@ -1179,12 +1180,12 @@ class CharacterProficiencyServiceTest extends TestCase
         ]);
 
         // Create background with gaming set choice (using 'gaming' subcategory)
-        $knightBackground = \App\Models\Background::factory()->create([
+        $knightBackground = Background::factory()->create([
             'name' => 'Knight of the Order',
             'slug' => 'test:knight-'.uniqid(),
         ]);
         EntityChoice::create([
-            'reference_type' => \App\Models\Background::class,
+            'reference_type' => Background::class,
             'reference_id' => $knightBackground->id,
             'choice_type' => 'proficiency',
             'proficiency_type' => 'tool',
@@ -1240,12 +1241,12 @@ class CharacterProficiencyServiceTest extends TestCase
         ]);
 
         // Create background with musical instrument choice (using 'musical' subcategory)
-        $entertainerBackground = \App\Models\Background::factory()->create([
+        $entertainerBackground = Background::factory()->create([
             'name' => 'Entertainer',
             'slug' => 'test:entertainer-'.uniqid(),
         ]);
         EntityChoice::create([
-            'reference_type' => \App\Models\Background::class,
+            'reference_type' => Background::class,
             'reference_id' => $entertainerBackground->id,
             'choice_type' => 'proficiency',
             'proficiency_type' => 'tool',

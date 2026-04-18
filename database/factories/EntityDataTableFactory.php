@@ -8,7 +8,7 @@ use App\Models\EntityDataTable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityDataTable>
+ * @extends Factory<EntityDataTable>
  */
 class EntityDataTableFactory extends Factory
 {

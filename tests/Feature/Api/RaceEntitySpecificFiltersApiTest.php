@@ -3,7 +3,10 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Race;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -11,20 +14,20 @@ use Tests\TestCase;
  *
  * These tests use factory-based data and are self-contained.
  */
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
-#[\PHPUnit\Framework\Attributes\Group('search-isolated')]
+#[Group('feature-search')]
+#[Group('search-isolated')]
 class RaceEntitySpecificFiltersApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
         parent::setUp();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_ability_bonus_int(): void
     {
         // Get count of races with INT bonuses from pre-imported data
@@ -59,7 +62,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_ability_bonus_str(): void
     {
         // Get count of races with STR bonuses from pre-imported data
@@ -94,7 +97,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_size_small(): void
     {
         // Get count of small races from pre-imported data
@@ -117,7 +120,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_size_medium(): void
     {
         // Act: Filter by size_code = M using Meilisearch
@@ -133,7 +136,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_min_speed_35(): void
     {
         // Get count of races with speed >= 35 from pre-imported data
@@ -154,7 +157,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_has_darkvision_true(): void
     {
         // Get count of races with darkvision tag from pre-imported data
@@ -179,7 +182,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_combined_ability_bonus_and_has_darkvision(): void
     {
         // Get count of races with both INT bonus and darkvision from pre-imported data
@@ -223,7 +226,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_filter_parameter_with_invalid_syntax(): void
     {
         // Act: Send invalid filter syntax (this will be caught by Meilisearch, not validation)
@@ -234,7 +237,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $response->assertStatus(422);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_size_filter(): void
     {
         // Act: Send valid size filter (uses pre-imported data)
@@ -244,7 +247,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $response->assertOk();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_speed_filter(): void
     {
         // Act: Send valid speed filter (uses pre-imported data)
@@ -254,7 +257,7 @@ class RaceEntitySpecificFiltersApiTest extends TestCase
         $response->assertOk();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_valid_darkvision_filter(): void
     {
         // Act: Send valid darkvision filter (uses pre-imported data)

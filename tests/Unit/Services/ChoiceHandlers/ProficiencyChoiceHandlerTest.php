@@ -5,6 +5,7 @@ use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Services\CharacterProficiencyService;
 use App\Services\ChoiceHandlers\ProficiencyChoiceHandler;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 beforeEach(function () {
     $this->proficiencyService = Mockery::mock(CharacterProficiencyService::class);
@@ -324,7 +325,7 @@ it('undoes choice by clearing proficiencies', function () {
     );
 
     // Mock proficiencies relationship
-    $proficienciesQuery = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+    $proficienciesQuery = Mockery::mock(HasMany::class);
     $proficienciesQuery->shouldReceive('where')
         ->with('source', 'class')
         ->andReturnSelf();
@@ -392,12 +393,12 @@ it('skips choices with invalid source slug', function () {
 
 it('transforms service output for subclass_feature source', function () {
     // Mock character with cleric class and nature domain subclass
-    $subclass = Mockery::mock(\stdClass::class);
+    $subclass = Mockery::mock(stdClass::class);
     $subclass->id = 15;
     $subclass->slug = 'phb:cleric-nature-domain';
     $subclass->name = 'Nature Domain';
 
-    $characterClassPivot = Mockery::mock(\stdClass::class);
+    $characterClassPivot = Mockery::mock(stdClass::class);
     $characterClassPivot->subclass = $subclass;
 
     $characterClasses = collect([$characterClassPivot]);

@@ -9,14 +9,16 @@ use App\Models\ItemType;
 use App\Models\Modifier;
 use App\Models\Source;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ItemSearchableTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_searchable_array_with_denormalized_data(): void
     {
         $type = ItemType::firstOrCreate(
@@ -66,7 +68,7 @@ class ItemSearchableTest extends TestCase
         $this->assertEquals(['DMG'], $searchable['source_codes']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_defines_searchable_relationships(): void
     {
         $item = new Item;
@@ -77,7 +79,7 @@ class ItemSearchableTest extends TestCase
         $this->assertContains('damageType', $item->searchableWith());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_uses_correct_search_index_name(): void
     {
         $item = new Item;
@@ -85,7 +87,7 @@ class ItemSearchableTest extends TestCase
         $this->assertEquals('test_items', $item->searchableAs());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_proficiency_category_in_searchable_array(): void
     {
         $meleeType = ItemType::firstOrCreate(
@@ -112,7 +114,7 @@ class ItemSearchableTest extends TestCase
         $this->assertEquals('martial_melee', $searchable['proficiency_category']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_magic_bonus_in_searchable_array(): void
     {
         $meleeType = ItemType::firstOrCreate(
@@ -141,7 +143,7 @@ class ItemSearchableTest extends TestCase
         $this->assertEquals(2, $searchable['magic_bonus']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_new_fields_in_filterable_attributes(): void
     {
         $item = new Item;

@@ -140,7 +140,7 @@ class DamageTypeController extends Controller
      * - Most resisted: Fire, Poison (many creatures have resistance/immunity)
      *
      * @param  DamageType  $damageType  The damage type (by ID, code, or name)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function spells(DamageType $damageType)
     {
@@ -197,7 +197,7 @@ class DamageTypeController extends Controller
      * - Magic weapons override resistances to non-magical damage
      *
      * @param  DamageType  $damageType  The damage type (by ID, code, or name)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function items(DamageType $damageType)
     {

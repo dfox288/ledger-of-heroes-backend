@@ -6,10 +6,11 @@ use App\Models\Modifier;
 use App\Services\Importers\ItemImporter;
 use App\Services\Parsers\ItemXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ItemConditionalSpeedModifierTest extends TestCase
 {
     use RefreshDatabase;

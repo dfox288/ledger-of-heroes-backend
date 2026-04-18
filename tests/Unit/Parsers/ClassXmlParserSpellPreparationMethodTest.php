@@ -3,12 +3,14 @@
 namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\ClassXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 class ClassXmlParserSpellPreparationMethodTest extends TestCase
 {
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_spellbook_method_from_spellcasting_feature_text(): void
     {
         // Wizard has "spellbook" in Spellcasting feature
@@ -39,7 +41,7 @@ XML;
         $this->assertEquals('spellbook', $data[0]['spell_preparation_method']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_known_method_from_spells_known_counters(): void
     {
         // Bard has "Spells Known" counters
@@ -82,7 +84,7 @@ XML;
         $this->assertEquals('known', $data[0]['spell_preparation_method']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_prepared_method_for_casters_without_spells_known(): void
     {
         // Cleric has spellcasting but no spells_known counters or spellbook
@@ -113,7 +115,7 @@ XML;
         $this->assertEquals('prepared', $data[0]['spell_preparation_method']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_non_casters(): void
     {
         // Fighter has no spellcasting ability
@@ -139,7 +141,7 @@ XML;
         $this->assertNull($data[0]['spell_preparation_method']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_spellbook_when_text_detection_fails_but_progression_matches_wizard_formula(): void
     {
         // Edge case: spellbook text check fails, but progression matches Wizard formula (6, 8, 10...)
@@ -193,7 +195,7 @@ XML;
         $this->assertEquals(14, $progression[4]['spells_known']); // Level 5: 14
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_distinguishes_known_casters_from_wizard_by_non_matching_progression(): void
     {
         // Sorcerer's spells_known don't follow Wizard formula (4, 5, 6, 7...)
@@ -247,7 +249,7 @@ XML;
         $this->assertEquals('known', $data[0]['spell_preparation_method']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_optional_spellcasters(): void
     {
         // Fighter with optional slots (Eldritch Knight) - base class is non-caster

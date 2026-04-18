@@ -10,6 +10,9 @@ use App\Models\Feat;
 use App\Models\Language;
 use App\Models\Race;
 use App\Services\Concerns\PopulatesFromEntity;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use InvalidArgumentException;
 
 class CharacterLanguageService
@@ -19,7 +22,7 @@ class CharacterLanguageService
     /**
      * Get all languages known by a character.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, CharacterLanguage>
+     * @return Collection<int, CharacterLanguage>
      */
     public function getCharacterLanguages(Character $character)
     {
@@ -391,7 +394,7 @@ class CharacterLanguageService
      * - Ungrouped records: each is a separate choice with its own quantity
      * - Grouped records: all records in a group represent options for one choice
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\MorphMany  $query
+     * @param  Builder|MorphMany  $query
      */
     private function calculateChoiceQuantityFromEntityChoices($query): int
     {

@@ -3,17 +3,20 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Background;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class BackgroundSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -21,7 +24,7 @@ class BackgroundSearchTest extends TestCase
         $this->artisan('search:configure-indexes');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_backgrounds_using_scout_when_available(): void
     {
         // Use fixture data - Acolyte and Soldier exist in TestDatabaseSeeder
@@ -35,7 +38,7 @@ class BackgroundSearchTest extends TestCase
             ->assertJsonPath('data.0.name', 'Acolyte');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_query_minimum_length(): void
     {
         $response = $this->getJson('/api/v1/backgrounds?q=a');
@@ -44,7 +47,7 @@ class BackgroundSearchTest extends TestCase
             ->assertJsonValidationErrors(['q']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
         // Use fixture data - returns paginated results (default 15 per page)

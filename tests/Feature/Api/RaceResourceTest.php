@@ -6,14 +6,16 @@ use App\Http\Resources\RaceResource;
 use App\Models\Race;
 use App\Models\Size;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class RaceResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_speed_fields_in_resource(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
@@ -35,7 +37,7 @@ class RaceResourceTest extends TestCase
         $this->assertEquals(20, $resource['climb_speed']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_null_for_missing_speeds(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
@@ -57,7 +59,7 @@ class RaceResourceTest extends TestCase
         $this->assertNull($resource['climb_speed']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_includes_subrace_required_in_resource(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);
@@ -73,7 +75,7 @@ class RaceResourceTest extends TestCase
         $this->assertTrue($resource['subrace_required']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_returns_false_for_subrace_required_when_set(): void
     {
         $size = Size::firstOrCreate(['code' => 'M'], ['name' => 'Medium']);

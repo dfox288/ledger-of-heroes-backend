@@ -3,9 +3,11 @@
 namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\DragonStrategy;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class DragonStrategyTest extends TestCase
 {
@@ -17,7 +19,7 @@ class DragonStrategyTest extends TestCase
         $this->strategy = new DragonStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_dragon_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'dragon']));
@@ -25,7 +27,7 @@ class DragonStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'humanoid']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_breath_weapon_recharge(): void
     {
         $actions = [
@@ -41,7 +43,7 @@ class DragonStrategyTest extends TestCase
         $this->assertEquals('5-6', $enhanced[0]['recharge']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_legendary_resistance_recharge(): void
     {
         $traits = [
@@ -57,7 +59,7 @@ class DragonStrategyTest extends TestCase
         $this->assertEquals('3/DAY', $enhanced[0]['recharge']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_metadata(): void
     {
         $monsterData = [

@@ -5,6 +5,7 @@ namespace App\DTOs;
 use App\Models\Character;
 use App\Models\ClassFeature;
 use App\Models\Feat;
+use App\Models\Race;
 use App\Models\Skill;
 use App\Services\CharacterStatCalculator;
 use App\Services\HitDiceService;
@@ -700,7 +701,7 @@ class CharacterStatsDTO
     /**
      * Extract defensive traits from an entity (Race or Feat) that uses HasConditions and HasModifiers traits.
      *
-     * @param  \App\Models\Race|\App\Models\Feat  $entity
+     * @param  Race|Feat  $entity
      */
     private static function extractDefensiveTraitsFromEntity(
         $entity,
@@ -828,7 +829,7 @@ class CharacterStatsDTO
 
         // Get feats from character features
         $featFeatures = $character->features->filter(
-            fn ($f) => $f->feature_type === \App\Models\Feat::class
+            fn ($f) => $f->feature_type === Feat::class
         );
 
         foreach ($featFeatures as $characterFeature) {

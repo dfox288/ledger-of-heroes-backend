@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\CharacterClass;
 use App\Models\EntityChoice;
 use App\Models\Item;
+use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -23,7 +24,7 @@ class ClassEquipmentChoicesApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seeder = \Database\Seeders\LookupSeeder::class;
+    protected $seeder = LookupSeeder::class;
 
     #[Test]
     public function class_show_endpoint_returns_equipment_choices(): void

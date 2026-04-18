@@ -141,7 +141,7 @@ class SpellSchoolController extends Controller
      * - Conjuration: ~45 spells (summoning & teleportation)
      *
      * @param  SpellSchool  $spellSchool  The school of magic (by ID, code, or slug)
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     public function spells(Request $request, SpellSchool $spellSchool)
     {

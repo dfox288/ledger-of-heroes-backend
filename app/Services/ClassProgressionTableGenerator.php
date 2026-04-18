@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\DataTableType;
 use App\Models\CharacterClass;
+use App\Models\EntityDataTable;
 use Illuminate\Support\Collection;
 
 final class ClassProgressionTableGenerator
@@ -79,7 +80,7 @@ final class ClassProgressionTableGenerator
      * Returns tables that have level-based entries (PROGRESSION or DAMAGE type).
      * DAMAGE tables from <roll> elements also contain level progression data.
      *
-     * @return Collection<int, array{feature_name: string, table: \App\Models\EntityDataTable}>
+     * @return Collection<int, array{feature_name: string, table: EntityDataTable}>
      */
     private function getFeatureProgressionTables(CharacterClass $class): Collection
     {

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Character;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -13,7 +15,7 @@ return [
     */
     'models' => [
         'characters' => [
-            'class' => \App\Models\Character::class,
+            'class' => Character::class,
             'collections' => ['portrait', 'token'],
         ],
     ],

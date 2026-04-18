@@ -10,10 +10,11 @@ use App\Models\Race;
 use App\Models\Skill;
 use App\Services\Importers\Concerns\ImportsModifiers;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ImportsModifiersTest extends TestCase
 {
     use ImportsModifiers;

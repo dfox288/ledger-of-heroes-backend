@@ -3,9 +3,11 @@
 namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\UndeadStrategy;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class UndeadStrategyTest extends TestCase
 {
     protected UndeadStrategy $strategy;
@@ -16,7 +18,7 @@ class UndeadStrategyTest extends TestCase
         $this->strategy = new UndeadStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_undead_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'undead']));
@@ -24,7 +26,7 @@ class UndeadStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'humanoid']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_metadata_for_turn_resistance(): void
     {
         $monsterData = [
@@ -38,7 +40,7 @@ class UndeadStrategyTest extends TestCase
         $this->assertTrue($metadata['has_turn_resistance']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_extracts_metadata_for_sunlight_sensitivity(): void
     {
         $monsterData = [

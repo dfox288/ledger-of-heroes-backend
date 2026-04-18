@@ -3,17 +3,20 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Race;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\WaitsForMeilisearch;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-search')]
+#[Group('feature-search')]
 class RaceSearchTest extends TestCase
 {
     use RefreshDatabase;
     use WaitsForMeilisearch;
 
-    protected $seeder = \Database\Seeders\TestDatabaseSeeder::class;
+    protected $seeder = TestDatabaseSeeder::class;
 
     protected function setUp(): void
     {
@@ -21,7 +24,7 @@ class RaceSearchTest extends TestCase
         $this->artisan('search:configure-indexes');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_searches_races_using_scout_when_available(): void
     {
         // Use fixture data - Dwarf and Elf exist in TestDatabaseSeeder
@@ -35,7 +38,7 @@ class RaceSearchTest extends TestCase
             ->assertJsonPath('data.0.name', 'Dwarf');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_search_query_minimum_length(): void
     {
         $response = $this->getJson('/api/v1/races?q=a');
@@ -44,7 +47,7 @@ class RaceSearchTest extends TestCase
             ->assertJsonValidationErrors(['q']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_empty_search_query_gracefully(): void
     {
         // Use fixture data - returns paginated results (default 15 per page)
@@ -55,7 +58,7 @@ class RaceSearchTest extends TestCase
             ->assertJsonPath('meta.total', Race::count());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_subrace_required_false(): void
     {
         // Filter for races where subrace selection is optional (base race is complete)
@@ -77,7 +80,7 @@ class RaceSearchTest extends TestCase
         $this->assertNotContains('Dwarf', $names);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_filters_races_by_subrace_required_true(): void
     {
         // Filter for races where subrace selection is required

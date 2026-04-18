@@ -6,6 +6,7 @@ use App\Models\Monster;
 use Database\Seeders\Testing\MonsterFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class MonsterFixtureSeederTest extends TestCase
@@ -70,7 +71,7 @@ class MonsterFixtureSeederTest extends TestCase
         parent::tearDown();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_monsters_from_fixture(): void
     {
         $this->assertDatabaseMissing('monsters', ['slug' => 'test-dragon']);
@@ -88,7 +89,7 @@ class MonsterFixtureSeederTest extends TestCase
         ]);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_resolves_size_by_code(): void
     {
         $seeder = new MonsterFixtureSeeder;
@@ -99,7 +100,7 @@ class MonsterFixtureSeederTest extends TestCase
         $this->assertEquals('L', $monster->size->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_damage_immunities(): void
     {
         $seeder = new MonsterFixtureSeeder;
@@ -116,7 +117,7 @@ class MonsterFixtureSeederTest extends TestCase
         $this->assertEquals('F', $damageImmunities->first()->damageType->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_condition_immunities(): void
     {
         $seeder = new MonsterFixtureSeeder;
@@ -133,7 +134,7 @@ class MonsterFixtureSeederTest extends TestCase
         $this->assertEquals('frightened', $conditionImmunities->first()->value);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_damage_resistances(): void
     {
         // Add a fixture with damage resistance
@@ -189,7 +190,7 @@ class MonsterFixtureSeederTest extends TestCase
         $this->assertEquals(['P', 'S'], $resistanceCodes->toArray());
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_damage_vulnerabilities(): void
     {
         // Add a fixture with damage vulnerability
@@ -244,7 +245,7 @@ class MonsterFixtureSeederTest extends TestCase
         $this->assertEquals('F', $damageVulnerabilities->first()->damageType->code);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_creates_entity_sources(): void
     {
         $seeder = new MonsterFixtureSeeder;

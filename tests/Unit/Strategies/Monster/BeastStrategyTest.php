@@ -4,9 +4,11 @@ namespace Tests\Unit\Strategies\Monster;
 
 use App\Services\Importers\Strategies\Monster\BeastStrategy;
 use App\Services\Parsers\MonsterXmlParser;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('unit-pure')]
+#[Group('unit-pure')]
 
 class BeastStrategyTest extends TestCase
 {
@@ -18,14 +20,14 @@ class BeastStrategyTest extends TestCase
         $this->strategy = new BeastStrategy;
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_applies_to_beast_type(): void
     {
         $this->assertTrue($this->strategy->appliesTo(['type' => 'beast']));
         $this->assertTrue($this->strategy->appliesTo(['type' => 'Beast']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_does_not_apply_to_non_beast_type(): void
     {
         $this->assertFalse($this->strategy->appliesTo(['type' => 'dragon']));
@@ -33,7 +35,7 @@ class BeastStrategyTest extends TestCase
         $this->assertFalse($this->strategy->appliesTo(['type' => 'elemental']));
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_keen_senses(): void
     {
         $traits = [
@@ -57,7 +59,7 @@ class BeastStrategyTest extends TestCase
         $this->assertArrayHasKey('keen_senses_count', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_pack_tactics(): void
     {
         $traits = [
@@ -81,7 +83,7 @@ class BeastStrategyTest extends TestCase
         $this->assertArrayHasKey('pack_tactics_count', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_charge_mechanics(): void
     {
         $traits = [
@@ -105,7 +107,7 @@ class BeastStrategyTest extends TestCase
         $this->assertArrayHasKey('charge_count', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_detects_special_movement(): void
     {
         $traits = [
@@ -133,7 +135,7 @@ class BeastStrategyTest extends TestCase
         $this->assertArrayHasKey('special_movement_count', $metadata['metrics']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_tracks_beast_metrics(): void
     {
         $monsterData = [
@@ -149,7 +151,7 @@ class BeastStrategyTest extends TestCase
         $this->assertEquals(1, $metadata['metrics']['beasts_enhanced']);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_integrates_with_real_xml_fixture(): void
     {
         $parser = new MonsterXmlParser;

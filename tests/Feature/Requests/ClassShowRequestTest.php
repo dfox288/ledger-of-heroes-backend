@@ -4,9 +4,11 @@ namespace Tests\Feature\Requests;
 
 use App\Models\CharacterClass;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('feature-db')]
+#[Group('feature-db')]
 class ClassShowRequestTest extends TestCase
 {
     use RefreshDatabase;
@@ -16,7 +18,7 @@ class ClassShowRequestTest extends TestCase
         parent::setUp();
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_includable_relationships(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Wizard']);
@@ -45,7 +47,7 @@ class ClassShowRequestTest extends TestCase
         $response->assertJsonValidationErrors('include.0');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_validates_selectable_fields(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Cleric']);
@@ -64,7 +66,7 @@ class ClassShowRequestTest extends TestCase
         $response->assertJsonValidationErrors('fields.0');
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_multiple_includes(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Bard']);
@@ -76,7 +78,7 @@ class ClassShowRequestTest extends TestCase
         $response->assertStatus(200);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_accepts_multiple_fields(): void
     {
         $class = CharacterClass::factory()->create(['name' => 'Sorcerer']);

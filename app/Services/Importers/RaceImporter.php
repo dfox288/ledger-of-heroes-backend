@@ -2,10 +2,15 @@
 
 namespace App\Services\Importers;
 
+use App\Enums\DataTableType;
 use App\Enums\ResetTiming;
+use App\Exceptions\Import\FileNotFoundException;
 use App\Models\AbilityScore;
 use App\Models\CharacterTrait;
+use App\Models\DamageType;
 use App\Models\EntityCounter;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
 use App\Models\Modifier;
 use App\Models\Race;
 use App\Models\Size;
@@ -306,7 +311,7 @@ class RaceImporter extends BaseImporter
         // Transform damage resistances into modifier format
         foreach ($resistancesData as $resistanceData) {
             // Look up damage type by name (case-insensitive for SQLite compatibility)
-            $damageType = \App\Models\DamageType::whereRaw('LOWER(name) = ?', [strtolower($resistanceData['damage_type'])])->first();
+            $damageType = DamageType::whereRaw('LOWER(name) = ?', [strtolower($resistanceData['damage_type'])])->first();
 
             if ($damageType) {
                 $modifiersData[] = [
@@ -387,7 +392,7 @@ class RaceImporter extends BaseImporter
     {
         // Use parent's file validation (throws FileNotFoundException)
         if (! file_exists($filePath)) {
-            throw new \App\Exceptions\Import\FileNotFoundException($filePath);
+            throw new FileNotFoundException($filePath);
         }
 
         $xmlContent = file_get_contents($filePath);
@@ -449,18 +454,18 @@ class RaceImporter extends BaseImporter
 
                 if ($hasLevelScaling && count($rolls) > 1) {
                     // Level-scaling progression: create ONE table with entries per level
-                    $dataTable = \App\Models\EntityDataTable::create([
-                        'reference_type' => \App\Models\CharacterTrait::class,
+                    $dataTable = EntityDataTable::create([
+                        'reference_type' => CharacterTrait::class,
                         'reference_id' => $trait->id,
                         'table_name' => $description,
                         'dice_type' => null, // Dice stored in entries for progressions
-                        'table_type' => \App\Enums\DataTableType::PROGRESSION,
+                        'table_type' => DataTableType::PROGRESSION,
                         'description' => "From trait: {$traitData['name']}",
                     ]);
 
                     // Create entries for each level tier
                     foreach ($rolls as $sortOrder => $roll) {
-                        \App\Models\EntityDataTableEntry::create([
+                        EntityDataTableEntry::create([
                             'entity_data_table_id' => $dataTable->id,
                             'level' => $roll['level'],
                             'result_text' => $roll['formula'],
@@ -470,12 +475,12 @@ class RaceImporter extends BaseImporter
                 } else {
                     // Non-leveled roll(s): create individual table(s) as before
                     foreach ($rolls as $roll) {
-                        $dataTable = \App\Models\EntityDataTable::create([
-                            'reference_type' => \App\Models\CharacterTrait::class,
+                        $dataTable = EntityDataTable::create([
+                            'reference_type' => CharacterTrait::class,
                             'reference_id' => $trait->id,
                             'table_name' => $description,
                             'dice_type' => $roll['formula'],
-                            'table_type' => \App\Enums\DataTableType::RANDOM,
+                            'table_type' => DataTableType::RANDOM,
                             'description' => "From trait: {$traitData['name']}",
                         ]);
                     }
@@ -497,7 +502,7 @@ class RaceImporter extends BaseImporter
         $abilityScore = null;
         if (! empty($spellcastingData['ability'])) {
             $code = strtoupper(substr($spellcastingData['ability'], 0, 3));
-            $abilityScore = \App\Models\AbilityScore::where('code', $code)->first();
+            $abilityScore = AbilityScore::where('code', $code)->first();
         }
 
         // Transform parsed spells into format expected by ImportsEntitySpells trait

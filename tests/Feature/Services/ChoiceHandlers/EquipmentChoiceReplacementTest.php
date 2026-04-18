@@ -3,11 +3,13 @@
 namespace Tests\Feature\Services\ChoiceHandlers;
 
 use App\DTOs\PendingChoice;
+use App\Exceptions\InvalidSelectionException;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\CharacterClassPivot;
 use App\Models\EntityChoice;
 use App\Models\Item;
+use App\Models\ProficiencyType;
 use App\Services\ChoiceHandlers\EquipmentChoiceHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -405,7 +407,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         expect(fn () => $this->handler->resolve($character, $choice, [
             'selected' => ['b'],
             'item_selections' => ['b' => ['phb:nonexistent-item']],
-        ]))->toThrow(\App\Exceptions\InvalidSelectionException::class);
+        ]))->toThrow(InvalidSelectionException::class);
     }
 
     #[Test]
@@ -496,7 +498,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         expect(fn () => $this->handler->resolve($character, $choice, [
             'selected' => ['b'],
             // No item_selections provided
-        ]))->toThrow(\App\Exceptions\InvalidSelectionException::class, 'has 3 items to choose from');
+        ]))->toThrow(InvalidSelectionException::class, 'has 3 items to choose from');
 
         // Verify no equipment was granted
         expect($character->fresh()->equipment)->toHaveCount(0);
@@ -1144,7 +1146,7 @@ class EquipmentChoiceReplacementTest extends TestCase
         ]);
 
         // Create a proficiency type for simple weapons
-        $simpleProfType = \App\Models\ProficiencyType::firstOrCreate(
+        $simpleProfType = ProficiencyType::firstOrCreate(
             ['slug' => 'core:simple-weapons'],
             ['name' => 'Simple Weapons', 'category' => 'weapon', 'subcategory' => 'simple']
         );

@@ -4,6 +4,7 @@ namespace Tests\Unit\Parsers;
 
 use App\Services\Parsers\ClassXmlParser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -16,7 +17,7 @@ use Tests\TestCase;
  * - AND: "• Dexterity 13\n• Wisdom 13"
  * - OR: "• Strength 13, or\n• Dexterity 13"
  */
-#[\PHPUnit\Framework\Attributes\Group('unit-db')]
+#[Group('unit-db')]
 class ClassXmlParserMulticlassRequirementsTest extends TestCase
 {
     use RefreshDatabase;

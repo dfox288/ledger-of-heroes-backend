@@ -3,12 +3,18 @@
 namespace Tests\Feature\Importers;
 
 use App\Models\Item;
+use App\Models\ItemType;
 use App\Models\Spell;
+use App\Models\SpellSchool;
+use Database\Seeders\ItemTypeSeeder;
+use Database\Seeders\SpellSchoolSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class ItemSpellsImportTest extends TestCase
 {
     use RefreshDatabase;
@@ -19,15 +25,15 @@ class ItemSpellsImportTest extends TestCase
 
         // Seed required lookup data (only if not already seeded)
         // Sources are created via factory when needed by getSource()
-        if (\App\Models\SpellSchool::count() === 0) {
-            $this->seed(\Database\Seeders\SpellSchoolSeeder::class);
+        if (SpellSchool::count() === 0) {
+            $this->seed(SpellSchoolSeeder::class);
         }
-        if (\App\Models\ItemType::count() === 0) {
-            $this->seed(\Database\Seeders\ItemTypeSeeder::class);
+        if (ItemType::count() === 0) {
+            $this->seed(ItemTypeSeeder::class);
         }
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_imports_staff_of_healing_with_spell_charge_costs()
     {
         // Create the spells that the staff can cast
@@ -92,7 +98,7 @@ XML;
         fclose($xmlFile);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_items_without_spells_gracefully()
     {
         // Import Wand of Smiles (has charges but no spells)
@@ -127,7 +133,7 @@ XML;
         fclose($xmlFile);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_skips_spells_that_dont_exist_in_database()
     {
         // Create only one of the spells
@@ -163,7 +169,7 @@ XML;
         fclose($xmlFile);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_updates_spell_charge_costs_on_reimport()
     {
         $cureWounds = Spell::factory()->create(['name' => 'Cure Wounds', 'level' => 1]);
@@ -215,7 +221,7 @@ XML;
         fclose($xmlFile);
     }
 
-    #[\PHPUnit\Framework\Attributes\Test]
+    #[Test]
     public function it_handles_case_insensitive_spell_name_matching()
     {
         // Create spell with specific casing

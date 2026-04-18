@@ -4,6 +4,8 @@ namespace Tests\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Meilisearch\Client;
+use Meilisearch\Contracts\TasksQuery;
+use Meilisearch\Exceptions\ApiException;
 
 /**
  * Trait for waiting on Meilisearch indexing operations in tests.
@@ -80,7 +82,7 @@ trait WaitsForMeilisearch
                     foreach ($expectedIds as $id) {
                         try {
                             $index->getDocument($id);
-                        } catch (\Meilisearch\Exceptions\ApiException $e) {
+                        } catch (ApiException $e) {
                             // Document not found yet
                             $allFound = false;
                             break;
@@ -126,7 +128,7 @@ trait WaitsForMeilisearch
 
             try {
                 // Get pending/processing tasks for this index using TasksQuery
-                $tasksQuery = new \Meilisearch\Contracts\TasksQuery;
+                $tasksQuery = new TasksQuery;
                 $tasksQuery->setIndexUids([$indexName]);
                 $tasksQuery->setStatuses(['enqueued', 'processing']);
 

@@ -7,6 +7,7 @@ use App\Http\Requests\ItemPropertyIndexRequest;
 use App\Http\Resources\ItemPropertyResource;
 use App\Models\ItemProperty;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ItemPropertyController extends Controller
 {
@@ -45,7 +46,7 @@ class ItemPropertyController extends Controller
      * - **Build Optimization:** Find versatile weapons for flexibility
      * - **Feat Planning:** Identify heavy weapons for Great Weapon Master
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return AnonymousResourceCollection
      */
     #[QueryParameter('q', description: 'Search properties by name', example: 'finesse')]
     public function index(ItemPropertyIndexRequest $request)

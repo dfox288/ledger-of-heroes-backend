@@ -4,7 +4,9 @@ namespace Tests\Feature\Api;
 
 use App\Models\Character;
 use App\Models\CharacterEquipment;
+use App\Models\DamageType;
 use App\Models\Item;
+use App\Models\ItemProperty;
 use App\Models\ItemType;
 use Database\Seeders\LookupSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -619,7 +621,7 @@ class CharacterEquipmentApiTest extends TestCase
 
         // Create a melee weapon with damage type and versatile damage
         $meleeType = ItemType::where('code', 'M')->first();
-        $slashingType = \App\Models\DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
+        $slashingType = DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
 
         $longsword = Item::create([
             'name' => 'Test Longsword',
@@ -633,7 +635,7 @@ class CharacterEquipmentApiTest extends TestCase
         ]);
 
         // Attach properties (Versatile)
-        $versatileProperty = \App\Models\ItemProperty::firstOrCreate(
+        $versatileProperty = ItemProperty::firstOrCreate(
             ['code' => 'V'],
             ['name' => 'Versatile', 'description' => 'Can be used two-handed']
         );
@@ -663,7 +665,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $rangedType = ItemType::where('code', 'R')->first();
-        $piercingType = \App\Models\DamageType::firstOrCreate(['name' => 'Piercing'], ['slug' => 'piercing']);
+        $piercingType = DamageType::firstOrCreate(['name' => 'Piercing'], ['slug' => 'piercing']);
 
         $longbow = Item::create([
             'name' => 'Test Longbow',
@@ -784,7 +786,7 @@ class CharacterEquipmentApiTest extends TestCase
         $character = Character::factory()->create();
 
         $meleeType = ItemType::where('code', 'M')->first();
-        $slashingType = \App\Models\DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
+        $slashingType = DamageType::firstOrCreate(['name' => 'Slashing'], ['slug' => 'slashing']);
 
         $magicSword = Item::create([
             'name' => '+1 Longsword',

@@ -9,7 +9,7 @@ use App\Models\Feat;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityCounter>
+ * @extends Factory<EntityCounter>
  */
 class EntityCounterFactory extends Factory
 {

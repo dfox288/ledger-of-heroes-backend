@@ -87,10 +87,6 @@ class ClassFixtureSeeder extends FixtureSeeder
                     'ability_score_id' => $abilityScore?->id,
                     'item_id' => $profItem?->id,
                     'grants' => $profData['grants'],
-                    'is_choice' => $profData['is_choice'],
-                    'choice_group' => $profData['choice_group'],
-                    'choice_option' => $profData['choice_option'],
-                    'quantity' => $profData['quantity'],
                     'level' => $profData['level'],
                 ]);
             }

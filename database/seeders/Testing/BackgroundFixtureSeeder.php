@@ -51,8 +51,6 @@ class BackgroundFixtureSeeder extends FixtureSeeder
                     'proficiency_type' => 'skill',
                     'skill_id' => $skill?->id,
                     'proficiency_name' => $skillProf['proficiency_name'],
-                    'is_choice' => $skillProf['is_choice'] ?? false,
-                    'quantity' => $skillProf['quantity'] ?? null,
                 ]);
             }
         }
@@ -72,8 +70,6 @@ class BackgroundFixtureSeeder extends FixtureSeeder
                     'proficiency_subcategory' => $toolProf['proficiency_subcategory'] ?? null,
                     'proficiency_name' => $toolProf['proficiency_name'],
                     'item_id' => $item?->id,
-                    'is_choice' => $toolProf['is_choice'] ?? false,
-                    'quantity' => $toolProf['quantity'] ?? null,
                 ]);
             }
         }
@@ -86,8 +82,6 @@ class BackgroundFixtureSeeder extends FixtureSeeder
                     'reference_id' => $background->id,
                     'proficiency_type' => 'language',
                     'proficiency_name' => $langProf['proficiency_name'],
-                    'is_choice' => $langProf['is_choice'] ?? false,
-                    'quantity' => $langProf['quantity'] ?? null,
                 ]);
             }
         }
@@ -101,8 +95,6 @@ class BackgroundFixtureSeeder extends FixtureSeeder
                     'proficiency_type' => $otherProf['proficiency_type'],
                     'proficiency_subcategory' => $otherProf['proficiency_subcategory'] ?? null,
                     'proficiency_name' => $otherProf['proficiency_name'],
-                    'is_choice' => $otherProf['is_choice'] ?? false,
-                    'quantity' => $otherProf['quantity'] ?? null,
                 ]);
             }
         }

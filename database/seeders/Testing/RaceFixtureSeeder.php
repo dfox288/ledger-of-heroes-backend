@@ -81,7 +81,6 @@ class RaceFixtureSeeder extends FixtureSeeder
                     'modifier_category' => 'ability_score',
                     'ability_score_id' => $abilityScore?->id,
                     'value' => $bonus['bonus'],
-                    'is_choice' => $bonus['is_choice'] ?? false,
                 ]);
             }
         }

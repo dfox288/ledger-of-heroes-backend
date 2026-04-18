@@ -129,8 +129,6 @@ class FeatFixtureSeeder extends FixtureSeeder
             'modifier_category' => 'ability_score',
             'ability_score_id' => $abilityScoreId,
             'value' => $improvement['value'],
-            'is_choice' => $improvement['is_choice'] ?? false,
-            'choice_count' => $improvement['choice_count'] ?? null,
         ]);
     }
 }

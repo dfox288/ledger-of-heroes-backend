@@ -155,3 +155,36 @@ Spell::factory()->create(['level' => 0, 'is_cantrip' => true]);
 Spell::factory()->cantrip()->create();
 Spell::factory()->cantrip()->create();
 ```
+
+### Conditional Skips Based on Fixture Content
+
+```php
+// ❌ WRONG - Skip fires when fixture data happens to lack a matching row.
+// Conflates "feature is broken" with "no data for this scenario" — both
+// paths look like success in CI, so real regressions slide through silently.
+public function feat_includes_modifiers_in_response(): void
+{
+    $feat = Feat::whereHas('modifiers')->first();
+
+    if (! $feat) {
+        $this->markTestSkipped('No feats with modifiers in imported data');
+    }
+
+    // ... assertions ...
+}
+
+// ✅ CORRECT - Factory-seed the scenario the test needs.
+// Runs deterministically on every invocation; a genuine regression
+// in the Resource's modifier serialization actually fails the test.
+public function feat_includes_modifiers_in_response(): void
+{
+    $feat = Feat::factory()->create();
+    Modifier::factory()->forEntity(Feat::class, $feat->id)->create();
+
+    // ... assertions ...
+}
+```
+
+**Rule:** Don't gate a test on `if (! $fixtureRow) { markTestSkipped(...) }`. Either factory-seed the scenario, or delete the test entirely (if a sibling test covers the same code path with guaranteed data). A test that sometimes skips and sometimes runs is worse than no test at all — it creates a false sense of coverage.
+
+Legitimate `markTestSkipped` uses are narrow: infrastructure dependencies (Redis/Meilisearch not configured, XML source files missing), feature-gated behavior (`auth:sanctum` not enabled yet), and platform-specific paths. The skip message should say *why the environment blocks the test*, never *what content the fixtures happen to contain*.

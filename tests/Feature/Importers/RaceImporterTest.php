@@ -2,15 +2,23 @@
 
 namespace Tests\Feature\Importers;
 
+use App\Enums\DataTableType;
 use App\Models\AbilityScore;
+use App\Models\CharacterClass;
+use App\Models\CharacterTrait;
+use App\Models\Condition;
+use App\Models\DamageType;
 use App\Models\EntityChoice;
 use App\Models\Race;
+use App\Models\Sense;
+use App\Models\Spell;
 use App\Services\Importers\RaceImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-#[\PHPUnit\Framework\Attributes\Group('importers')]
+#[Group('importers')]
 class RaceImporterTest extends TestCase
 {
     use RefreshDatabase;
@@ -529,7 +537,7 @@ XML;
         $this->assertEquals('2d8', $sizeTable->dice_type);
 
         // Verify the data table references the trait (canonical relationship)
-        $this->assertEquals(\App\Models\CharacterTrait::class, $sizeTable->reference_type);
+        $this->assertEquals(CharacterTrait::class, $sizeTable->reference_type);
         $this->assertEquals($sizeTrait->id, $sizeTable->reference_id);
     }
 
@@ -594,7 +602,7 @@ XML;
     public function it_imports_conditions()
     {
         // Create frightened condition if it doesn't exist
-        $condition = \App\Models\Condition::firstOrCreate(
+        $condition = Condition::firstOrCreate(
             ['slug' => 'frightened'],
             ['name' => 'Frightened', 'description' => 'Test condition']
         );
@@ -627,13 +635,13 @@ XML;
     public function it_imports_racial_spells()
     {
         // Create a test spell
-        $spell = \App\Models\Spell::factory()->create([
+        $spell = Spell::factory()->create([
             'name' => 'Thaumaturgy',
             'slug' => 'thaumaturgy',
             'level' => 0,
         ]);
 
-        $charisma = \App\Models\AbilityScore::where('code', 'CHA')->first();
+        $charisma = AbilityScore::where('code', 'CHA')->first();
 
         $raceData = [
             'name' => 'Test Race',
@@ -669,7 +677,7 @@ XML;
     public function it_imports_cantrip_choice_from_class_spell_list()
     {
         // Create wizard class for lookup
-        $wizard = \App\Models\CharacterClass::factory()->create([
+        $wizard = CharacterClass::factory()->create([
             'slug' => 'wizard',
             'name' => 'Wizard',
         ]);
@@ -700,7 +708,7 @@ XML;
         $race = $this->importer->import($raceData);
 
         // Check that a spell choice record was created in EntityChoice
-        $spellChoices = EntityChoice::where('reference_type', \App\Models\Race::class)
+        $spellChoices = EntityChoice::where('reference_type', Race::class)
             ->where('reference_id', $race->id)
             ->where('choice_type', 'spell')
             ->get();
@@ -718,7 +726,7 @@ XML;
     public function it_imports_darkvision_from_traits()
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         $raceData = [
             'name' => 'Dwarf, Hill',
@@ -743,7 +751,7 @@ XML;
         $this->assertCount(1, $senses);
 
         $darkvision = $senses->first();
-        $this->assertEquals('darkvision', $darkvision->sense->slug);
+        $this->assertEquals('core:darkvision', $darkvision->sense->slug);
         $this->assertEquals(60, $darkvision->range_feet);
     }
 
@@ -751,7 +759,7 @@ XML;
     public function it_imports_superior_darkvision_with_120_ft_range()
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         $raceData = [
             'name' => 'Elf, Drow',
@@ -776,7 +784,7 @@ XML;
         $this->assertCount(1, $senses);
 
         $darkvision = $senses->first();
-        $this->assertEquals('darkvision', $darkvision->sense->slug);
+        $this->assertEquals('core:darkvision', $darkvision->sense->slug);
         $this->assertEquals(120, $darkvision->range_feet);
     }
 
@@ -784,7 +792,7 @@ XML;
     public function it_populates_base_race_with_species_traits_from_first_subrace()
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         $xml = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -864,7 +872,7 @@ XML;
     public function it_populates_base_race_with_modifiers_from_first_subrace()
     {
         // Verify poison damage type exists (seeded by LookupSeeder)
-        $poisonType = \App\Models\DamageType::where('name', 'Poison')->first();
+        $poisonType = DamageType::where('name', 'Poison')->first();
         $this->assertNotNull($poisonType, 'Poison damage type should be seeded');
 
         $xml = <<<'XML'
@@ -1209,7 +1217,7 @@ XML;
     public function it_expands_tiefling_variants_into_separate_subraces()
     {
         // Create required sense types
-        \App\Models\Sense::firstOrCreate(['slug' => 'darkvision'], ['name' => 'Darkvision']);
+        Sense::firstOrCreate(['slug' => 'core:darkvision'], ['name' => 'Darkvision']);
 
         // First create the base Tiefling race (from PHB)
         $baseTiefling = Race::factory()->create([
@@ -1743,7 +1751,7 @@ XML;
         // Check the Damage progression table
         $damageTable = $dataTables->where('table_name', 'Damage')->first();
         $this->assertNotNull($damageTable, 'Damage table should exist');
-        $this->assertEquals(\App\Enums\DataTableType::PROGRESSION, $damageTable->table_type);
+        $this->assertEquals(DataTableType::PROGRESSION, $damageTable->table_type);
 
         // Check the level entries
         $entries = $damageTable->entries()->orderBy('level')->get();
@@ -1764,7 +1772,7 @@ XML;
         // Check the Saving Throw table (no level = RANDOM type)
         $savingThrowTable = $dataTables->where('table_name', 'Saving Throw')->first();
         $this->assertNotNull($savingThrowTable, 'Saving Throw table should exist');
-        $this->assertEquals(\App\Enums\DataTableType::RANDOM, $savingThrowTable->table_type);
+        $this->assertEquals(DataTableType::RANDOM, $savingThrowTable->table_type);
         $this->assertEquals('8+%3+%8', $savingThrowTable->dice_type);
     }
 

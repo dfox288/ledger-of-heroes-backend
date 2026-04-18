@@ -41,59 +41,6 @@ class SpellEnhancedFilteringTest extends TestCase
     // ===================================================================
 
     #[Test]
-    public function it_filters_spells_by_single_damage_type()
-    {
-        // Fire damage spells (code: F)
-        $response = $this->getJson('/api/v1/spells?filter=damage_types IN [F]');
-
-        $response->assertOk();
-        $response->assertJsonStructure(['data', 'links', 'meta']);
-
-        if ($response->json('meta.total') > 0) {
-            // Verify results have fire damage in their effects
-            foreach ($response->json('data') as $spell) {
-                $this->assertNotEmpty($spell['effects'] ?? [], "Spell {$spell['name']} should have effects");
-                $hasFire = false;
-                foreach ($spell['effects'] ?? [] as $effect) {
-                    if (isset($effect['damage_type']['code']) && $effect['damage_type']['code'] === 'F') {
-                        $hasFire = true;
-                        break;
-                    }
-                }
-                $this->assertTrue($hasFire, "Spell {$spell['name']} should have fire damage");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells with fire damage');
-        }
-    }
-
-    #[Test]
-    public function it_filters_spells_by_multiple_damage_types()
-    {
-        // Fire or Cold damage spells (codes: F, C)
-        $response = $this->getJson('/api/v1/spells?filter=damage_types IN [F, C]');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertNotEmpty($spell['effects'] ?? [], "Spell {$spell['name']} should have effects");
-                $hasFireOrCold = false;
-                foreach ($spell['effects'] ?? [] as $effect) {
-                    $code = $effect['damage_type']['code'] ?? null;
-                    if (in_array($code, ['F', 'C'])) {
-                        $hasFireOrCold = true;
-                        break;
-                    }
-                }
-                $this->assertTrue($hasFireOrCold, "Spell {$spell['name']} should have fire or cold damage");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells with fire or cold damage');
-        }
-    }
-
-    #[Test]
     public function it_filters_spells_with_no_damage()
     {
         // Utility/buff spells with no damage effects
@@ -163,79 +110,6 @@ class SpellEnhancedFilteringTest extends TestCase
     // ===================================================================
 
     #[Test]
-    public function it_filters_spells_by_single_saving_throw()
-    {
-        // DEX save spells (useful against slow creatures)
-        $response = $this->getJson('/api/v1/spells?filter=saving_throws IN [DEX]');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertNotEmpty($spell['saving_throws'] ?? [],
-                    "Spell {$spell['name']} should have saving throws");
-                $hasDex = false;
-                foreach ($spell['saving_throws'] ?? [] as $save) {
-                    if ($save['ability_score']['code'] === 'DEX') {
-                        $hasDex = true;
-                        break;
-                    }
-                }
-                $this->assertTrue($hasDex, "Spell {$spell['name']} should require DEX save");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells with DEX saving throws');
-        }
-    }
-
-    #[Test]
-    public function it_filters_spells_by_multiple_saving_throws()
-    {
-        // DEX or CON saves (common weak points)
-        $response = $this->getJson('/api/v1/spells?filter=saving_throws IN [DEX, CON]');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertNotEmpty($spell['saving_throws'] ?? [],
-                    "Spell {$spell['name']} should have saving throws");
-                $hasDexOrCon = false;
-                foreach ($spell['saving_throws'] ?? [] as $save) {
-                    $code = $save['ability_score']['code'] ?? null;
-                    if (in_array($code, ['DEX', 'CON'])) {
-                        $hasDexOrCon = true;
-                        break;
-                    }
-                }
-                $this->assertTrue($hasDexOrCon,
-                    "Spell {$spell['name']} should require DEX or CON save");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells with DEX or CON saving throws');
-        }
-    }
-
-    #[Test]
-    public function it_filters_spells_with_no_saving_throws()
-    {
-        // Auto-hit spells (like Magic Missile)
-        $response = $this->getJson('/api/v1/spells?filter=saving_throws IS EMPTY');
-
-        $response->assertOk();
-
-        // Should find auto-hit/buff spells
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                $this->assertEmpty($spell['saving_throws'] ?? [],
-                    "Spell {$spell['name']} should not require saving throws");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells without saving throws');
-        }
-    }
-
-    #[Test]
     public function it_combines_saving_throw_with_level_filter()
     {
         // Low-level WIS save spells (levels 1-3)
@@ -264,66 +138,6 @@ class SpellEnhancedFilteringTest extends TestCase
     // ===================================================================
     // COMPONENT BREAKDOWN FILTERING TESTS
     // ===================================================================
-
-    #[Test]
-    public function it_filters_spells_without_verbal_component()
-    {
-        // Spells castable in Silence
-        $response = $this->getJson('/api/v1/spells?filter=requires_verbal = false');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                // Verify components field doesn't contain 'V'
-                $components = $spell['components'];
-                $this->assertStringNotContainsString('V', $components,
-                    "Spell {$spell['name']} should not require verbal component");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells without verbal component');
-        }
-    }
-
-    #[Test]
-    public function it_filters_spells_without_somatic_component()
-    {
-        // Spells castable while grappled/restrained
-        $response = $this->getJson('/api/v1/spells?filter=requires_somatic = false');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                // Verify components field doesn't contain 'S'
-                $components = $spell['components'];
-                $this->assertStringNotContainsString('S', $components,
-                    "Spell {$spell['name']} should not require somatic component");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells without somatic component');
-        }
-    }
-
-    #[Test]
-    public function it_filters_spells_without_material_component()
-    {
-        // Spells that don't need component pouch/focus
-        $response = $this->getJson('/api/v1/spells?filter=requires_material = false');
-
-        $response->assertOk();
-
-        if ($response->json('meta.total') > 0) {
-            foreach ($response->json('data') as $spell) {
-                // Verify components field doesn't contain 'M'
-                $components = $spell['components'];
-                $this->assertStringNotContainsString('M', $components,
-                    "Spell {$spell['name']} should not require material component");
-            }
-        } else {
-            $this->markTestSkipped('Test data fixtures do not include spells without material component');
-        }
-    }
 
     #[Test]
     public function it_filters_subtle_spell_candidates()

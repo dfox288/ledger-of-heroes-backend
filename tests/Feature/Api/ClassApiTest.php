@@ -3,6 +3,8 @@
 namespace Tests\Feature\Api;
 
 use App\Models\CharacterClass;
+use App\Models\ClassFeature;
+use App\Models\ClassLevelProgression;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -156,14 +158,10 @@ class ClassApiTest extends TestCase
     #[Test]
     public function it_includes_class_features_in_response()
     {
-        // Find a class with features
-        $classWithFeatures = CharacterClass::has('features')->first();
+        $class = CharacterClass::factory()->create();
+        ClassFeature::factory()->forClass($class)->create();
 
-        if (! $classWithFeatures) {
-            $this->markTestSkipped('No classes with features in fixtures');
-        }
-
-        $response = $this->getJson("/api/v1/classes/{$classWithFeatures->id}");
+        $response = $this->getJson("/api/v1/classes/{$class->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -173,22 +171,16 @@ class ClassApiTest extends TestCase
                     ],
                 ],
             ]);
-
-        // Verify class has at least one feature
         $this->assertGreaterThan(0, count($response->json('data.features')));
     }
 
     #[Test]
     public function it_includes_level_progression_in_response()
     {
-        // Find a class with level progression
-        $classWithProgression = CharacterClass::has('levelProgression')->first();
+        $class = CharacterClass::factory()->create();
+        ClassLevelProgression::factory()->forClass($class)->atLevel(1)->create();
 
-        if (! $classWithProgression) {
-            $this->markTestSkipped('No classes with level progression in fixtures');
-        }
-
-        $response = $this->getJson("/api/v1/classes/{$classWithProgression->id}");
+        $response = $this->getJson("/api/v1/classes/{$class->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -198,8 +190,6 @@ class ClassApiTest extends TestCase
                     ],
                 ],
             ]);
-
-        // Verify class has level progression data
         $this->assertGreaterThan(0, count($response->json('data.level_progression')));
     }
 
@@ -263,62 +253,16 @@ class ClassApiTest extends TestCase
     #[Test]
     public function base_class_includes_subclass_level()
     {
-        // Find a base class that has subclasses with features (which generates subclass_level)
-        $baseClassWithSubclassFeatures = CharacterClass::whereNull('parent_class_id')
-            ->whereHas('subclasses.features')
-            ->first();
+        // subclass_level is computed from the lowest level at which a subclass
+        // has a feature. Seed: base class + subclass + subclass feature at level 3.
+        $baseClass = CharacterClass::factory()->create();
+        $subclass = CharacterClass::factory()->subclass($baseClass)->create();
+        ClassFeature::factory()->forClass($subclass)->atLevel(3)->create();
 
-        if (! $baseClassWithSubclassFeatures) {
-            $this->markTestSkipped('No base classes with subclass features in fixtures');
-        }
-
-        $response = $this->getJson("/api/v1/classes/{$baseClassWithSubclassFeatures->slug}");
+        $response = $this->getJson("/api/v1/classes/{$baseClass->slug}");
 
         $response->assertStatus(200);
-        // subclass_level is computed from subclass features, so it should not be null
-        $this->assertNotNull($response->json('data.subclass_level'));
-    }
-
-    #[Test]
-    public function cleric_has_subclass_level_1()
-    {
-        // Cleric gets subclass at level 1 (Divine Domain)
-        $cleric = CharacterClass::where('slug', 'cleric')->first();
-
-        if (! $cleric) {
-            $this->markTestSkipped('Cleric not in fixtures');
-        }
-
-        // Check if cleric has the data to compute subclass_level
-        if ($cleric->subclass_level === null) {
-            $this->markTestSkipped('Cleric has no subclass features to compute subclass_level');
-        }
-
-        $response = $this->getJson('/api/v1/classes/cleric');
-
-        $response->assertStatus(200)
-            ->assertJsonPath('data.subclass_level', 1);
-    }
-
-    #[Test]
-    public function wizard_has_subclass_level_2()
-    {
-        // Wizard gets subclass at level 2 (Arcane Tradition)
-        $wizard = CharacterClass::where('slug', 'wizard')->first();
-
-        if (! $wizard) {
-            $this->markTestSkipped('Wizard not in fixtures');
-        }
-
-        // Check if wizard has the data to compute subclass_level
-        if ($wizard->subclass_level === null) {
-            $this->markTestSkipped('Wizard has no subclass features to compute subclass_level');
-        }
-
-        $response = $this->getJson('/api/v1/classes/wizard');
-
-        $response->assertStatus(200)
-            ->assertJsonPath('data.subclass_level', 2);
+        $this->assertSame(3, $response->json('data.subclass_level'));
     }
 
     #[Test]

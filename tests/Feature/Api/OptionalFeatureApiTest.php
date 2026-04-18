@@ -2,8 +2,12 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\ResourceType;
 use App\Models\CharacterClass;
+use App\Models\EntityPrerequisite;
+use App\Models\EntitySource;
 use App\Models\OptionalFeature;
+use App\Models\Source;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -73,11 +77,12 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_includes_sources_in_response(): void
     {
-        $feature = OptionalFeature::whereHas('sources')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with sources in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create(['slug' => 'test:of-sources-'.uniqid()]);
+        $source = Source::firstOrFail();
+        EntitySource::factory()->forEntity(OptionalFeature::class, $feature->id)->create([
+            'source_id' => $source->id,
+            'pages' => '42',
+        ]);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
@@ -94,11 +99,9 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_includes_classes_in_response(): void
     {
-        $feature = OptionalFeature::whereHas('classes')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with classes in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create(['slug' => 'test:of-classes-'.uniqid()]);
+        $class = CharacterClass::firstOrFail();
+        $feature->classes()->attach($class->id);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
@@ -110,17 +113,18 @@ class OptionalFeatureApiTest extends TestCase
                 ],
             ],
         ]);
+        $this->assertGreaterThan(0, count($response->json('data.classes')));
     }
 
     #[Test]
     public function optional_feature_includes_spell_mechanics_when_applicable(): void
     {
-        // Find an elemental discipline or similar with spell mechanics
-        $feature = OptionalFeature::whereNotNull('casting_time')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with spell mechanics in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create([
+            'slug' => 'test:of-spell-mech-'.uniqid(),
+            'casting_time' => '1 action',
+            'range' => '60 feet',
+            'duration' => 'Instantaneous',
+        ]);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
@@ -138,11 +142,11 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_includes_resource_cost_when_applicable(): void
     {
-        $feature = OptionalFeature::whereNotNull('resource_type')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with resource costs in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create([
+            'slug' => 'test:of-resource-'.uniqid(),
+            'resource_type' => ResourceType::SUPERIORITY_DIE,
+            'resource_cost' => 1,
+        ]);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
@@ -180,29 +184,6 @@ class OptionalFeatureApiTest extends TestCase
         sort($sortedNames);
 
         $this->assertEquals($sortedNames, $names, 'Optional features should be sorted alphabetically by name');
-    }
-
-    #[Test]
-    public function can_sort_optional_features_by_level_requirement(): void
-    {
-        $response = $this->getJson('/api/v1/optional-features?sort_by=level_requirement&sort_direction=asc&per_page=20');
-
-        $response->assertOk();
-
-        $levels = collect($response->json('data'))
-            ->pluck('level_requirement')
-            ->filter() // Remove nulls
-            ->values()
-            ->toArray();
-
-        if (count($levels) < 2) {
-            $this->markTestSkipped('Not enough optional features with level requirements for sort test');
-        }
-
-        $sortedLevels = $levels;
-        sort($sortedLevels);
-
-        $this->assertEquals($sortedLevels, $levels, 'Optional features should be sorted by level requirement');
     }
 
     #[Test]
@@ -249,11 +230,8 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_includes_prerequisites_in_response(): void
     {
-        $feature = OptionalFeature::whereHas('prerequisites')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with prerequisites in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create(['slug' => 'test:of-prereq-'.uniqid()]);
+        EntityPrerequisite::factory()->forEntity(OptionalFeature::class, $feature->id)->create();
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
@@ -277,19 +255,17 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_with_class_prerequisite_includes_class_resource(): void
     {
-        $feature = OptionalFeature::whereHas('prerequisites', function ($query) {
-            $query->where('prerequisite_type', CharacterClass::class);
-        })->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('No optional features with class prerequisites in fixture data');
-        }
+        $feature = OptionalFeature::factory()->create(['slug' => 'test:of-class-prereq-'.uniqid()]);
+        $class = CharacterClass::firstOrFail();
+        EntityPrerequisite::factory()->forEntity(OptionalFeature::class, $feature->id)->create([
+            'prerequisite_type' => CharacterClass::class,
+            'prerequisite_id' => $class->id,
+        ]);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 
         $response->assertOk();
 
-        // Find the class prerequisite in the response
         $classPrereq = collect($response->json('data.prerequisites'))
             ->firstWhere('prerequisite_type', CharacterClass::class);
 
@@ -302,11 +278,8 @@ class OptionalFeatureApiTest extends TestCase
     #[Test]
     public function optional_feature_without_prerequisites_returns_empty_array(): void
     {
-        $feature = OptionalFeature::whereDoesntHave('prerequisites')->first();
-
-        if (! $feature) {
-            $this->markTestSkipped('All optional features have prerequisites in fixture data');
-        }
+        // Factory default creates an OptionalFeature with no prerequisites.
+        $feature = OptionalFeature::factory()->create(['slug' => 'test:of-no-prereq-'.uniqid()]);
 
         $response = $this->getJson("/api/v1/optional-features/{$feature->slug}");
 

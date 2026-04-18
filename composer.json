@@ -11,7 +11,7 @@
         "http-interop/http-factory-guzzle": "^1.2",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.2",
-        "laravel/scout": "^10.22",
+        "laravel/scout": "^11.1",
         "laravel/tinker": "^3.0",
         "meilisearch/meilisearch-php": "^1.16",
         "spatie/laravel-medialibrary": "^11.17",

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Upgraded to Laravel 13** (`laravel/framework` `^12.52` → `^13.0`, resolved to v13.5.0). `laravel/tinker` bumped `^2.10.1` → `^3.0` — tinker 2.x caps at Laravel 12. Symfony components moved 7.4 → 8.0 as part of the L13 toolchain. Framework upgrade guide: https://laravel.com/docs/13.x/upgrade.
+- No application code changes were required: the project's API-only surface meant none of the L13 breaking changes (CSRF middleware rename, JobAttempted listener signature, Eloquent boot() instantiation ban, custom queue-driver contract additions) applied. All five test suites returned identical pass counts to the pre-upgrade baseline.
+- **Deployment note**: Laravel 13 jobs serialized by Laravel 12 workers may fail. Drain existing queues before deploying or run mixed-version workers temporarily.
 - **Toolchain prep for Laravel 13**: PHP constraint bumped `^8.2` → `^8.3`; `laravel/framework` floor raised to `^12.52` (required by Pest 4's Laravel plugin); upgraded Pest v3 → v4 and PHPUnit 11 → 12 in lockstep.
 - Refreshed `composer.lock` and resolved 5 security advisories in the process:
   - CVE-2026-24765 (high): `phpunit/phpunit` unsafe deserialization, <12.5.8 → 12.5.22.

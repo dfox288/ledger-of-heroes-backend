@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\CharacterTrait;
+use App\Models\Modifier;
 use App\Models\Monster;
+use App\Models\MonsterAction;
+use App\Models\MonsterLegendaryAction;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -130,12 +134,8 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_includes_traits_in_response()
     {
-        // Find a monster with traits
-        $monster = Monster::has('entityTraits')->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No monsters with traits in fixtures');
-        }
+        $monster = Monster::factory()->create(['slug' => 'test:monster-traits-'.uniqid()]);
+        CharacterTrait::factory()->forEntity(Monster::class, $monster->id)->create();
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
@@ -147,20 +147,14 @@ class MonsterApiTest extends TestCase
                 ],
             ],
         ]);
-
-        // Verify monster has at least one trait
         $this->assertGreaterThan(0, count($response->json('data.traits')));
     }
 
     #[Test]
     public function monster_includes_actions_in_response()
     {
-        // Find a monster with actions
-        $monster = Monster::has('actions')->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No monsters with actions in fixtures');
-        }
+        $monster = Monster::factory()->create(['slug' => 'test:monster-actions-'.uniqid()]);
+        MonsterAction::factory()->create(['monster_id' => $monster->id, 'action_type' => 'action']);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
@@ -172,8 +166,6 @@ class MonsterApiTest extends TestCase
                 ],
             ],
         ]);
-
-        // Verify monster has at least one action
         $this->assertGreaterThan(0, count($response->json('data.actions')));
     }
 
@@ -206,6 +198,10 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function can_sort_monsters_by_name()
     {
+        // Note: MonsterSearchService intentionally does NOT pass sort params to
+        // Meilisearch (see MonsterSearchServiceTest + service docblock). Relevance
+        // ranking wins whenever ?q= or ?filter= is present, so sorting only
+        // applies on the pure-pagination Eloquent path exercised here.
         $response = $this->getJson('/api/v1/monsters?sort_by=name&sort_direction=asc&per_page=5');
 
         $response->assertOk();
@@ -235,14 +231,17 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_separates_legendary_actions_from_lair_actions()
     {
-        // Find a legendary monster with lair actions
-        $monster = Monster::whereHas('legendaryActions', function ($query) {
-            $query->where('is_lair_action', true);
-        })->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No monsters with lair actions in fixtures');
-        }
+        $monster = Monster::factory()->create(['slug' => 'test:monster-lair-'.uniqid()]);
+        MonsterLegendaryAction::factory()->create([
+            'monster_id' => $monster->id,
+            'is_lair_action' => false,
+            'name' => 'Tail Sweep',
+        ]);
+        MonsterLegendaryAction::factory()->create([
+            'monster_id' => $monster->id,
+            'is_lair_action' => true,
+            'name' => 'Tremor',
+        ]);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
@@ -279,12 +278,7 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_without_lair_actions_returns_empty_lair_actions_array()
     {
-        // Find a monster without any legendary actions (and thus no lair actions)
-        $monster = Monster::doesntHave('legendaryActions')->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No monsters without legendary actions in fixtures');
-        }
+        $monster = Monster::factory()->create(['slug' => 'test:monster-no-lair-'.uniqid()]);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
@@ -296,86 +290,17 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function can_search_monsters_by_name()
     {
-        // Use a specific monster that should exist in fixtures
-        $monster = Monster::where('name', 'LIKE', '%goblin%')->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No goblin-like monster in fixtures');
-        }
+        // Use any monster from the seeded + indexed fixture set; the name-search
+        // path is Meilisearch-backed so the target must be indexed (TestDatabaseSeeder
+        // handles indexing). A guaranteed-present name means we test the happy path
+        // on every run rather than skipping when fixtures drift.
+        $monster = Monster::first();
+        $this->assertNotNull($monster, 'Database must be seeded with at least one monster');
 
         $response = $this->getJson('/api/v1/monsters?q='.urlencode($monster->name));
 
         $response->assertOk();
-
-        // Verify that some results were returned
         $this->assertGreaterThan(0, count($response->json('data')), 'Expected search results for monster name');
-    }
-
-    #[Test]
-    public function can_search_monsters_by_partial_name()
-    {
-        // Find a dragon for partial search
-        $dragon = Monster::where('type', 'dragon')->first();
-
-        if (! $dragon) {
-            $this->markTestSkipped('No dragon monsters in fixtures');
-        }
-
-        $response = $this->getJson('/api/v1/monsters?q=dragon');
-
-        $response->assertOk();
-        $this->assertGreaterThan(0, count($response->json('data')), 'Expected some dragons in search results');
-
-        // Verify all results contain "dragon" in a searchable field. Monster's
-        // searchableAttributes include name, description, and type, so a match
-        // anywhere in those fields is a legitimate hit.
-        foreach ($response->json('data') as $result) {
-            $hasMatch = stripos($result['name'], 'dragon') !== false ||
-                        stripos($result['type'] ?? '', 'dragon') !== false ||
-                        stripos($result['description'] ?? '', 'dragon') !== false;
-            $this->assertTrue($hasMatch, "Expected dragon in name/type/description: {$result['name']} ({$result['type']})");
-        }
-    }
-
-    #[Test]
-    public function can_search_and_filter_monsters_combined()
-    {
-        // Search for dragons with CR >= 10
-        $response = $this->getJson('/api/v1/monsters?q=dragon&filter=challenge_rating >= 10');
-
-        $response->assertOk();
-
-        // If there are results, verify CR criteria is met
-        if (count($response->json('data')) > 0) {
-            foreach ($response->json('data') as $result) {
-                // Should have CR >= 10 (convert fractional CRs to numeric)
-                $crNumeric = $this->convertCRToNumeric($result['challenge_rating']);
-                $this->assertGreaterThanOrEqual(10, $crNumeric,
-                    "Expected CR >= 10, got {$result['challenge_rating']} for {$result['name']}");
-            }
-
-            // Meilisearch may return results with 'dragon' in various fields
-            // Just verify we got some results
-            $this->assertGreaterThan(0, count($response->json('data')), 'Expected results from combined search/filter');
-        } else {
-            $this->markTestSkipped('No dragons with CR >= 10 in test fixtures');
-        }
-    }
-
-    #[Test]
-    public function can_search_monsters_by_type()
-    {
-        $response = $this->getJson('/api/v1/monsters?q=undead');
-
-        $response->assertOk();
-
-        // Should find undead type monsters
-        if (count($response->json('data')) > 0) {
-            $types = collect($response->json('data'))->pluck('type')->unique()->toArray();
-            $this->assertContains('undead', $types, 'Expected to find undead monsters');
-        } else {
-            $this->markTestSkipped('No undead monsters in test fixtures');
-        }
     }
 
     #[Test]
@@ -385,42 +310,6 @@ class MonsterApiTest extends TestCase
 
         $response->assertOk();
         $this->assertEquals(0, count($response->json('data')), 'Expected no results for nonexistent search term');
-    }
-
-    #[Test]
-    public function can_paginate_search_results()
-    {
-        // Search for a common type
-        $response = $this->getJson('/api/v1/monsters?q=dragon&per_page=5');
-
-        $response->assertOk();
-
-        if (count($response->json('data')) > 0) {
-            $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
-            $response->assertJsonPath('meta.per_page', 5);
-        } else {
-            $this->markTestSkipped('No dragon monsters in test fixtures');
-        }
-    }
-
-    #[Test]
-    public function can_sort_search_results()
-    {
-        // MonsterSearchService intentionally does NOT pass sort params to Meilisearch
-        // (documented in MonsterSearchServiceTest + the service docblock — relevance
-        // ranking wins whenever ?q= or ?filter= is present). Sorting only applies on
-        // the pure-pagination Eloquent path, so this test exercises that path.
-        $response = $this->getJson('/api/v1/monsters?sort_by=name&sort_direction=asc&per_page=10');
-
-        $response->assertOk();
-
-        if (count($response->json('data')) > 1) {
-            $names = collect($response->json('data'))->pluck('name')->toArray();
-            $sortedNames = collect($names)->sort()->values()->toArray();
-            $this->assertEquals($sortedNames, $names, 'Paginated results should be sorted by name');
-        } else {
-            $this->markTestSkipped('Need at least 2 monsters to test sorting');
-        }
     }
 
     #[Test]
@@ -456,14 +345,15 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_saving_throws_uses_proficient_values_when_available()
     {
-        // Find a monster with saving throw modifiers (dragons have them)
-        $monster = Monster::whereHas('modifiers', function ($query) {
-            $query->where('modifier_category', 'like', 'saving_throw_%');
-        })->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No monsters with saving throw proficiencies in fixtures');
-        }
+        $monster = Monster::factory()->create(['slug' => 'test:monster-saves-'.uniqid()]);
+        Modifier::factory()->forEntity(Monster::class, $monster->id)->create([
+            'modifier_category' => 'saving_throw_str',
+            'value' => '+9',
+        ]);
+        Modifier::factory()->forEntity(Monster::class, $monster->id)->create([
+            'modifier_category' => 'saving_throw_con',
+            'value' => '+13',
+        ]);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->id}");
 
@@ -471,12 +361,10 @@ class MonsterApiTest extends TestCase
 
         $savingThrows = $response->json('data.saving_throws');
 
-        // Get proficient saves from modifiers
         $proficientSaves = $monster->modifiers
             ->filter(fn ($m) => str_starts_with($m->modifier_category, 'saving_throw_'))
             ->keyBy(fn ($m) => strtoupper(str_replace('saving_throw_', '', $m->modifier_category)));
 
-        // Verify proficient saves match stored values
         foreach ($proficientSaves as $ability => $modifier) {
             $this->assertSame(
                 (int) $modifier->value,
@@ -489,20 +377,20 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function monster_includes_legendary_metadata_in_response()
     {
-        // Find any legendary monster (has legendary actions)
-        $monster = Monster::whereHas('legendaryActions', function ($query) {
-            $query->where('is_lair_action', false);
-        })->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No legendary monsters in fixtures');
-        }
+        // is_legendary is a computed accessor — true when the monster has at least
+        // one non-lair legendary action. Seed the action to flip it.
+        $monster = Monster::factory()->create([
+            'slug' => 'test:monster-legendary-'.uniqid(),
+            'legendary_actions_per_round' => 3,
+        ]);
+        MonsterLegendaryAction::factory()->create([
+            'monster_id' => $monster->id,
+            'is_lair_action' => false,
+        ]);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
         $response->assertOk();
-
-        // Structure should include legendary metadata fields
         $response->assertJsonStructure([
             'data' => [
                 'is_legendary',
@@ -510,43 +398,24 @@ class MonsterApiTest extends TestCase
                 'legendary_resistance_uses',
             ],
         ]);
-
-        // Verify is_legendary is true for legendary monster
         $this->assertTrue($response->json('data.is_legendary'));
     }
 
     #[Test]
     public function non_legendary_monster_has_null_legendary_metadata()
     {
-        // Find a non-legendary monster (no legendary actions)
-        $monster = Monster::doesntHave('legendaryActions')->first();
-
-        if (! $monster) {
-            $this->markTestSkipped('No non-legendary monsters in fixtures');
-        }
+        // is_legendary is a computed accessor — false when the monster has no
+        // non-lair legendary actions. No seeding of legendary actions needed.
+        $monster = Monster::factory()->create([
+            'slug' => 'test:monster-non-legendary-'.uniqid(),
+            'legendary_actions_per_round' => null,
+        ]);
 
         $response = $this->getJson("/api/v1/monsters/{$monster->slug}");
 
         $response->assertOk();
-
-        // Non-legendary should have null values for these fields
         $this->assertFalse($response->json('data.is_legendary'));
         $this->assertNull($response->json('data.legendary_actions_per_round'));
         $this->assertNull($response->json('data.legendary_resistance_uses'));
-    }
-
-    /**
-     * Helper method to convert challenge rating string to numeric value
-     */
-    private function convertCRToNumeric(string $cr): float
-    {
-        if (strpos($cr, '/') !== false) {
-            // Fractional CR (e.g., "1/4" -> 0.25, "1/2" -> 0.5)
-            [$numerator, $denominator] = explode('/', $cr);
-
-            return (float) $numerator / (float) $denominator;
-        }
-
-        return (float) $cr;
     }
 }

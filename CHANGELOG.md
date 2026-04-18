@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Toolchain prep for Laravel 13**: PHP constraint bumped `^8.2` → `^8.3`; `laravel/framework` floor raised to `^12.52` (required by Pest 4's Laravel plugin); upgraded Pest v3 → v4 and PHPUnit 11 → 12 in lockstep.
+- Refreshed `composer.lock` and resolved 5 security advisories in the process:
+  - CVE-2026-24765 (high): `phpunit/phpunit` unsafe deserialization, <12.5.8 → 12.5.22.
+  - CVE-2026-33347 / CVE-2026-30838 (medium): `league/commonmark` extension bypasses.
+  - CVE-2026-25129 (medium): `psy/psysh` local privilege escalation via CWD auto-load.
+  - CVE-2026-24739 (medium): `symfony/process` argument escaping under MSYS2/Git Bash.
+- Notable transitive bumps: `laravel/framework` 12.43.1 → 12.56.0, `spatie/laravel-medialibrary` 11.17.7 → 11.21.0, `spatie/laravel-tags` 4.10.1 → 4.11.0. `phpunit/phpcov` 10 → 11 (tracks PHPUnit 12).
+- No application code changes; all four green suites (Unit-Pure 954, Unit-DB 1390/9 skip, Feature-DB 704, Feature-Search 510/38 skip) still pass. Importers suite has 6 pre-existing failures unrelated to the toolchain bump.
+
 ### Breaking Changes
 
 - **Issue #755**: Unified ability scores format and removed duplicate fields in `CharacterResource`

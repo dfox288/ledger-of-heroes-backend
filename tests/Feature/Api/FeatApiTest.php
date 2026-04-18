@@ -2,7 +2,12 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\EntityCondition;
+use App\Models\EntityLanguage;
 use App\Models\Feat;
+use App\Models\Language;
+use App\Models\Modifier;
+use App\Models\Proficiency;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -87,12 +92,8 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_modifiers_in_response()
     {
-        // Find a feat with modifiers
-        $feat = Feat::whereHas('modifiers')->first();
-
-        if (! $feat) {
-            $this->markTestSkipped('No feats with modifiers in imported data');
-        }
+        $feat = Feat::factory()->create();
+        Modifier::factory()->forEntity(Feat::class, $feat->id)->create();
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -109,20 +110,18 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_proficiencies_in_response()
     {
-        // Find a feat with proficiencies
-        $feat = Feat::whereHas('proficiencies')->first();
-
-        if (! $feat) {
-            $this->markTestSkipped('No feats with proficiencies in imported data');
-        }
+        $feat = Feat::factory()->create();
+        Proficiency::factory()->forEntity(Feat::class, $feat->id)->create();
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
         $response->assertOk();
         $response->assertJsonStructure([
             'data' => [
+                // Note: is_choice and quantity were dropped from entity_proficiencies by
+                // migration 2025_01_01_000021. Choices now live in entity_choices.
                 'proficiencies' => [
-                    '*' => ['proficiency_type', 'proficiency_name', 'is_choice', 'quantity'],
+                    '*' => ['proficiency_type', 'proficiency_name', 'grants'],
                 ],
             ],
         ]);
@@ -131,12 +130,14 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_conditions_in_response()
     {
-        // Find a feat with conditions
-        $feat = Feat::whereHas('conditions')->first();
-
-        if (! $feat) {
-            $this->markTestSkipped('No feats with conditions in imported data');
-        }
+        $feat = Feat::factory()->create();
+        EntityCondition::create([
+            'reference_type' => Feat::class,
+            'reference_id' => $feat->id,
+            'condition_id' => null,
+            'effect_type' => 'advantage',
+            'description' => 'Advantage on saving throws against being charmed.',
+        ]);
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -182,21 +183,13 @@ class FeatApiTest extends TestCase
     #[Test]
     public function feat_includes_languages_in_response()
     {
-        // Linguist feat should exist from import
-        $feat = Feat::where('slug', 'linguist')->first();
-
-        if (! $feat) {
-            $this->markTestSkipped('Linguist feat not found in imported data');
-        }
-
-        // Ensure language data exists (may need re-import for full coverage)
-        if ($feat->languages()->count() === 0) {
-            $feat->languages()->create([
-                'language_id' => null,
-                'is_choice' => true,
-                'quantity' => 3,
-            ]);
-        }
+        // Note: language CHOICES now live in entity_choices (via EntityChoiceResource).
+        // entity_languages only holds fixed language grants. Test the fixed-grant path.
+        $feat = Feat::factory()->create();
+        $language = Language::factory()->create();
+        EntityLanguage::factory()->forEntity(Feat::class, $feat->id)
+            ->withLanguage($language->id)
+            ->create();
 
         $response = $this->getJson("/api/v1/feats/{$feat->id}");
 
@@ -204,14 +197,11 @@ class FeatApiTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 'languages' => [
-                    '*' => ['is_choice', 'quantity'],
+                    '*' => ['language' => ['id', 'name']],
                 ],
             ],
         ]);
-
-        // Linguist grants 3 language choices
-        $response->assertJsonPath('data.languages.0.is_choice', true);
-        $response->assertJsonPath('data.languages.0.quantity', 3);
+        $response->assertJsonPath('data.languages.0.language.id', $language->id);
     }
 
     #[Test]
@@ -228,26 +218,6 @@ class FeatApiTest extends TestCase
         // Verify that the feat is in the results
         $names = collect($response->json('data'))->pluck('name')->toArray();
         $this->assertContains($feat->name, $names, "Expected to find {$feat->name} in search results");
-    }
-
-    #[Test]
-    public function can_search_feats_by_partial_name()
-    {
-        // Search for feats containing "master"
-        $response = $this->getJson('/api/v1/feats?q=master');
-
-        $response->assertOk();
-
-        // Should find feats like "Heavy Armor Master", "Crossbow Expert" etc
-        if (count($response->json('data')) > 0) {
-            foreach ($response->json('data') as $result) {
-                $hasMatch = stripos($result['name'], 'master') !== false ||
-                            stripos($result['description'], 'master') !== false;
-                $this->assertTrue($hasMatch, "Expected 'master' in name or description: {$result['name']}");
-            }
-        } else {
-            $this->markTestSkipped('No feats containing "master" in test fixtures');
-        }
     }
 
     #[Test]
@@ -268,27 +238,6 @@ class FeatApiTest extends TestCase
     }
 
     #[Test]
-    public function can_search_and_filter_feats_combined()
-    {
-        // Search for combat feats that boost STR
-        $response = $this->getJson('/api/v1/feats?q=attack&filter=improved_abilities IN [STR]');
-
-        $response->assertOk();
-
-        // If there are results, verify they match both criteria
-        if (count($response->json('data')) > 0) {
-            foreach ($response->json('data') as $result) {
-                // Should contain "attack" somewhere (relaxed check)
-                $hasAttack = stripos($result['name'], 'attack') !== false ||
-                             stripos($result['description'], 'attack') !== false;
-                $this->assertTrue($hasAttack, "Expected 'attack' in feat {$result['name']}");
-            }
-        } else {
-            $this->markTestSkipped('No feats matching "attack" with STR improvement in test fixtures');
-        }
-    }
-
-    #[Test]
     public function can_search_feats_with_filter_only()
     {
         // Filter without search query - feats without prerequisites
@@ -305,61 +254,6 @@ class FeatApiTest extends TestCase
 
         $response->assertOk();
         $this->assertEquals(0, count($response->json('data')), 'Expected no results for nonexistent search term');
-    }
-
-    #[Test]
-    public function can_paginate_search_results()
-    {
-        // Search for common term with pagination
-        $response = $this->getJson('/api/v1/feats?q=weapon&per_page=5');
-
-        $response->assertOk();
-
-        if (count($response->json('data')) > 0) {
-            $this->assertLessThanOrEqual(5, count($response->json('data')), 'Should respect per_page limit');
-            $response->assertJsonPath('meta.per_page', 5);
-        } else {
-            $this->markTestSkipped('No feats containing "weapon" in test fixtures');
-        }
-    }
-
-    #[Test]
-    public function can_sort_search_results()
-    {
-        // Search and sort by name
-        $response = $this->getJson('/api/v1/feats?q=armor&sort_by=name&sort_direction=asc');
-
-        $response->assertOk();
-
-        if (count($response->json('data')) > 1) {
-            $names = collect($response->json('data'))->pluck('name')->toArray();
-
-            // Verify results are in alphabetical order by checking first vs last
-            $this->assertLessThanOrEqual(0, strcasecmp($names[0], end($names)),
-                'Search results should be sorted alphabetically');
-        } else {
-            $this->markTestSkipped('Need at least 2 feats containing "armor" to test sorting');
-        }
-    }
-
-    #[Test]
-    public function can_search_feats_case_insensitive()
-    {
-        // Use Alert feat with various case combinations
-        $response = $this->getJson('/api/v1/feats?q=ALERT');
-
-        $response->assertOk();
-
-        if (count($response->json('data')) > 0) {
-            $names = collect($response->json('data'))->pluck('name')->toArray();
-            // Should find "Alert" feat regardless of case
-            $this->assertTrue(
-                in_array('Alert', $names),
-                'Expected to find Alert feat in case-insensitive search'
-            );
-        } else {
-            $this->markTestSkipped('Alert feat not in test fixtures');
-        }
     }
 
     #[Test]

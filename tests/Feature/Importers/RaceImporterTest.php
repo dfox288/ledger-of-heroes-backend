@@ -601,9 +601,10 @@ XML;
     #[Test]
     public function it_imports_conditions()
     {
-        // Create frightened condition if it doesn't exist
+        // Create frightened condition if it doesn't exist (canonical 'core:' prefix
+        // matches ConditionSeeder convention — see ImportsConditions trait lookup).
         $condition = Condition::firstOrCreate(
-            ['slug' => 'frightened'],
+            ['slug' => 'core:frightened'],
             ['name' => 'Frightened', 'description' => 'Test condition']
         );
 

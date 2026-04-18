@@ -21,8 +21,23 @@ class ImportsConditionsTest extends TestCase
     #[Test]
     public function it_imports_conditions_with_condition_lookup()
     {
-        // Skip: condition name lookup is broken with prefixed slugs - needs production code fix
-        $this->markTestSkipped('Condition name lookup broken with prefixed slugs - needs ImportsConditions trait fix');
+        $race = Race::factory()->create();
+        $poisoned = Condition::firstOrCreate(
+            ['slug' => 'core:poisoned'],
+            ['name' => 'Poisoned', 'description' => 'Disadvantage on attack rolls and ability checks.']
+        );
+
+        $this->importEntityConditions($race, [
+            [
+                'condition_name' => 'poisoned',
+                'effect_type' => 'immunity',
+            ],
+        ]);
+
+        $condition = $race->fresh()->conditions->first();
+        $this->assertNotNull($condition);
+        $this->assertEquals($poisoned->id, $condition->condition_id);
+        $this->assertEquals('immunity', $condition->effect_type);
     }
 
     #[Test]
@@ -48,8 +63,26 @@ class ImportsConditionsTest extends TestCase
     #[Test]
     public function it_imports_multiple_conditions()
     {
-        // Skip: condition name lookup is broken with prefixed slugs - needs production code fix
-        $this->markTestSkipped('Condition name lookup broken with prefixed slugs - needs ImportsConditions trait fix');
+        $race = Race::factory()->create();
+        $poisoned = Condition::firstOrCreate(
+            ['slug' => 'core:poisoned'],
+            ['name' => 'Poisoned', 'description' => '']
+        );
+        $charmed = Condition::firstOrCreate(
+            ['slug' => 'core:charmed'],
+            ['name' => 'Charmed', 'description' => '']
+        );
+
+        $this->importEntityConditions($race, [
+            ['condition_name' => 'poisoned', 'effect_type' => 'immunity'],
+            ['condition_name' => 'charmed', 'effect_type' => 'advantage'],
+        ]);
+
+        $race->refresh();
+        $this->assertCount(2, $race->conditions);
+        $conditionIds = $race->conditions->pluck('condition_id')->all();
+        $this->assertContains($poisoned->id, $conditionIds);
+        $this->assertContains($charmed->id, $conditionIds);
     }
 
     #[Test]
@@ -86,8 +119,24 @@ class ImportsConditionsTest extends TestCase
     #[Test]
     public function it_handles_condition_name_with_slug_normalization()
     {
-        // Skip: condition name lookup is broken with prefixed slugs - needs production code fix
-        $this->markTestSkipped('Condition name lookup broken with prefixed slugs - needs ImportsConditions trait fix');
+        $race = Race::factory()->create();
+        $frightened = Condition::firstOrCreate(
+            ['slug' => 'core:frightened'],
+            ['name' => 'Frightened', 'description' => '']
+        );
+
+        // Pass condition_name with capitalization; trait normalizes via Str::slug
+        // and resolves to the canonical 'core:frightened' slug.
+        $this->importEntityConditions($race, [
+            [
+                'condition_name' => 'Frightened',
+                'effect_type' => 'immunity',
+            ],
+        ]);
+
+        $condition = $race->fresh()->conditions->first();
+        $this->assertNotNull($condition);
+        $this->assertEquals($frightened->id, $condition->condition_id);
     }
 
     #[Test]

@@ -37,12 +37,15 @@ class BackgroundFixtureSeeder extends FixtureSeeder
             'slug' => $slug,
         ]);
 
-        // Handle skill proficiencies
+        // Handle skill proficiencies.
+        // Fixtures reference skills by bare slug ("insight"); SkillSeeder stores them
+        // with the production "core:" prefix ("core:insight"). Try both.
         if (! empty($item['skill_proficiencies'])) {
             foreach ($item['skill_proficiencies'] as $skillProf) {
                 $skill = null;
                 if (! empty($skillProf['skill_slug'])) {
-                    $skill = Skill::where('slug', $skillProf['skill_slug'])->first();
+                    $slug = $skillProf['skill_slug'];
+                    $skill = Skill::whereIn('slug', [$slug, 'core:'.$slug])->first();
                 }
 
                 Proficiency::create([

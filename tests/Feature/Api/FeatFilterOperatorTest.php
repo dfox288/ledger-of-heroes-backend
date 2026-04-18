@@ -135,7 +135,7 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_slug_with_equals(): void
     {
-        $response = $this->getJson('/api/v1/feats?filter=slug = alert');
+        $response = $this->getJson('/api/v1/feats?filter=slug = "phb:alert"');
 
         $response->assertOk();
         $this->assertEquals(1, $response->json('meta.total'));
@@ -145,12 +145,12 @@ class FeatFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_slug_with_not_equals(): void
     {
-        $response = $this->getJson('/api/v1/feats?filter=slug != alert');
+        $response = $this->getJson('/api/v1/feats?filter=slug != "phb:alert"');
 
         $response->assertOk();
-        // Verify the filter works - 'alert' should not be in results
+        // Verify the filter works - 'phb:alert' should not be in results
         $returnedSlugs = collect($response->json('data'))->pluck('slug')->toArray();
-        $this->assertNotContains('alert', $returnedSlugs, 'Alert should not be in results');
+        $this->assertNotContains('phb:alert', $returnedSlugs, 'Alert should not be in results');
     }
 
     // ============================================================

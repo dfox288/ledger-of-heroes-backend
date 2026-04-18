@@ -128,7 +128,7 @@ class MonsterApiTest extends TestCase
     public function monster_includes_traits_in_response()
     {
         // Find a monster with traits
-        $monster = Monster::has('traits')->first();
+        $monster = Monster::has('entityTraits')->first();
 
         if (! $monster) {
             $this->markTestSkipped('No monsters with traits in fixtures');
@@ -323,11 +323,14 @@ class MonsterApiTest extends TestCase
         $response->assertOk();
         $this->assertGreaterThan(0, count($response->json('data')), 'Expected some dragons in search results');
 
-        // Verify all results contain "dragon" in name or type
+        // Verify all results contain "dragon" in a searchable field. Monster's
+        // searchableAttributes include name, description, and type, so a match
+        // anywhere in those fields is a legitimate hit.
         foreach ($response->json('data') as $result) {
             $hasMatch = stripos($result['name'], 'dragon') !== false ||
-                        stripos($result['type'], 'dragon') !== false;
-            $this->assertTrue($hasMatch, "Expected dragon in name or type: {$result['name']} ({$result['type']})");
+                        stripos($result['type'] ?? '', 'dragon') !== false ||
+                        stripos($result['description'] ?? '', 'dragon') !== false;
+            $this->assertTrue($hasMatch, "Expected dragon in name/type/description: {$result['name']} ({$result['type']})");
         }
     }
 
@@ -400,17 +403,20 @@ class MonsterApiTest extends TestCase
     #[Test]
     public function can_sort_search_results()
     {
-        // Search and sort by name
-        $response = $this->getJson('/api/v1/monsters?q=dragon&sort_by=name&sort_direction=asc&per_page=10');
+        // MonsterSearchService intentionally does NOT pass sort params to Meilisearch
+        // (documented in MonsterSearchServiceTest + the service docblock — relevance
+        // ranking wins whenever ?q= or ?filter= is present). Sorting only applies on
+        // the pure-pagination Eloquent path, so this test exercises that path.
+        $response = $this->getJson('/api/v1/monsters?sort_by=name&sort_direction=asc&per_page=10');
 
         $response->assertOk();
 
         if (count($response->json('data')) > 1) {
             $names = collect($response->json('data'))->pluck('name')->toArray();
             $sortedNames = collect($names)->sort()->values()->toArray();
-            $this->assertEquals($sortedNames, $names, 'Search results should be sorted by name');
+            $this->assertEquals($sortedNames, $names, 'Paginated results should be sorted by name');
         } else {
-            $this->markTestSkipped('Need at least 2 dragon monsters to test sorting');
+            $this->markTestSkipped('Need at least 2 monsters to test sorting');
         }
     }
 

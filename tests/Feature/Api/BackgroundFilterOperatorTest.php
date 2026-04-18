@@ -212,16 +212,16 @@ class BackgroundFilterOperatorTest extends TestCase
         // Arrange: Verify database has backgrounds
         $this->assertGreaterThan(0, Background::count(), 'Database must be seeded with backgrounds');
 
-        // Act: Filter by slug = "acolyte" (well-known PHB background)
+        // Act: Filter by slug = "phb:acolyte" (source-prefixed, as stored in DB)
         // Note: Filtering uses Meilisearch field name (slug)
-        $response = $this->getJson('/api/v1/backgrounds?filter=slug = "acolyte"');
+        $response = $this->getJson('/api/v1/backgrounds?filter=slug = "phb:acolyte"');
 
         // Assert
         $response->assertOk();
         $this->assertEquals(1, $response->json('meta.total'), 'Should find exactly one acolyte background');
 
-        // Verify the returned background has slug = 'acolyte'
-        $this->assertEquals('acolyte', $response->json('data.0.slug'), 'Should return acolyte background');
+        // Verify the returned background has slug = 'phb:acolyte'
+        $this->assertEquals('phb:acolyte', $response->json('data.0.slug'), 'Should return acolyte background');
         $this->assertEquals('Acolyte', $response->json('data.0.name'), 'Should return Acolyte background');
     }
 
@@ -231,16 +231,16 @@ class BackgroundFilterOperatorTest extends TestCase
         // Arrange: Verify database has backgrounds
         $this->assertGreaterThan(0, Background::count(), 'Database must be seeded with backgrounds');
 
-        // Act: Filter by slug != "acolyte"
+        // Act: Filter by slug != "phb:acolyte" (source-prefixed)
         // Note: Filtering uses Meilisearch field name (slug)
-        $response = $this->getJson('/api/v1/backgrounds?filter=slug != "acolyte"');
+        $response = $this->getJson('/api/v1/backgrounds?filter=slug != "phb:acolyte"');
 
         // Assert: Filter should work without errors
         $response->assertOk();
 
         // Verify no acolyte in results (if any returned)
         $slugs = collect($response->json('data'))->pluck('slug')->toArray();
-        $this->assertNotContains('acolyte', $slugs, 'Acolyte should be excluded');
+        $this->assertNotContains('phb:acolyte', $slugs, 'Acolyte should be excluded');
     }
 
     // ============================================================
@@ -251,8 +251,9 @@ class BackgroundFilterOperatorTest extends TestCase
     public function it_filters_by_skill_proficiencies_with_in(): void
     {
         // Acolyte has Insight and Religion proficiencies (from PHB import)
-        // Act: Filter by skill_proficiencies IN [insight, religion]
-        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN [insight, religion]&per_page=100');
+        // Skill slugs are stored with the "core:" prefix (see SkillSeeder).
+        // Act: Filter by skill_proficiencies IN ["core:insight", "core:religion"]
+        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies IN ["core:insight", "core:religion"]&per_page=100');
 
         // Assert: Should return backgrounds that grant insight OR religion proficiency
         $response->assertOk();
@@ -266,8 +267,9 @@ class BackgroundFilterOperatorTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_filters_by_skill_proficiencies_with_not_in(): void
     {
-        // Act: Filter by skill_proficiencies NOT IN [insight]
-        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN [insight]&per_page=100');
+        // Skill slugs are stored with the "core:" prefix (see SkillSeeder).
+        // Act: Filter by skill_proficiencies NOT IN ["core:insight"]
+        $response = $this->getJson('/api/v1/backgrounds?filter=skill_proficiencies NOT IN ["core:insight"]&per_page=100');
 
         // Assert: Should return backgrounds that do NOT grant insight proficiency
         $response->assertOk();

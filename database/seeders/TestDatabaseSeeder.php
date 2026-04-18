@@ -57,6 +57,11 @@ class TestDatabaseSeeder extends Seeder
     /**
      * Index all searchable models for Meilisearch.
      * Called after entity fixtures are seeded.
+     *
+     * Flushes each index first so fixture tests don't inherit stale documents
+     * from a previous `just import-test` run or a prior fixture seed — the
+     * test_* indexes are shared across invocations and Scout's searchable()
+     * only adds records, it doesn't remove orphans.
      */
     protected function indexSearchableModels(): void
     {
@@ -72,6 +77,7 @@ class TestDatabaseSeeder extends Seeder
         ];
 
         foreach ($models as $model) {
+            $model::removeAllFromSearch();
             if ($model::count() > 0) {
                 $model::all()->searchable();
             }

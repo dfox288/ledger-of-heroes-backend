@@ -33,10 +33,18 @@ class RaceFixtureSeeder extends FixtureSeeder
         // Resolve size by code
         $size = Size::where('code', $item['size'])->first();
 
-        // Resolve parent race by slug (if exists)
+        // Resolve parent race by slug (if exists).
+        // Fixture uses the bare slug (e.g. "elf"); DB may store it bare (when the parent
+        // entry has no source) or source-prefixed (e.g. "phb:human"). Try both forms,
+        // preferring an exact match first, then the current item's source prefix.
         $parentRace = null;
         if (! empty($item['parent_race_slug'])) {
-            $parentRace = Race::where('slug', $item['parent_race_slug'])->first();
+            $parentSlug = $item['parent_race_slug'];
+            $candidates = [$parentSlug];
+            if (! str_contains($parentSlug, ':') && ! empty($item['source'])) {
+                $candidates[] = strtolower($item['source']).':'.$parentSlug;
+            }
+            $parentRace = Race::whereIn('slug', $candidates)->first();
         }
 
         // Calculate total ability points to determine if subrace is required

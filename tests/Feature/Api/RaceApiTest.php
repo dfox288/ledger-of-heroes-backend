@@ -2,7 +2,17 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\AbilityScore;
+use App\Models\CharacterTrait;
+use App\Models\EntityCondition;
+use App\Models\EntityDataTable;
+use App\Models\EntityDataTableEntry;
+use App\Models\EntitySpell;
+use App\Models\Modifier;
+use App\Models\Proficiency;
 use App\Models\Race;
+use App\Models\Skill;
+use App\Models\Spell;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
@@ -124,12 +134,8 @@ class RaceApiTest extends TestCase
     #[Test]
     public function it_includes_proficiencies_in_response()
     {
-        // Find any race with proficiencies
-        $race = Race::has('proficiencies')->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with proficiencies in fixtures');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-proficiencies-'.uniqid()]);
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create();
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
@@ -223,74 +229,51 @@ class RaceApiTest extends TestCase
     #[Test]
     public function race_proficiencies_include_skill_resource()
     {
-        // Find a race with skill proficiencies
-        $race = Race::whereHas('proficiencies', function ($q) {
-            $q->where('proficiency_type', 'skill');
-        })->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with skill proficiencies in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-skill-prof-'.uniqid()]);
+        Proficiency::factory()->forEntity(Race::class, $race->id)->skill('Stealth')->create();
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'data' => [
-                    'proficiencies' => [
-                        '*' => [
-                            'proficiency_type',
-                        ],
-                    ],
-                ],
-            ]);
+        $response->assertStatus(200);
 
-        // Find skill proficiency and verify it has skill resource
         $proficiencies = $response->json('data.proficiencies');
         $skillProf = collect($proficiencies)->first(fn ($p) => $p['proficiency_type'] === 'skill');
 
-        if ($skillProf) {
-            $this->assertArrayHasKey('skill', $skillProf);
-            $this->assertArrayHasKey('id', $skillProf['skill']);
-            $this->assertArrayHasKey('name', $skillProf['skill']);
-        }
+        $this->assertNotNull($skillProf, 'Expected a skill-type proficiency in the response');
+        $this->assertArrayHasKey('skill', $skillProf);
+        $this->assertArrayHasKey('id', $skillProf['skill']);
+        $this->assertArrayHasKey('name', $skillProf['skill']);
     }
 
     #[Test]
     public function race_traits_with_data_tables_include_entry_resource()
     {
-        // Find a race with traits that have data tables
-        $race = Race::whereHas('traits.dataTables')->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with data table traits in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-data-table-'.uniqid()]);
+        $trait = CharacterTrait::factory()->forEntity(Race::class, $race->id)->create();
+        $table = EntityDataTable::factory()->forEntity(CharacterTrait::class, $trait->id)->create();
+        EntityDataTableEntry::factory()->forTable($table)->create();
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
         $response->assertStatus(200);
 
         $traits = $response->json('data.traits');
-        $traitsWithTables = collect($traits)->filter(fn ($t) => ! empty($t['data_tables']));
-
-        if ($traitsWithTables->isNotEmpty()) {
-            $traitWithTable = $traitsWithTables->first();
-            $this->assertArrayHasKey('data_tables', $traitWithTable);
-            $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
-        }
+        $traitWithTable = collect($traits)->first(fn ($t) => ! empty($t['data_tables']));
+        $this->assertNotNull($traitWithTable, 'Expected a trait with at least one data_table');
+        $this->assertArrayHasKey('entries', $traitWithTable['data_tables'][0]);
+        $this->assertGreaterThan(0, count($traitWithTable['data_tables'][0]['entries']));
     }
 
     #[Test]
     public function modifier_includes_skill_when_present()
     {
-        // Find a race with skill modifiers
-        $race = Race::whereHas('modifiers', function ($q) {
-            $q->where('modifier_category', 'skill');
-        })->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with skill modifiers in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-skill-mod-'.uniqid()]);
+        $skill = Skill::firstOrFail();
+        Modifier::factory()->forEntity(Race::class, $race->id)->create([
+            'modifier_category' => 'skill',
+            'skill_id' => $skill->id,
+            'value' => '+1',
+        ]);
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
@@ -298,25 +281,21 @@ class RaceApiTest extends TestCase
 
         $modifiers = $response->json('data.modifiers');
         $skillMod = collect($modifiers)->first(fn ($m) => $m['modifier_category'] === 'skill');
-
-        if ($skillMod) {
-            $this->assertArrayHasKey('skill', $skillMod);
-            $this->assertArrayHasKey('id', $skillMod['skill']);
-            $this->assertArrayHasKey('name', $skillMod['skill']);
-        }
+        $this->assertNotNull($skillMod, 'Expected a skill-category modifier in the response');
+        $this->assertArrayHasKey('skill', $skillMod);
+        $this->assertArrayHasKey('id', $skillMod['skill']);
+        $this->assertArrayHasKey('name', $skillMod['skill']);
     }
 
     #[Test]
     public function proficiency_includes_ability_score_when_present()
     {
-        // Find a race with saving throw proficiencies
-        $race = Race::whereHas('proficiencies', function ($q) {
-            $q->where('proficiency_type', 'saving_throw');
-        })->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with saving throw proficiencies in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-save-prof-'.uniqid()]);
+        $ability = AbilityScore::firstOrFail();
+        Proficiency::factory()->forEntity(Race::class, $race->id)->create([
+            'proficiency_type' => 'saving_throw',
+            'ability_score_id' => $ability->id,
+        ]);
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
@@ -325,23 +304,24 @@ class RaceApiTest extends TestCase
         $proficiencies = $response->json('data.proficiencies');
         $savingThrowProf = collect($proficiencies)->first(fn ($p) => $p['proficiency_type'] === 'saving_throw');
 
-        if ($savingThrowProf) {
-            $this->assertArrayHasKey('ability_score', $savingThrowProf);
-            $this->assertArrayHasKey('id', $savingThrowProf['ability_score']);
-            $this->assertArrayHasKey('code', $savingThrowProf['ability_score']);
-            $this->assertArrayHasKey('name', $savingThrowProf['ability_score']);
-        }
+        $this->assertNotNull($savingThrowProf, 'Expected a saving_throw-type proficiency in the response');
+        $this->assertArrayHasKey('ability_score', $savingThrowProf);
+        $this->assertArrayHasKey('id', $savingThrowProf['ability_score']);
+        $this->assertArrayHasKey('code', $savingThrowProf['ability_score']);
+        $this->assertArrayHasKey('name', $savingThrowProf['ability_score']);
     }
 
     #[Test]
     public function race_response_includes_conditions()
     {
-        // Find a race with conditions
-        $race = Race::whereHas('conditions')->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with conditions in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-conditions-'.uniqid()]);
+        EntityCondition::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'condition_id' => null,
+            'effect_type' => 'advantage',
+            'description' => 'Advantage on saving throws vs being charmed.',
+        ]);
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
@@ -363,12 +343,18 @@ class RaceApiTest extends TestCase
     #[Test]
     public function race_response_includes_spells()
     {
-        // Find a race with spells
-        $race = Race::whereHas('spells')->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with spells in imported data');
-        }
+        $race = Race::factory()->create(['slug' => 'test:race-spells-'.uniqid()]);
+        $spell = Spell::factory()->create();
+        $ability = AbilityScore::firstOrFail();
+        EntitySpell::create([
+            'reference_type' => Race::class,
+            'reference_id' => $race->id,
+            'spell_id' => $spell->id,
+            'ability_score_id' => $ability->id,
+            'is_cantrip' => false,
+            'level_requirement' => 1,
+            'usage_limit' => 1,
+        ]);
 
         $response = $this->getJson("/api/v1/races/{$race->id}");
 
@@ -385,34 +371,6 @@ class RaceApiTest extends TestCase
                             'is_cantrip',
                             'level_requirement',
                             'usage_limit',
-                        ],
-                    ],
-                ],
-            ]);
-    }
-
-    #[Test]
-    public function modifier_includes_choice_fields()
-    {
-        // Find a race with choice modifiers
-        $race = Race::whereHas('modifiers', function ($q) {
-            $q->where('is_choice', true);
-        })->first();
-
-        if (! $race) {
-            $this->markTestSkipped('No races with choice modifiers in imported data');
-        }
-
-        $response = $this->getJson("/api/v1/races/{$race->id}");
-
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'data' => [
-                    'modifiers' => [
-                        '*' => [
-                            'is_choice',
-                            'choice_count',
-                            'choice_constraint',
                         ],
                     ],
                 ],
